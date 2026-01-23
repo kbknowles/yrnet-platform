@@ -1,0 +1,167 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/* =========================
+   CORE SEASON
+========================= */
+
+model Season {
+  id        Int      @id @default(autoincrement())
+  year      String   @unique
+  startDate DateTime
+  endDate   DateTime
+  active    Boolean  @default(false)
+
+  events    Event[]
+  officers  Officer[]   // ✅ ADD THIS
+
+  createdAt DateTime @default(now())
+}
+
+/* =========================
+   LOCATIONS
+========================= */
+
+model Location {
+  id            Int     @id @default(autoincrement())
+  name          String
+  streetAddress String
+  city          String
+  state         String
+  zip           String
+
+  notes         String?
+  stallInfo     String?
+  hookupInfo    String?
+  assignmentRules String?
+
+  events        Event[]
+
+  createdAt     DateTime @default(now())
+}
+
+/* =========================
+   CALL-IN POLICY
+========================= */
+
+model CallInPolicy {
+  id             Int      @id @default(autoincrement())
+  platform       String
+  entryOpen      DateTime
+  entryClose     DateTime
+  lateOpen       DateTime?
+  lateClose      DateTime?
+  lateContact    String?
+  notes          String?
+
+  events         Event[]
+
+  createdAt      DateTime @default(now())
+}
+
+/* =========================
+   EVENTS
+========================= */
+
+model Event {
+  id              Int      @id @default(autoincrement())
+  name            String
+  slug            String   @unique
+
+  startDate       DateTime
+  endDate         DateTime
+
+  seasonId        Int
+  locationId      Int
+  callInPolicyId  Int?
+
+  generalInfo     String?
+  specials        Json?
+
+  isStateFinals   Boolean  @default(false)
+  status          String   @default("published")
+
+  season          Season       @relation(fields: [seasonId], references: [id])
+  location        Location     @relation(fields: [locationId], references: [id])
+  callInPolicy    CallInPolicy? @relation(fields: [callInPolicyId], references: [id])
+
+  scheduleItems   EventScheduleItem[]
+  contacts        EventContact[]
+
+  createdAt       DateTime @default(now())
+}
+
+/* =========================
+   EVENT SCHEDULE (TIMELINE)
+========================= */
+
+model EventScheduleItem {
+  id        Int      @id @default(autoincrement())
+  eventId   Int
+
+  label     String
+  date      DateTime
+  startTime String?
+  notes     String?
+
+  event     Event @relation(fields: [eventId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+/* =========================
+   OFFICERS
+========================= */
+
+model Officer {
+  id         Int      @id @default(autoincrement())
+  name       String
+  role       String   // President, Secretary, Treasurer, etc.
+  type       String   // adult, student, queen
+
+  emailAlias String?
+  phone      String?
+
+  seasonId   Int
+  active     Boolean  @default(true)
+
+  season     Season @relation(fields: [seasonId], references: [id])
+
+  createdAt  DateTime @default(now())
+}
+
+/* =========================
+   EVENT CONTACT ROLES
+========================= */
+
+model EventContact {
+  id           Int      @id @default(autoincrement())
+  eventId      Int
+
+  contactRole  String   // entries, membership, obligations
+  officerRole  String   // maps to Officer.role
+
+  event        Event @relation(fields: [eventId], references: [id])
+
+  createdAt    DateTime @default(now())
+}
+
+/* =========================
+   SPONSORS (PHASE 0 VIEW ONLY)
+========================= */
+
+model Sponsor {
+  id        Int      @id @default(autoincrement())
+  name      String
+  logoUrl   String?
+  website   String?
+  active    Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+}
