@@ -7,9 +7,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-/* =========================
-   CORE SEASON
-========================= */
+/**
+ * =========================
+ * CORE SEASON
+ * =========================
+ */
 
 model Season {
   id        Int      @id @default(autoincrement())
@@ -18,150 +20,164 @@ model Season {
   endDate   DateTime
   active    Boolean  @default(false)
 
-  events    Event[]
-  officers  Officer[]   // ✅ ADD THIS
+  events   Event[]
+  officers Officer[] // ✅ ADD THIS
 
   createdAt DateTime @default(now())
 }
 
-/* =========================
-   LOCATIONS
-========================= */
+/**
+ * =========================
+ * LOCATIONS
+ * =========================
+ */
 
 model Location {
-  id            Int     @id @default(autoincrement())
+  id            Int    @id @default(autoincrement())
   name          String
   streetAddress String
   city          String
   state         String
   zip           String
 
-  notes         String?
-  stallInfo     String?
-  hookupInfo    String?
+  notes           String?
+  stallInfo       String?
+  hookupInfo      String?
   assignmentRules String?
 
-  events        Event[]
+  events Event[]
 
-  createdAt     DateTime @default(now())
+  createdAt DateTime @default(now())
 }
 
-/* =========================
-   CALL-IN POLICY
-========================= */
+/**
+ * =========================
+ * CALL-IN POLICY
+ * =========================
+ */
 
 model CallInPolicy {
-  id             Int      @id @default(autoincrement())
-  platform       String
-  entryOpen      DateTime
-  entryClose     DateTime
-  lateOpen       DateTime?
-  lateClose      DateTime?
-  lateContact    String?
-  notes          String?
+  id          Int       @id @default(autoincrement())
+  platform    String
+  entryOpen   DateTime
+  entryClose  DateTime
+  lateOpen    DateTime?
+  lateClose   DateTime?
+  lateContact String?
+  notes       String?
 
-  events         Event[]
+  events Event[]
 
-  createdAt      DateTime @default(now())
+  createdAt DateTime @default(now())
 }
 
-/* =========================
-   EVENTS
-========================= */
+/**
+ * =========================
+ * EVENTS
+ * =========================
+ */
 
 model Event {
-  id              Int      @id @default(autoincrement())
-  name            String
-  slug            String   @unique
+  id   Int    @id @default(autoincrement())
+  name String
+  slug String @unique
 
-  startDate       DateTime
-  endDate         DateTime
+  startDate DateTime
+  endDate   DateTime
 
-  seasonId        Int
-  locationId      Int
-  callInPolicyId  Int?
+  seasonId       Int
+  locationId     Int
+  callInPolicyId Int?
 
-  generalInfo     String?
-  specials        Json?
+  generalInfo String?
+  specials    Json?
 
-  isStateFinals   Boolean  @default(false)
-  status          String   @default("published")
+  isStateFinals Boolean @default(false)
+  status        String  @default("published")
 
-  season          Season       @relation(fields: [seasonId], references: [id])
-  location        Location     @relation(fields: [locationId], references: [id])
-  callInPolicy    CallInPolicy? @relation(fields: [callInPolicyId], references: [id])
+  season       Season        @relation(fields: [seasonId], references: [id])
+  location     Location      @relation(fields: [locationId], references: [id])
+  callInPolicy CallInPolicy? @relation(fields: [callInPolicyId], references: [id])
 
-  scheduleItems   EventScheduleItem[]
-  contacts        EventContact[]
+  scheduleItems EventScheduleItem[]
+  contacts      EventContact[]
 
-  createdAt       DateTime @default(now())
+  createdAt DateTime @default(now())
 }
 
-/* =========================
-   EVENT SCHEDULE (TIMELINE)
-========================= */
+/**
+ * =========================
+ * EVENT SCHEDULE (TIMELINE)
+ * =========================
+ */
 
 model EventScheduleItem {
-  id        Int      @id @default(autoincrement())
-  eventId   Int
+  id      Int @id @default(autoincrement())
+  eventId Int
 
   label     String
   date      DateTime
   startTime String?
   notes     String?
 
-  event     Event @relation(fields: [eventId], references: [id])
+  event Event @relation(fields: [eventId], references: [id])
 
   createdAt DateTime @default(now())
 }
 
-/* =========================
-   OFFICERS
-========================= */
+/**
+ * =========================
+ * OFFICERS
+ * =========================
+ */
 
 model Officer {
-  id         Int      @id @default(autoincrement())
-  name       String
-  role       String   // President, Secretary, Treasurer, etc.
-  type       String   // adult, student, queen
+  id   Int    @id @default(autoincrement())
+  name String
+  role String // President, Secretary, Treasurer, etc.
+  type String // adult, student, queen
 
   emailAlias String?
   phone      String?
 
-  seasonId   Int
-  active     Boolean  @default(true)
+  seasonId Int
+  active   Boolean @default(true)
 
-  season     Season @relation(fields: [seasonId], references: [id])
+  season Season @relation(fields: [seasonId], references: [id])
 
-  createdAt  DateTime @default(now())
+  createdAt DateTime @default(now())
 }
 
-/* =========================
-   EVENT CONTACT ROLES
-========================= */
+/**
+ * =========================
+ * EVENT CONTACT ROLES
+ * =========================
+ */
 
 model EventContact {
-  id           Int      @id @default(autoincrement())
-  eventId      Int
+  id      Int @id @default(autoincrement())
+  eventId Int
 
-  contactRole  String   // entries, membership, obligations
-  officerRole  String   // maps to Officer.role
+  contactRole String // entries, membership, obligations
+  officerRole String // maps to Officer.role
 
-  event        Event @relation(fields: [eventId], references: [id])
+  event Event @relation(fields: [eventId], references: [id])
 
-  createdAt    DateTime @default(now())
+  createdAt DateTime @default(now())
 }
 
-/* =========================
-   SPONSORS (PHASE 0 VIEW ONLY)
-========================= */
+/**
+ * =========================
+ * SPONSORS (PHASE 0 VIEW ONLY)
+ * =========================
+ */
 
 model Sponsor {
-  id        Int      @id @default(autoincrement())
-  name      String
-  logoUrl   String?
-  website   String?
-  active    Boolean  @default(true)
+  id      Int     @id @default(autoincrement())
+  name    String
+  logoUrl String?
+  website String?
+  active  Boolean @default(true)
 
   createdAt DateTime @default(now())
 }

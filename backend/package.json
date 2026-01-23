@@ -3,5 +3,17 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "node src/index.js"
+  },
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "6.19.2",
+    "express": "5.2.1",
+    "prisma": "6.19.2"
   }
 }
