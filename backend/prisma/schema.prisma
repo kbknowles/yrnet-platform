@@ -101,6 +101,7 @@ model Event {
 
   scheduleItems EventScheduleItem[]
   contacts      EventContact[]
+  announcements Announcement[]
 
   createdAt DateTime @default(now())
 }
@@ -180,4 +181,26 @@ model Sponsor {
   active  Boolean @default(true)
 
   createdAt DateTime @default(now())
+}
+
+
+model Announcement {
+  id        Int    @id @default(autoincrement())
+  eventId   Int
+
+  title     String
+  content   String      // main announcement body (markdown or plain text)
+  type      String?     // general, jackpot, church, stall, reminder
+  sortOrder Int    @default(0)
+
+  extras    Json?       // structured add-ons (fees, times, rules, notes)
+
+  published Boolean @default(false)
+  publishAt DateTime?
+  expireAt  DateTime?
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
