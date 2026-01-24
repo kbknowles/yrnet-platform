@@ -1,5 +1,7 @@
 import express from "express";
 import scheduleRoutes from "./api/schedule.route.js";
+import calendarRoutes from "./api/calendar.route.js";
+
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -13,6 +15,8 @@ app.get("/", (req, res) => {
 
 // Schedule API
 app.use("/api/schedule", scheduleRoutes);
+
+app.use("/api/calendar", calendarRoutes);
 
 app.listen(PORT, () => {
   console.log(`Backend listening on port ${PORT}`);

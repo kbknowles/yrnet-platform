@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Button Styles */
+.btn {
+  @apply inline-block px-5 py-2 rounded-md font-semibold text-white text-center transition duration-200 shadow-md;
+}
+.btn:hover {
+  @apply shadow-lg;
+}
+.btn-red {
+  @apply bg-red hover:bg-gold;
+}
+.btn-blue {
+  @apply bg-blue hover:bg-red;
+}
+.btn-gold {
+  @apply bg-gold hover:bg-red;
+}
+.btn-lg {
+  @apply px-8 py-3 text-lg font-bold rounded-md shadow-md;
+}
+
+/* Utility Hover Fixes */
+a {
+  @apply transition-colors duration-200;
+}
+@keyframes fadeUp {
+  0% {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fadeUp 1.2s ease-out both;
+}
+
+.tablepress {
+  border-collapse: collapse;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 1000px;
+}
+
+.tablepress th {
+  background-color: #003366; /* AHSRA Blue */
+  color: white;
+  font-weight: bold;
+  text-align: center;
+}
+
+.tablepress td, .tablepress th {
+  border: 1px solid #ccc;
+  padding: 0.5rem;
+}
+
+.tablepress tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
