@@ -17,13 +17,11 @@ async function getNextThreeRodeos() {
     .slice(0, 3);
 }
 
-export default async function HomePage() {
-  const upcoming = await getNextThreeRodeos();
-
+export default function HomePage() {
   return (
-    <main className="bg-gray-100 text-gray-900 flex flex-col min-h-screen">
+    <main className="bg-gray-100 text-gray-900">
 
-      {/* Hero Section */}
+      {/* HERO */}
       <header
         className="relative text-white"
         style={{
@@ -33,136 +31,137 @@ export default async function HomePage() {
           backgroundPosition: "center",
         }}
       >
-        <div className="max-w-6xl mx-auto px-4 py-28 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold">
+        <div className="max-w-6xl mx-auto px-4 py-24 md:py-32 text-center space-y-4">
+          <h1 className="text-3xl md:text-5xl font-bold">
             Alabama High School Rodeo Association
           </h1>
-          <p className="mt-4 text-lg">
-            Promoting youth, sportsmanship, and the western way of life
+          <p className="max-w-2xl mx-auto text-gray-100">
+            Promoting youth, sportsmanship, and the western way of life through
+            competitive high school rodeo.
           </p>
-          <a
-            href="#join"
-            className="inline-block mt-6 border border-white px-6 py-3 text-lg hover:bg-white hover:text-black transition"
-          >
-            Join Now
-          </a>
         </div>
       </header>
 
-      {/* Intro */}
-      <section className="bg-white py-16 text-center">
-        <div className="max-w-4xl mx-auto px-4">
-          <h2 className="inline-block border-b-4 border-red-700 pb-1 text-2xl font-semibold text-blue-900">
-            What We Do
-          </h2>
-          <p className="mt-6 text-gray-700">
-            AHSRA provides student athletes in Alabama the opportunity to compete
-            in professional-style rodeo events while building character,
-            confidence, and connections that last a lifetime.
-          </p>
-        </div>
-      </section>
-
-      {/* Upcoming Rodeos */}
-      <section className="bg-gray-100 py-16">
-        <div className="max-w-6xl mx-auto px-4">
-          <h2 className="inline-block border-b-4 border-red-700 pb-1 mb-10 text-2xl font-semibold text-blue-900">
-            Upcoming Rodeos
-          </h2>
-
-          {upcoming.length === 0 ? (
-            <div className="rounded-lg border bg-white p-6 text-center">
-              <p className="text-gray-700">
-                Upcoming rodeos will be posted soon.
-              </p>
-            </div>
-          ) : (
-            <div className="grid gap-6 md:grid-cols-3">
-              {upcoming.map(event => (
-                <div
-                  key={event.id}
-                  className="border rounded-xl bg-white p-5 shadow-sm hover:scale-[1.02] transition"
-                >
-                  <h3 className="font-semibold">{event.name}</h3>
-                  <p className="text-sm text-gray-600">
-                    {new Date(event.startDate).toLocaleDateString()} –{" "}
-                    {new Date(event.endDate).toLocaleDateString()}
-                  </p>
-                  <p className="mt-2 text-sm">
-                    {event.location?.city}, {event.location?.state}
-                  </p>
-                  <Link
-                    href={`/schedule/${event.slug}`}
-                    className="inline-block mt-3 text-sm text-blue-700 underline"
-                  >
-                    View Details
-                  </Link>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Athlete Spotlight */}
+      {/* WHAT IS AHSRA */}
       <section className="bg-white py-16">
-        <div className="max-w-6xl mx-auto px-4 text-center">
-          <h2 className="inline-block border-b-4 border-red-700 pb-1 mb-10 text-2xl font-semibold text-blue-900">
-            Athlete Spotlight
+        <div className="max-w-4xl mx-auto px-4 space-y-6">
+          <h2 className="text-2xl font-semibold text-ahsra-blue">
+            What Is AHSRA & Why It Matters
           </h2>
 
-          <div className="grid gap-6 md:grid-cols-3">
-            <div className="bg-gray-100 rounded-xl p-6">
-              <div className="mx-auto mb-4 h-28 w-28 rounded-full bg-gray-300" />
-              <h5 className="font-semibold">Chanlee Turner</h5>
-              <p className="text-sm text-gray-600">
-                Barrel Racing | Class of 2025
-              </p>
-              <a
-                href="#"
-                className="inline-block mt-3 text-sm text-blue-700 underline"
-              >
-                View Profile
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Sponsors */}
-      <section className="bg-gray-100 py-16 text-center">
-        <div className="max-w-6xl mx-auto px-4">
-          <h2 className="inline-block border-b-4 border-red-700 pb-1 text-2xl font-semibold text-blue-900">
-            Thank You to Our Sponsors
-          </h2>
-
-          <div className="mt-8 flex flex-wrap justify-center gap-6">
-            <div className="h-16 w-40 bg-gray-300 rounded" />
-            <div className="h-16 w-40 bg-gray-300 rounded" />
-          </div>
-        </div>
-      </section>
-
-      {/* Call to Action */}
-      <section
-        id="join"
-        className="py-16 text-center text-white"
-        style={{ backgroundColor: "#3c3b6e" }}
-      >
-        <div className="max-w-4xl mx-auto px-4">
-          <h2 className="text-3xl font-bold">Ready to Ride?</h2>
-          <p className="mt-4 text-lg">
-            Become a member of the Alabama High School Rodeo Association today.
+          <p>
+            The Alabama High School Rodeo Association exists to give student
+            athletes the opportunity to compete, grow, and represent the western
+            way of life through high school rodeo.
           </p>
-          <a
-            href="/membership"
-            className="inline-block mt-6 bg-white text-blue-900 px-6 py-3 text-lg font-semibold"
-          >
-            Join AHSRA
-          </a>
+
+          <p>
+            Rodeo builds more than skills in the arena. It teaches honesty,
+            integrity, humility, and respect — values carried far beyond the
+            competition.
+          </p>
+
+          <p>
+            Win or lose, every rodeo helps shape confident, responsible young
+            leaders prepared for life.
+          </p>
         </div>
+      </section>
+
+      {/* UPCOMING + ANNOUNCEMENTS */}
+      <section className="py-16 bg-gray-100">
+        <div className="max-w-6xl mx-auto px-4 grid gap-10 md:grid-cols-2">
+
+          {/* UPCOMING RODEOS */}
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold text-ahsra-blue">
+              Upcoming Rodeos
+            </h3>
+
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="rounded-lg border bg-white p-4"
+              >
+                <p className="font-medium">Rodeo Name</p>
+                <p className="text-sm text-gray-600">
+                  Location • Date Range
+                </p>
+              </div>
+            ))}
+
+            <a href="/schedule" className="text-sm text-ahsra-blue underline">
+              View full schedule →
+            </a>
+          </div>
+
+          {/* ANNOUNCEMENTS */}
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold text-ahsra-blue">
+              Announcements
+            </h3>
+
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="rounded-lg border bg-white p-4"
+              >
+                <p className="font-medium">Announcement Title</p>
+                <p className="text-sm text-gray-600">
+                  Short announcement summary…
+                </p>
+              </div>
+            ))}
+
+            <a href="/announcements" className="text-sm text-ahsra-blue underline">
+              See all announcements →
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* CURRENT SEASON GALLERY */}
+      <section className="bg-white py-16 text-center">
+        <h3 className="text-xl font-semibold text-ahsra-blue mb-6">
+          Current Season Highlights
+        </h3>
+
+        <div className="max-w-6xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="h-40 bg-gray-200 rounded" />
+          <div className="h-40 bg-gray-200 rounded" />
+          <div className="h-40 bg-gray-200 rounded" />
+          <div className="h-40 bg-gray-200 rounded" />
+        </div>
+      </section>
+
+      {/* SPONSORS */}
+      <section className="bg-gray-100 py-16 text-center">
+        <h3 className="text-xl font-semibold text-ahsra-blue mb-6">
+          Our Sponsors
+        </h3>
+
+        <div className="flex justify-center gap-6 flex-wrap">
+          <div className="h-16 w-40 bg-gray-300 rounded" />
+          <div className="h-16 w-40 bg-gray-300 rounded" />
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="py-16 text-center text-white bg-ahsra-blue">
+        <h3 className="text-2xl font-bold">Ready to Ride?</h3>
+        <p className="mt-3">
+          Learn more about membership, competition, and the season ahead.
+        </p>
+
+        <a
+          href="/about"
+          className="inline-block mt-6 bg-white text-ahsra-blue px-6 py-3 font-semibold"
+        >
+          Learn More
+        </a>
       </section>
 
     </main>
   );
 }
+

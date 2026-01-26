@@ -20,8 +20,9 @@ model Season {
   endDate   DateTime
   active    Boolean  @default(false)
 
-  events   Event[]
-  officers Officer[] // ✅ ADD THIS
+  events    Event[]
+  officers  Officer[] 
+  announcements Announcement[]
 
   createdAt DateTime @default(now())
 }
@@ -40,15 +41,12 @@ model Location {
   state         String
   zip           String
 
-  notes           String?
-  stallInfo       String?
-  hookupInfo      String?
-  assignmentRules String?
-
+  venueInfo     Json?  // stalls, hookups, parking, notes
   events Event[]
 
   createdAt DateTime @default(now())
 }
+
 
 /**
  * =========================
@@ -185,22 +183,31 @@ model Sponsor {
 
 
 model Announcement {
-  id        Int    @id @default(autoincrement())
-  eventId   Int
+  id Int @id @default(autoincrement())
 
-  title     String
-  content   String      // main announcement body (markdown or plain text)
-  type      String?     // general, jackpot, church, stall, reminder
-  sortOrder Int    @default(0)
+  eventId  Int?
+  seasonId Int?
 
-  extras    Json?       // structured add-ons (fees, times, rules, notes)
+  title   String
+  content String
+  type    String?   // general, entry, stall, reminder
+  sortOrder Int @default(0)
+
+  extras Json?
 
   published Boolean @default(false)
   publishAt DateTime?
   expireAt  DateTime?
 
-  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  event  Event?  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  season Season? @relation(fields: [seasonId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+/**
+ * =========================
+ * ANNOUNCEMENTS
+ * =========================
+ */

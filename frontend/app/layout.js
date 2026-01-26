@@ -1,19 +1,17 @@
-import "../styles/tailwind.css";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
+// filepath: frontend/app/layout.js
+
+import "../styles/globals.css";
+
+export const metadata = {
+  title: "Alabama High School Rodeo Association",
+  description: "AHSRA",
+};
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body
-        suppressHydrationWarning
-        className="min-h-screen flex flex-col bg-gray-100 text-gray-900 antialiased"
-      >
-        <Header />
-        <main className="flex-1">
-          {children}
-        </main>
-        <Footer />
+    <html lang="en">
+      <body className="bg-gray-100 text-gray-900">
+        {children}
       </body>
     </html>
   );

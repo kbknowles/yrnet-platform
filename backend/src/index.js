@@ -1,22 +1,39 @@
-import express from "express";
-import scheduleRoutes from "./api/schedule.route.js";
-import calendarRoutes from "./api/calendar.route.js";
+// filepath: backend/src/index.js
 
+import express from "express";
+import cors from "cors";
+
+import routes from "../routes/index.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+/* -------------------- */
+/* MIDDLEWARE (ORDERED) */
+/* -------------------- */
+
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 
-// Health check
+/* -------- */
+/* ROUTES   */
+/* -------- */
+
 app.get("/", (req, res) => {
   res.json({ status: "AHSRA backend running" });
 });
 
-// Schedule API
-app.use("/api/schedule", scheduleRoutes);
+app.use("/api", routes);
 
-app.use("/api/calendar", calendarRoutes);
+/* -------- */
+/* START    */
+/* -------- */
 
 app.listen(PORT, () => {
   console.log(`Backend listening on port ${PORT}`);
