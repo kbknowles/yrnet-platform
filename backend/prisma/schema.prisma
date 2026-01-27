@@ -20,9 +20,10 @@ model Season {
   endDate   DateTime
   active    Boolean  @default(false)
 
-  events    Event[]
-  officers  Officer[] 
+  events        Event[]
+  officers      Officer[] 
   announcements Announcement[]
+  gallery       GalleryAlbum[]
 
   createdAt DateTime @default(now())
 }
@@ -208,6 +209,33 @@ model Announcement {
 
 /**
  * =========================
- * ANNOUNCEMENTS
+ * GALLERY
  * =========================
  */
+
+model GalleryAlbum {
+  id       Int    @id @default(autoincrement())
+  title    String
+  seasonId Int
+
+  coverImage String?
+  published  Boolean @default(true)
+
+  season Season @relation(fields: [seasonId], references: [id])
+  images GalleryImage[]
+
+  createdAt DateTime @default(now())
+}
+
+model GalleryImage {
+  id       Int    @id @default(autoincrement())
+  albumId Int
+
+  imageUrl String
+  caption  String?
+  sortOrder Int @default(0)
+
+  album GalleryAlbum @relation(fields: [albumId], references: [id])
+
+  createdAt DateTime @default(now())
+}
