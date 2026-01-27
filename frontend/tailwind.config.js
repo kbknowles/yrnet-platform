@@ -8,12 +8,17 @@ module.exports = {
     extend: {
       colors: {
         ahsra: {
-          red: "#B22234",   // USA Red
+          red: "#b22234",   // USA Red
           blue: "#3C3B6E",  // USA Blue
           black: "#000000",
         },
       },
+        fontFamily: {
+         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+    },
     },
   },
   plugins: [],
 };
+
+

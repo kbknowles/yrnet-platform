@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --font-body: system-ui, sans-serif;
+  --font-heading: system-ui, sans-serif;
+}
+
 /* Global resets */
 html, body {
   height: 100%;
@@ -9,8 +14,17 @@ html, body {
   padding: 0;
 }
 
-/* AHSRA defaults */
 body {
+  font-family: var(--font-body);
   background-color: #f3f4f6; /* gray-100 */
   color: #111827;           /* gray-900 */
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
 }
