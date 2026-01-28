@@ -6,27 +6,32 @@ import EventGallery from "../components/home/EventGallery";
 import SponsorStrip from "../components/home/SponsorStrip";
 import HomeCTA from "../components/home/HomeCTA";
 
-
-
 export default async function HomePage() {
-const API = process.env.NEXT_PUBLIC_API_URL;
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
-const [events, announcements, sponsors, galleryAlbums] = await Promise.all([
-    fetch(`${API}/api/events?status=published`, {
-      cache: "no-store",
-    }).then((r) => r.json()),
+  console.log("HOMEPAGE API_BASE:", API_BASE);
 
-    fetch(`${API}/api/announcements?published=true`, {
-      cache: "no-store",
-    }).then((r) => r.json()),
+  async function safeFetch(url) {
+    console.log("FETCHING:", url);
 
-    fetch(`${API}/api/sponsors?active=true`, {
-      cache: "no-store",
-    }).then((r) => r.json()),
+    const res = await fetch(url, { cache: "no-store" });
+    const text = await res.text();
 
-    fetch(`${API}/api/gallery`, {
-      cache: "no-store",
-    }).then((r) => r.json()),
+    console.log("RESPONSE STATUS:", res.status);
+    console.log("RESPONSE PREVIEW:", text.slice(0, 200));
+
+    try {
+      return JSON.parse(text);
+    } catch (err) {
+      throw new Error(`Invalid JSON from ${url}`);
+    }
+  }
+
+  const [events, announcements, sponsors, galleryAlbums] = await Promise.all([
+    safeFetch(`${API_BASE}/api/events?status=published`),
+    safeFetch(`${API_BASE}/api/announcements?published=true`),
+    safeFetch(`${API_BASE}/api/sponsors?active=true`),
+    safeFetch(`${API_BASE}/api/gallery`),
   ]);
 
   return (

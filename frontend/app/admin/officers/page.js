@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 
 export default function AdminOfficersPage() {
-const API = process.env.NEXT_PUBLIC_API_URL;
+const API_BASE= process.env.NEXT_PUBLIC_API_URL;
 
 const [officers, setOfficers] = useState([]);
   const [seasons, setSeasons] = useState([]);
@@ -22,18 +22,18 @@ const [officers, setOfficers] = useState([]);
   }, []);
 
   async function loadOfficers() {
-    const res = await fetch(`${API}/api/admin/officers`);
+    const res = await fetch(`${API_BASE}/api/admin/officers`);
     setOfficers(await res.json());
   }
 
   async function loadSeasons() {
-    const res = await fetch(`${API}/api/admin/seasons`);
+    const res = await fetch(`${API_BASE}/api/admin/seasons`);
     setSeasons(await res.json());
   }
 
   async function createOfficer(e) {
     e.preventDefault();
-    await fetch(`${API}/api/admin/officers`, {
+    await fetch(`${API_BASE}/api/admin/officers`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
@@ -43,7 +43,7 @@ const [officers, setOfficers] = useState([]);
   }
 
   async function deleteOfficer(id) {
-    await fetch(`${API}/api/admin/officers/${id}`, {
+    await fetch(`${API_BASE}/api/admin/officers/${id}`, {
       method: "DELETE",
     });
     loadOfficers();

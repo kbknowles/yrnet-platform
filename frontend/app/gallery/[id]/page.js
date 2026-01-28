@@ -3,8 +3,8 @@ import Link from "next/link";
 
 
 export default async function GalleryPage() {
-const API = process.env.NEXT_PUBLIC_API_URL;
-  const albums = await fetch(`${API}/api/gallery`, {
+const API_BASE= process.env.NEXT_PUBLIC_API_URL;
+  const albums = await fetch(`${API_BASE}/api/gallery`, {
     cache: "no-store",
   }).then((r) => r.json());
 

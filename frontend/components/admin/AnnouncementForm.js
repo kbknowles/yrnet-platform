@@ -5,7 +5,7 @@ import { useState } from "react";
 
 
 export default function AnnouncementForm({ onCreated }) {
-const API = process.env.NEXT_PUBLIC_API_URL;
+const API_BASE= process.env.NEXT_PUBLIC_API_URL;
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [type, setType] = useState("general");
@@ -13,7 +13,7 @@ const API = process.env.NEXT_PUBLIC_API_URL;
   async function handleSubmit(e) {
     e.preventDefault();
 
-    await fetch(`${API}/api/admin/announcements`, {
+    await fetch(`${API_BASE}/api/admin/announcements`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

@@ -8,12 +8,12 @@ import AnnouncementForm from "../../../components/admin/AnnouncementForm";
 
 
 export default function AdminAnnouncementsPage() {
-const API = process.env.NEXT_PUBLIC_API_URL;
+const API_BASE= process.env.NEXT_PUBLIC_API_URL;
 
 const [announcements, setAnnouncements] = useState([]);
 
   async function loadAnnouncements() {
-    const res = await fetch(`${API}/api/admin/announcements`);
+    const res = await fetch(`${API_BASE}/api/admin/announcements`);
     const data = await res.json();
     setAnnouncements(data);
   }
