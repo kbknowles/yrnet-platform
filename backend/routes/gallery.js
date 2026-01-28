@@ -3,26 +3,21 @@ import prisma from "../prismaClient.mjs";
 
 const router = express.Router();
 
-/* GET featured albums (homepage) */
+/* GET all gallery albums (public) */
 router.get("/", async (req, res) => {
   const albums = await prisma.galleryAlbum.findMany({
-    where: { featured: true },
-    include: {
-      images: { orderBy: { sortOrder: "asc" } },
-      season: true,
+    where: {
+      published: true,
     },
-    orderBy: { createdAt: "desc" },
-  });
-
-  res.json(albums);
-});
-
-/* GET albums by season */
-router.get("/season/:seasonId", async (req, res) => {
-  const albums = await prisma.galleryAlbum.findMany({
-    where: { seasonId: Number(req.params.seasonId) },
+    orderBy: {
+      createdAt: "desc",
+    },
     include: {
-      images: { orderBy: { sortOrder: "asc" } },
+      images: {
+        orderBy: { sortOrder: "asc" },
+        take: 1, // cover image
+      },
+      season: true,
     },
   });
 
@@ -34,7 +29,9 @@ router.get("/albums/:id", async (req, res) => {
   const album = await prisma.galleryAlbum.findUnique({
     where: { id: Number(req.params.id) },
     include: {
-      images: { orderBy: { sortOrder: "asc" } },
+      images: {
+        orderBy: { sortOrder: "asc" },
+      },
       season: true,
     },
   });
@@ -45,6 +42,5 @@ router.get("/albums/:id", async (req, res) => {
 
   res.json(album);
 });
-
 
 export default router;

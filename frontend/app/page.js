@@ -1,5 +1,3 @@
-// filepath: frontend/app/page.js
-
 import HomeHero from "../components/home/HomeHero";
 import HomeMission from "../components/home/HomeMission";
 import UpcomingRodeos from "../components/home/UpcomingRodeos";
@@ -12,10 +10,21 @@ const API = process.env.NEXT_PUBLIC_API_URL;
 
 export default async function HomePage() {
   const [events, announcements, sponsors, galleryAlbums] = await Promise.all([
-    fetch(`${API}/api/events?status=published`, { cache: "no-store" }).then(r => r.json()),
-    fetch(`${API}/api/announcements?published=true`, { cache: "no-store" }).then(r => r.json()),
-    fetch(`${API}/api/sponsors?active=true`, { cache: "no-store" }).then(r => r.json()),
-    fetch(`${API}/api/gallery/albums`, { cache: "no-store" }).then(r => r.json()),
+    fetch(`${API}/api/events?status=published`, {
+      cache: "no-store",
+    }).then((r) => r.json()),
+
+    fetch(`${API}/api/announcements?published=true`, {
+      cache: "no-store",
+    }).then((r) => r.json()),
+
+    fetch(`${API}/api/sponsors?active=true`, {
+      cache: "no-store",
+    }).then((r) => r.json()),
+
+    fetch(`${API}/api/gallery`, {
+      cache: "no-store",
+    }).then((r) => r.json()),
   ]);
 
   return (
