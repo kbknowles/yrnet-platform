@@ -29,6 +29,7 @@ export default function Header() {
         {/* Desktop Nav */}
         <nav className="hidden md:flex gap-6 text-sm font-medium">
           <Link href="/schedule">Schedule</Link>
+          <Link href="/gallery">Gallery</Link>
           <Link href="/leadership">Leadership</Link>
           <Link href="/about">About</Link>
         </nav>
@@ -51,12 +52,11 @@ export default function Header() {
             isHome ? "bg-black/80" : "bg-ahsra-blue"
           }`}
         >
-          <Link href="/schedule" onClick={() => setOpen(false)}>
-            Schedule
-          </Link>
-          <Link href="/leadership" onClick={() => setOpen(false)}>
-            Leadership
-          </Link>
+          <Link href="/schedule" onClick={() => setOpen(false)}>Schedule</Link>
+          <Link href="/gallery"  onClick={() => setOpen(false)}>Gallery</Link>
+
+          <Link href="/leadership" onClick={() => setOpen(false)}>Leadership</Link>
+
           <Link href="/about" onClick={() => setOpen(false)}>
             About
           </Link>

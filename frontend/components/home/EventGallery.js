@@ -2,38 +2,31 @@
 
 import { useEffect, useState } from "react";
 
-const API = process.env.NEXT_PUBLIC_API_URL;
-
 export default function EventGallery() {
-  const [images, setImages] = useState([]);
+  const [albums, setAlbums] = useState([]);
 
   useEffect(() => {
-    fetch(`${API}/api/gallery/albums`)
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/gallery`)
       .then((r) => r.json())
-      .then((albums) => {
-        if (albums.length) {
-          setImages(albums[0].images || []);
-        }
-      });
+      .then(setAlbums);
   }, []);
 
-  if (!images.length) return null;
+  if (!albums.length) return null;
 
   return (
-    <section className="py-12 bg-gray-100">
-      <div className="max-w-6xl mx-auto px-4">
-        <h2 className="text-2xl font-bold mb-6">Season Highlights</h2>
+    <section className="max-w-6xl mx-auto px-4 py-12">
+      <h2 className="text-2xl font-bold mb-6">Rodeo Gallery</h2>
 
-        <div className="flex gap-4 overflow-x-auto">
-          {images.map((img) => (
+      <div className="grid md:grid-cols-3 gap-6">
+        {albums.map((album) => (
+          <div key={album.id} className="space-y-2">
             <img
-              key={img.id}
-              src={img.imageUrl}
-              alt={img.caption || ""}
-              className="h-64 rounded-lg object-cover"
+              src={album.images[0]?.imageUrl}
+              className="rounded"
             />
-          ))}
-        </div>
+            <div className="font-medium">{album.title}</div>
+          </div>
+        ))}
       </div>
     </section>
   );
