@@ -1,37 +1,45 @@
+// filepath: backend/routes/index.js
+
 import express from "express";
 
-/* Admin routes */
+/* =========================
+   ADMIN ROUTES
+   ========================= */
+
 import seasonsRouter from "./admin/seasons.js";
 import locationsRouter from "./admin/locations.js";
 import eventsAdminRouter from "./admin/events.js";
 import announcementsAdminRouter from "./admin/announcements.js";
 import officersRouter from "./admin/officers.js";
-import sponsorsAdminRouter from "./admin/sponsors.js";
+import sponsorsRouter from "./admin/sponsors.js";
 import adminGalleryRoutes from "./admin/gallery.js";
 
-/* Public routes */
+/* =========================
+   PUBLIC ROUTES
+   ========================= */
+
 import eventsPublicRouter from "./events.js";
 import announcementsPublicRouter from "./announcements.js";
-import sponsorsPublicRouter from "./sponsors.js";
-import seasonsPublicRouter from "./seasons.js";
-import galleryPublicRouter from "./gallery.js";
+import sponsorsRoutes from "./sponsors.js";
+import seasonsRoutes from "./seasons.js";
+import galleryRoutes from "./gallery.js";
 
 const router = express.Router();
 
-/* ---------------- ADMIN ---------------- */
+/* ---------- Admin ---------- */
 router.use("/admin/seasons", seasonsRouter);
 router.use("/admin/locations", locationsRouter);
 router.use("/admin/events", eventsAdminRouter);
 router.use("/admin/announcements", announcementsAdminRouter);
 router.use("/admin/officers", officersRouter);
-router.use("/admin/sponsors", sponsorsAdminRouter);
+router.use("/admin/sponsors", sponsorsRouter);
 router.use("/admin/gallery", adminGalleryRoutes);
 
-/* ---------------- PUBLIC ---------------- */
+/* ---------- Public ---------- */
 router.use("/events", eventsPublicRouter);
 router.use("/announcements", announcementsPublicRouter);
-router.use("/sponsors", sponsorsPublicRouter);
-router.use("/seasons", seasonsPublicRouter);
-router.use("/gallery", galleryPublicRouter);
+router.use("/sponsors", sponsorsRoutes);
+router.use("/seasons", seasonsRoutes);
+router.use("/gallery", galleryRoutes);
 
 export default router;
