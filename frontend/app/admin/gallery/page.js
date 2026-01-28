@@ -1,39 +1,31 @@
-// filepath: backend/routes/index.js
+// frontend/app/admin/gallery/page.js
+"use client";
 
-import express from "express";
+import { useEffect, useState } from "react";
 
-import seasonsRouter from "./admin/seasons.js";
-import locationsRouter from "./admin/locations.js";
-import eventsAdminRouter from "./admin/events.js";
-import announcementsAdminRouter from "./admin/announcements.js";
-import officersRouter from "./admin/officers.js";
-import sponsorsRouter from "./admin/sponsors.js";
-import adminGalleryRoutes from "./admin/gallery.js";
+const API = process.env.NEXT_PUBLIC_API_URL;
 
-import eventsPublicRouter from "./events.js";
-import announcementsPublicRouter from "./announcements.js";
-import sponsorsRoutes from "../routes/sponsors.js";
-import seasonsRoutes from "../routes/seasons.js";
-import galleryRoutes from "./gallery.js";
+export default function AdminGalleryPage() {
+  const [albums, setAlbums] = useState([]);
 
+  useEffect(() => {
+    fetch(`${API}/api/admin/gallery`)
+      .then((r) => r.json())
+      .then(setAlbums)
+      .catch(console.error);
+  }, []);
 
-const router = express.Router();
+  return (
+    <main className="max-w-6xl mx-auto px-4 py-12">
+      <h1 className="text-2xl font-bold mb-6">Gallery Albums</h1>
 
-/* Admin routes */
-router.use("/admin/seasons", seasonsRouter);
-router.use("/admin/locations", locationsRouter);
-router.use("/admin/events", eventsAdminRouter);
-router.use("/admin/announcements", announcementsAdminRouter);
-router.use("/admin/officers", officersRouter);
-router.use("/admin/sponsors", sponsorsRouter);
-
-router.use("/admin/gallery", adminGalleryRoutes);
-
-/* Public routes */
-router.use("/events", eventsPublicRouter);
-router.use("/announcements", announcementsPublicRouter);
-router.use("/sponsors", sponsorsRoutes);
-router.use("/seasons", seasonsRoutes);
-router.use("/gallery", galleryRoutes);
-
-export default router;
+      <ul className="space-y-3">
+        {albums.map((a) => (
+          <li key={a.id} className="p-4 border rounded bg-white">
+            {a.title}
+          </li>
+        ))}
+      </ul>
+    </main>
+  );
+}
