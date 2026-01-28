@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "prebuild": "npm ls tailwindcss",
     "dev": "next dev",
     "build": "next build",
     "start": "next start"
@@ -17,9 +18,7 @@
     "@dnd-kit/sortable": "10.0.0",
     "next": "16.1.4",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
-  },
-  "devDependencies": {
+    "react-dom": "19.2.3",
     "autoprefixer": "10.4.23",
     "postcss": "8.5.6",
     "tailwindcss": "3.4.17"
