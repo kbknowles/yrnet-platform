@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+
 
 export default function EventSchedulePage({ params }) {
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
   const eventId = params.id;
   const [items, setItems] = useState([]);
   const [form, setForm] = useState({

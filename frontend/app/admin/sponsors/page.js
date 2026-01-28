@@ -4,11 +4,11 @@
 
 import { useEffect, useState } from "react";
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
 export default function AdminSponsorsPage() {
-  const [sponsors, setSponsors] = useState([]);
+const API_BASE =  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
+const [sponsors, setSponsors] = useState([]);
   const [form, setForm] = useState({
     name: "",
     logoUrl: "",

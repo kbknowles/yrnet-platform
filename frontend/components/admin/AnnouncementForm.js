@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 
-const API = process.env.NEXT_PUBLIC_API_URL;
+
 
 export default function AnnouncementForm({ onCreated }) {
+const API = process.env.NEXT_PUBLIC_API_URL;
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [type, setType] = useState("general");

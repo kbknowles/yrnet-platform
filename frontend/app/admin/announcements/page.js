@@ -5,10 +5,12 @@
 import { useEffect, useState } from "react";
 import AnnouncementForm from "../../../components/admin/AnnouncementForm";
 
-const API = process.env.NEXT_PUBLIC_API_URL;
+
 
 export default function AdminAnnouncementsPage() {
-  const [announcements, setAnnouncements] = useState([]);
+const API = process.env.NEXT_PUBLIC_API_URL;
+
+const [announcements, setAnnouncements] = useState([]);
 
   async function loadAnnouncements() {
     const res = await fetch(`${API}/api/admin/announcements`);

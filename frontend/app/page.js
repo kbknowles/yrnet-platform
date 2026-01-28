@@ -6,10 +6,12 @@ import EventGallery from "../components/home/EventGallery";
 import SponsorStrip from "../components/home/SponsorStrip";
 import HomeCTA from "../components/home/HomeCTA";
 
-const API = process.env.NEXT_PUBLIC_API_URL;
+
 
 export default async function HomePage() {
-  const [events, announcements, sponsors, galleryAlbums] = await Promise.all([
+const API = process.env.NEXT_PUBLIC_API_URL;
+
+const [events, announcements, sponsors, galleryAlbums] = await Promise.all([
     fetch(`${API}/api/events?status=published`, {
       cache: "no-store",
     }).then((r) => r.json()),

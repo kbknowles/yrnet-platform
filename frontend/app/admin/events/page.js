@@ -5,10 +5,12 @@
 import { useEffect, useState } from "react";
 import EventForm from "../../../components/admin/EventForm";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+
 
 export default function AdminEventsPage() {
-  const [events, setEvents] = useState([]);
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+
+const [events, setEvents] = useState([]);
 
   async function loadEvents() {
     const res = await fetch(`${API_BASE}/api/admin/events`);

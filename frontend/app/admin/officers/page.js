@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from "react";
 
-const API = process.env.NEXT_PUBLIC_API_URL;
+
 
 export default function AdminOfficersPage() {
-  const [officers, setOfficers] = useState([]);
+const API = process.env.NEXT_PUBLIC_API_URL;
+
+const [officers, setOfficers] = useState([]);
   const [seasons, setSeasons] = useState([]);
   const [form, setForm] = useState({
     name: "",

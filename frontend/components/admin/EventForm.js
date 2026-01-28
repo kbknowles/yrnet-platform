@@ -4,9 +4,10 @@
 
 import { useEffect, useState } from "react";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+
 
 export default function EventForm({ onCreated }) {
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
   const [seasons, setSeasons] = useState([]);
   const [locations, setLocations] = useState([]);
 

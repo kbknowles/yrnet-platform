@@ -3,10 +3,12 @@
 
 import { useEffect, useState } from "react";
 
-const API = process.env.NEXT_PUBLIC_API_URL;
+
 
 export default function AdminGalleryPage() {
-  const [albums, setAlbums] = useState([]);
+const API = process.env.NEXT_PUBLIC_API_URL;
+
+const [albums, setAlbums] = useState([]);
 
   useEffect(() => {
     fetch(`${API}/api/admin/gallery`)
