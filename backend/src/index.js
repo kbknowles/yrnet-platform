@@ -12,20 +12,27 @@ const PORT = process.env.PORT || 3001;
 /* MIDDLEWARE (ORDERED) */
 /* -------------------- */
 
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://ahsra.onrender.com",
+];
+
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );
 
 app.use(express.json());
 
-
-
 app.use("/uploads", express.static("uploads"));
-
-
 
 /* -------- */
 /* ROUTES   */
