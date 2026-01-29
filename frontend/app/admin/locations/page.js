@@ -1,9 +1,23 @@
-// filepath: frontend/app/admin/locations.js
+// filepath: frontend/app/admin/locations/page.js
 "use client";
 
 import { useEffect, useState } from "react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+
+const EMPTY_LOCATION = {
+  name: "",
+  streetAddress: "",
+  city: "",
+  state: "AL",
+  zip: "",
+  venueInfo: {
+    stalls: "",
+    hookups: "",
+    parking: "",
+    notes: "",
+  },
+};
 
 export default function AdminLocationsPage() {
   const [locations, setLocations] = useState([]);
@@ -12,8 +26,7 @@ export default function AdminLocationsPage() {
 
   async function load() {
     const res = await fetch(`${API_BASE}/api/admin/locations`);
-    const data = await res.json();
-    setLocations(data);
+    setLocations(await res.json());
     setLoading(false);
   }
 
@@ -21,16 +34,34 @@ export default function AdminLocationsPage() {
     load();
   }, []);
 
+  function normalizePayload(l) {
+    return {
+      name: l.name || "",
+      streetAddress: l.streetAddress || "",
+      city: l.city || "",
+      state: l.state || "AL",
+      zip: l.zip || "",
+      venueInfo: {
+        stalls: l.venueInfo?.stalls || "",
+        hookups: l.venueInfo?.hookups || "",
+        parking: l.venueInfo?.parking || "",
+        notes: l.venueInfo?.notes || "",
+      },
+    };
+  }
+
   async function save() {
-    const method = active.id ? "PUT" : "POST";
-    const url = active.id
+    if (!active) return;
+
+    const isEdit = Boolean(active.id);
+    const url = isEdit
       ? `${API_BASE}/api/admin/locations/${active.id}`
       : `${API_BASE}/api/admin/locations`;
 
     await fetch(url, {
-      method,
+      method: isEdit ? "PUT" : "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(active),
+      body: JSON.stringify(normalizePayload(active)),
     });
 
     setActive(null);
@@ -39,9 +70,7 @@ export default function AdminLocationsPage() {
 
   async function remove(id) {
     if (!confirm("Delete location?")) return;
-    await fetch(`${API_BASE}/api/admin/locations/${id}`, {
-      method: "DELETE",
-    });
+    await fetch(`${API_BASE}/api/admin/locations/${id}`, { method: "DELETE" });
     load();
   }
 
@@ -52,20 +81,7 @@ export default function AdminLocationsPage() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-xl font-semibold">Locations</h1>
         <button
-          onClick={() =>
-            setActive({
-              name: "",
-              city: "",
-              state: "AL",
-              address: "",
-              venueInfo: {
-                stalls: "",
-                hookups: "",
-                parking: "",
-                notes: "",
-              },
-            })
-          }
+          onClick={() => setActive(structuredClone(EMPTY_LOCATION))}
           className="bg-ahsra-blue text-white px-4 py-2 rounded"
         >
           + New Location
@@ -79,6 +95,7 @@ export default function AdminLocationsPage() {
               <th className="p-3 text-left">Name</th>
               <th className="p-3 text-left">City</th>
               <th className="p-3 text-left">State</th>
+              <th className="p-3 text-left">Zip</th>
               <th className="p-3 text-right">Actions</th>
             </tr>
           </thead>
@@ -88,9 +105,25 @@ export default function AdminLocationsPage() {
                 <td className="p-3 font-medium">{l.name}</td>
                 <td className="p-3">{l.city}</td>
                 <td className="p-3">{l.state}</td>
+                <td className="p-3">{l.zip}</td>
                 <td className="p-3 text-right space-x-3">
                   <button
-                    onClick={() => setActive(l)}
+                    onClick={() =>
+                      setActive({
+                        id: l.id,
+                        name: l.name || "",
+                        streetAddress: l.streetAddress || "",
+                        city: l.city || "",
+                        state: l.state || "AL",
+                        zip: l.zip || "",
+                        venueInfo: l.venueInfo || {
+                          stalls: "",
+                          hookups: "",
+                          parking: "",
+                          notes: "",
+                        },
+                      })
+                    }
                     className="text-ahsra-blue"
                   >
                     Edit
@@ -108,7 +141,6 @@ export default function AdminLocationsPage() {
         </table>
       </div>
 
-      {/* MODAL */}
       {active && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white w-full max-w-xl rounded shadow-lg p-6 space-y-4">
@@ -128,9 +160,9 @@ export default function AdminLocationsPage() {
             <input
               className="w-full border rounded p-2"
               placeholder="Street Address"
-              value={active.address || ""}
+              value={active.streetAddress}
               onChange={(e) =>
-                setActive({ ...active, address: e.target.value })
+                setActive({ ...active, streetAddress: e.target.value })
               }
             />
 
@@ -151,61 +183,42 @@ export default function AdminLocationsPage() {
                   setActive({ ...active, state: e.target.value })
                 }
               />
+              <input
+                className="border rounded p-2"
+                placeholder="Zip"
+                value={active.zip}
+                onChange={(e) =>
+                  setActive({ ...active, zip: e.target.value })
+                }
+              />
             </div>
 
             <div className="border rounded p-4 bg-slate-50 space-y-3">
               <h3 className="font-medium text-sm">Venue Info</h3>
 
-              <input
-                className="w-full border rounded p-2"
-                placeholder="Stalls"
-                value={active.venueInfo?.stalls || ""}
-                onChange={(e) =>
-                  setActive({
-                    ...active,
-                    venueInfo: {
-                      ...active.venueInfo,
-                      stalls: e.target.value,
-                    },
-                  })
-                }
-              />
-
-              <input
-                className="w-full border rounded p-2"
-                placeholder="Hookups"
-                value={active.venueInfo?.hookups || ""}
-                onChange={(e) =>
-                  setActive({
-                    ...active,
-                    venueInfo: {
-                      ...active.venueInfo,
-                      hookups: e.target.value,
-                    },
-                  })
-                }
-              />
-
-              <input
-                className="w-full border rounded p-2"
-                placeholder="Parking"
-                value={active.venueInfo?.parking || ""}
-                onChange={(e) =>
-                  setActive({
-                    ...active,
-                    venueInfo: {
-                      ...active.venueInfo,
-                      parking: e.target.value,
-                    },
-                  })
-                }
-              />
+              {["stalls", "hookups", "parking"].map((f) => (
+                <input
+                  key={f}
+                  className="w-full border rounded p-2"
+                  placeholder={f}
+                  value={active.venueInfo[f]}
+                  onChange={(e) =>
+                    setActive({
+                      ...active,
+                      venueInfo: {
+                        ...active.venueInfo,
+                        [f]: e.target.value,
+                      },
+                    })
+                  }
+                />
+              ))}
 
               <textarea
                 className="w-full border rounded p-2"
                 rows={3}
                 placeholder="Notes"
-                value={active.venueInfo?.notes || ""}
+                value={active.venueInfo.notes}
                 onChange={(e) =>
                   setActive({
                     ...active,
