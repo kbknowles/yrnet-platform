@@ -42,10 +42,10 @@ router.post("/", async (req, res) => {
     const location = await prisma.location.create({
       data: {
         name,
-        streetAddress,
-        city,
-        state,
-        zip,
+        streetAddress: streetAddress || null,
+        city: city || null,
+        state: state || null,
+        zip: zip || null,
         venueInfo: venueInfo || {},
       },
     });
@@ -54,6 +54,72 @@ router.post("/", async (req, res) => {
   } catch (err) {
     console.error("POST /locations failed", err);
     res.status(500).json({ error: "Failed to create location" });
+  }
+});
+
+/* ---------------- */
+/* UPDATE LOCATION  */
+/* ---------------- */
+router.put("/:id", async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const {
+      name,
+      streetAddress,
+      city,
+      state,
+      zip,
+      venueInfo,
+    } = req.body;
+
+    if (!name) {
+      return res.status(400).json({ error: "Name is required" });
+    }
+
+    const location = await prisma.location.update({
+      where: { id },
+      data: {
+        name,
+        streetAddress: streetAddress || null,
+        city: city || null,
+        state: state || null,
+        zip: zip || null,
+        venueInfo: venueInfo || {},
+      },
+    });
+
+    res.json(location);
+  } catch (err) {
+    console.error("PUT /locations failed", err);
+    res.status(500).json({ error: "Failed to update location" });
+  }
+});
+
+/* ---------------- */
+/* DELETE LOCATION  */
+/* ---------------- */
+router.delete("/:id", async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+
+    const eventCount = await prisma.event.count({
+      where: { locationId: id },
+    });
+
+    if (eventCount > 0) {
+      return res.status(409).json({
+        error: "This location cannot be deleted because it is assigned to one or more events.",
+      });
+    }
+
+    await prisma.location.delete({
+      where: { id },
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("DELETE /locations failed", err);
+    res.status(500).json({ error: "Failed to delete location" });
   }
 });
 

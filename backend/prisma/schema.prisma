@@ -35,17 +35,19 @@ model Season {
  */
 
 model Location {
-  id            Int    @id @default(autoincrement())
+  id            Int      @id @default(autoincrement())
   name          String
-  streetAddress String
-  city          String
-  state         String
-  zip           String
 
-  venueInfo     Json?  // stalls, hookups, parking, notes
-  events Event[]
+  streetAddress String?
+  city          String?
+  state         String?
+  zip           String?
 
-  createdAt DateTime @default(now())
+  venueInfo     Json?     // stalls, hookups, parking, notes
+
+  events        Event[]   // deletion blocked if related events exist
+
+  createdAt     DateTime  @default(now())
 }
 
 
