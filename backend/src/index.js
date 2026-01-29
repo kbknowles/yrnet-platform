@@ -2,11 +2,26 @@
 
 import express from "express";
 import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
 
 import routes from "../routes/index.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+/* -------------------- */
+/* PATH RESOLUTION      */
+/* -------------------- */
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// backend root (one level up from /src)
+const BACKEND_ROOT = path.resolve(__dirname, "..");
+
+// uploads folder: /backend/uploads
+const UPLOADS_DIR = path.join(BACKEND_ROOT, "uploads");
 
 /* -------------------- */
 /* MIDDLEWARE (ORDERED) */
@@ -32,7 +47,11 @@ app.use(
 
 app.use(express.json());
 
-app.use("/uploads", express.static("uploads"));
+/* -------------------- */
+/* STATIC UPLOADS       */
+/* -------------------- */
+
+app.use("/uploads", express.static(UPLOADS_DIR));
 
 /* -------- */
 /* ROUTES   */
@@ -50,4 +69,5 @@ app.use("/api", routes);
 
 app.listen(PORT, () => {
   console.log(`Backend listening on port ${PORT}`);
+  console.log(`Serving uploads from: ${UPLOADS_DIR}`);
 });

@@ -1,3 +1,5 @@
+// filepath: frontend/app/page.js
+
 import HomeHero from "../components/home/HomeHero";
 import HomeMission from "../components/home/HomeMission";
 import UpcomingRodeos from "../components/home/UpcomingRodeos";
@@ -15,16 +17,18 @@ export default async function HomePage() {
     console.log("FETCHING:", url);
 
     const res = await fetch(url, { cache: "no-store" });
-    const text = await res.text();
 
     console.log("RESPONSE STATUS:", res.status);
-    console.log("RESPONSE PREVIEW:", text.slice(0, 200));
 
-    try {
-      return JSON.parse(text);
-    } catch (err) {
-      throw new Error(`Invalid JSON from ${url}`);
+    if (!res.ok) {
+      let errText = "";
+      try {
+        errText = await res.text();
+      } catch {}
+      throw new Error(`Fetch failed ${res.status}: ${errText}`);
     }
+
+    return res.json();
   }
 
   const [events, announcements, sponsors, galleryAlbums] = await Promise.all([

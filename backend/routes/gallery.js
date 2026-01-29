@@ -1,46 +1,66 @@
+// filepath: backend/routes/gallery.mjs
+
 import express from "express";
 import prisma from "../prismaClient.mjs";
 
 const router = express.Router();
 
-/* GET all gallery albums (public) */
+/* -------------------------------- */
+/* GET ALL PUBLISHED ALBUMS (PUBLIC) */
+/* -------------------------------- */
 router.get("/", async (req, res) => {
-  const albums = await prisma.galleryAlbum.findMany({
-    where: {
-      published: true,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-    include: {
-      images: {
-        orderBy: { sortOrder: "asc" },
-        take: 1, // cover image
+  try {
+    const albums = await prisma.galleryAlbum.findMany({
+      where: {
+        published: true,
       },
-      season: true,
-    },
-  });
+      orderBy: {
+        createdAt: "desc",
+      },
+      include: {
+        images: {
+          orderBy: { sortOrder: "asc" }, // ALL images
+        },
+        season: true,
+      },
+    });
 
-  res.json(albums);
+    res.json(albums);
+  } catch (err) {
+    console.error("PUBLIC GALLERY LIST ERROR:", err);
+    res.status(500).json({ error: "Failed to fetch gallery albums" });
+  }
 });
 
-/* GET single album with images */
+/* -------------------------------- */
+/* GET SINGLE ALBUM + IMAGES (PUBLIC)*/
+/* -------------------------------- */
 router.get("/albums/:id", async (req, res) => {
-  const album = await prisma.galleryAlbum.findUnique({
-    where: { id: Number(req.params.id) },
-    include: {
-      images: {
-        orderBy: { sortOrder: "asc" },
+  try {
+    const albumId = Number(req.params.id);
+
+    const album = await prisma.galleryAlbum.findFirst({
+      where: {
+        id: albumId,
+        published: true,
       },
-      season: true,
-    },
-  });
+      include: {
+        images: {
+          orderBy: { sortOrder: "asc" },
+        },
+        season: true,
+      },
+    });
 
-  if (!album) {
-    return res.status(404).json({ error: "Album not found" });
+    if (!album) {
+      return res.status(404).json({ error: "Album not found" });
+    }
+
+    res.json(album);
+  } catch (err) {
+    console.error("PUBLIC GALLERY ALBUM ERROR:", err);
+    res.status(500).json({ error: "Failed to fetch album" });
   }
-
-  res.json(album);
 });
 
 export default router;
