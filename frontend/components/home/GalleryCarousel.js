@@ -11,8 +11,15 @@ export default function GalleryCarousel({ albums = [] }) {
 
   if (!images.length) return null;
 
+  function normalizeImageUrl(src) {
+    if (!src) return "";
+    if (src.startsWith("http")) return src;
+    if (!API_BASE) return src;
+    return `${API_BASE}${src.startsWith("/") ? "" : "/"}${src}`;
+  }
+
   return (
-    <div className="overflow-x-auto">
+    <div className="bg-gray-100 overflow-x-auto">
       <div className="flex gap-4 pb-4">
         {images.map((img) => (
           <div
@@ -21,7 +28,7 @@ export default function GalleryCarousel({ albums = [] }) {
           >
             <div className="relative h-44 w-full">
               <Image
-                src={`${API_BASE}${img.imageUrl}`}
+                src={normalizeImageUrl(img.imageUrl)}
                 alt={img.caption || album.title}
                 fill
                 className="object-cover"

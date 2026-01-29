@@ -1,6 +1,7 @@
 // filepath: frontend/components/home/HomeHero.js
 
 import Image from "next/image";
+import Link from "next/link";
 
 export default function HomeHero() {
   return (
@@ -29,9 +30,12 @@ export default function HomeHero() {
           </p>
 
           <div className="mt-6 sm:mt-8">
-            <button className="inline-flex items-center justify-center rounded-md bg-white px-6 py-3 text-sm sm:text-base font-medium text-gray-900 hover:bg-gray-100 transition">
+            <Link
+              href="/learn-more"
+              className="inline-flex items-center justify-center rounded-md bg-white px-6 py-3 text-sm sm:text-base font-medium text-gray-900 hover:bg-gray-100 transition"
+            >
               Learn More
-            </button>
+            </Link>
           </div>
         </div>
       </div>
