@@ -24,22 +24,12 @@ export default async function HomePage() {
     return res.json();
   }
 
-  async function softFetch(url, fallback) {
-    try {
-      const res = await fetch(url, { cache: "no-store" });
-      if (!res.ok) return fallback;
-      return await res.json();
-    } catch {
-      return fallback;
-    }
-  }
-
   const [homeData, announcements, sponsors, galleryAlbums] =
     await Promise.all([
       safeFetch(`${API_BASE}/api/home`),
       safeFetch(`${API_BASE}/api/announcements?published=true`),
       safeFetch(`${API_BASE}/api/sponsors?active=true`),
-      softFetch(`${API_BASE}/api/gallery`, []),
+      safeFetch(`${API_BASE}/api/gallery`),
     ]);
 
   const { rodeos } = homeData;
