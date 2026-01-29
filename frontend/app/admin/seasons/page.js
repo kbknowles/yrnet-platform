@@ -6,11 +6,10 @@ import { useEffect, useState } from "react";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 const EMPTY_SEASON = {
-  name: "",
-  slug: "",
-  startYear: "",
-  endYear: "",
-  isActive: false,
+  year: "",
+  startDate: "",
+  endDate: "",
+  active: false,
 };
 
 export default function AdminSeasonsPage() {
@@ -28,16 +27,6 @@ export default function AdminSeasonsPage() {
     load();
   }, []);
 
-  function normalizePayload(s) {
-    return {
-      name: s.name,
-      slug: s.slug,
-      startYear: Number(s.startYear),
-      endYear: Number(s.endYear),
-      isActive: Boolean(s.isActive),
-    };
-  }
-
   async function save() {
     const isEdit = Boolean(active.id);
     const url = isEdit
@@ -47,7 +36,7 @@ export default function AdminSeasonsPage() {
     await fetch(url, {
       method: isEdit ? "PUT" : "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(normalizePayload(active)),
+      body: JSON.stringify(active),
     });
 
     setActive(null);
@@ -56,7 +45,16 @@ export default function AdminSeasonsPage() {
 
   async function remove(id) {
     if (!confirm("Delete season?")) return;
-    await fetch(`${API_BASE}/api/admin/seasons/${id}`, { method: "DELETE" });
+    const res = await fetch(`${API_BASE}/api/admin/seasons/${id}`, {
+      method: "DELETE",
+    });
+
+    if (!res.ok) {
+      const data = await res.json();
+      alert(data.error);
+      return;
+    }
+
     load();
   }
 
@@ -78,24 +76,20 @@ export default function AdminSeasonsPage() {
         <table className="w-full text-sm">
           <thead className="bg-slate-100 border-b">
             <tr>
-              <th className="p-3 text-left">Name</th>
-              <th className="p-3 text-left">Slug</th>
-              <th className="p-3 text-left">Years</th>
-              <th className="p-3 text-left">Active</th>
+              <th className="p-3">Year</th>
+              <th className="p-3">Start</th>
+              <th className="p-3">End</th>
+              <th className="p-3">Active</th>
               <th className="p-3 text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
             {seasons.map((s) => (
-              <tr key={s.id} className="border-t hover:bg-slate-50">
-                <td className="p-3 font-medium">{s.name}</td>
-                <td className="p-3">{s.slug}</td>
-                <td className="p-3">
-                  {s.startYear}–{s.endYear}
-                </td>
-                <td className="p-3">
-                  {s.isActive ? "Yes" : "No"}
-                </td>
+              <tr key={s.id} className="border-t">
+                <td className="p-3">{s.year}</td>
+                <td className="p-3">{s.startDate.slice(0, 10)}</td>
+                <td className="p-3">{s.endDate.slice(0, 10)}</td>
+                <td className="p-3">{s.active ? "Yes" : "No"}</td>
                 <td className="p-3 text-right space-x-3">
                   <button
                     onClick={() => setActive(s)}
@@ -118,66 +112,51 @@ export default function AdminSeasonsPage() {
 
       {active && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white w-full max-w-lg rounded shadow-lg p-6 space-y-4">
-            <h2 className="text-lg font-semibold">
+          <div className="bg-white max-w-md w-full p-6 rounded space-y-4">
+            <h2 className="font-semibold text-lg">
               {active.id ? "Edit Season" : "New Season"}
             </h2>
 
             <input
-              className="w-full border rounded p-2"
-              placeholder="Season Name"
-              value={active.name}
+              className="w-full border p-2"
+              placeholder="Year (e.g. 2025–2026)"
+              value={active.year}
               onChange={(e) =>
-                setActive({ ...active, name: e.target.value })
+                setActive({ ...active, year: e.target.value })
               }
             />
 
             <input
-              className="w-full border rounded p-2"
-              placeholder="Slug"
-              value={active.slug}
+              type="date"
+              className="w-full border p-2"
+              value={active.startDate?.slice(0, 10)}
               onChange={(e) =>
-                setActive({ ...active, slug: e.target.value })
+                setActive({ ...active, startDate: e.target.value })
               }
             />
 
-            <div className="grid grid-cols-2 gap-4">
-              <input
-                className="border rounded p-2"
-                placeholder="Start Year"
-                value={active.startYear}
-                onChange={(e) =>
-                  setActive({ ...active, startYear: e.target.value })
-                }
-              />
-              <input
-                className="border rounded p-2"
-                placeholder="End Year"
-                value={active.endYear}
-                onChange={(e) =>
-                  setActive({ ...active, endYear: e.target.value })
-                }
-              />
-            </div>
+            <input
+              type="date"
+              className="w-full border p-2"
+              value={active.endDate?.slice(0, 10)}
+              onChange={(e) =>
+                setActive({ ...active, endDate: e.target.value })
+              }
+            />
 
-            <label className="flex items-center gap-2 text-sm">
+            <label className="flex items-center gap-2">
               <input
                 type="checkbox"
-                checked={active.isActive}
+                checked={active.active}
                 onChange={(e) =>
-                  setActive({ ...active, isActive: e.target.checked })
+                  setActive({ ...active, active: e.target.checked })
                 }
               />
-              Active Season
+              Active
             </label>
 
-            <div className="flex justify-end gap-3 pt-4">
-              <button
-                onClick={() => setActive(null)}
-                className="px-4 py-2 border rounded"
-              >
-                Cancel
-              </button>
+            <div className="flex justify-end gap-3">
+              <button onClick={() => setActive(null)}>Cancel</button>
               <button
                 onClick={save}
                 className="bg-ahsra-blue text-white px-4 py-2 rounded"
