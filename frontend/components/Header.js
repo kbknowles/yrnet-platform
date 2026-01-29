@@ -14,17 +14,24 @@ export default function Header() {
   return (
     <header
       className={`${
-        isHome ? "absolute top-0 left-0 w-full bg-transparent" : "bg-ahsra-blue"
+        isHome
+          ? "absolute top-0 left-0 w-full bg-transparent"
+          : "bg-ahsra-blue"
       } text-white z-50`}
     >
       <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-        {/* Brand */}
-        <Link href="/" className="font-bold tracking-wide">
-          <span className="hidden md:inline text-lg">
-            Alabama High School Rodeo Association
-          </span>
-          <span className="md:hidden text-lg">AHSRA</span>
-        </Link>
+        {/* Brand — hidden on home */}
+        {!isHome && (
+          <Link href="/" className="font-bold tracking-wide">
+            <span className="hidden md:inline text-lg">
+              Alabama High School Rodeo Association
+            </span>
+            <span className="md:hidden text-lg">AHSRA</span>
+          </Link>
+        )}
+
+        {/* Spacer when brand is hidden (keeps nav aligned) */}
+        {isHome && <div />}
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex gap-6 text-sm font-medium">
@@ -52,11 +59,15 @@ export default function Header() {
             isHome ? "bg-black/80" : "bg-ahsra-blue"
           }`}
         >
-          <Link href="/schedule" onClick={() => setOpen(false)}>Schedule</Link>
-          <Link href="/gallery"  onClick={() => setOpen(false)}>Gallery</Link>
-
-          <Link href="/leadership" onClick={() => setOpen(false)}>Leadership</Link>
-
+          <Link href="/schedule" onClick={() => setOpen(false)}>
+            Schedule
+          </Link>
+          <Link href="/gallery" onClick={() => setOpen(false)}>
+            Gallery
+          </Link>
+          <Link href="/leadership" onClick={() => setOpen(false)}>
+            Leadership
+          </Link>
           <Link href="/about" onClick={() => setOpen(false)}>
             About
           </Link>

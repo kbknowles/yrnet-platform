@@ -2,7 +2,7 @@
 
 export default function HomeCTA() {
   return (
-    <section className="bg-ahsra-blue text-white py-16 text-center">
+    <section className="bg-ahsra-red text-white py-12 text-center">
       <h2 className="text-2xl font-bold">Ready to Ride?</h2>
       <p className="mt-4">Learn how to compete with AHSRA.</p>
       <a

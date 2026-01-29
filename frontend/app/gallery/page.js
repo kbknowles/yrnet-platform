@@ -1,84 +1,57 @@
 // filepath: frontend/app/gallery/page.js
-"use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
-export default function GalleryPage() {
+export default async function GalleryIndexPage() {
   const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+  const isDev = process.env.NODE_ENV !== "production";
 
-  const [albums, setAlbums] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const res = await fetch(`${API_BASE}/api/gallery`, {
+    cache: "no-store",
+  });
 
-  useEffect(() => {
-    async function loadGallery() {
-      try {
-        const res = await fetch(`${API_BASE}/api/gallery`, {
-          cache: "no-store",
-        });
-        const data = await res.json();
-        setAlbums(data);
-      } catch (err) {
-        console.error("Gallery load error:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadGallery();
-  }, []);
-
-  if (loading) {
-    return <p className="p-6">Loading gallery…</p>;
+  if (!res.ok) {
+    return <div className="p-8">Failed to load gallery.</div>;
   }
 
+  const albums = await res.json();
+
   return (
-    <main className="max-w-6xl mx-auto px-4 py-12">
-      <h1 className="text-3xl font-bold mb-8">Event Gallery</h1>
+    <main className="max-w-6xl mx-auto px-4 py-10">
+      <h1 className="text-2xl font-bold mb-8">Photo Gallery</h1>
 
-      {albums.length === 0 ? (
-        <p className="text-gray-600">No gallery albums available.</p>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {albums.map((album) => {
-            const cover =
-              album.images && album.images.length > 0
-                ? album.images[0].imageUrl
-                : null;
+      <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
+        {albums.map((album) => {
+          const cover = album.images?.[0];
 
-            return (
-              <Link
-                key={album.id}
-                href={`/gallery/${album.id}`}
-                className="group border rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md transition"
-              >
-                <div className="h-48 bg-gray-200 overflow-hidden">
-                  {cover ? (
-                    <img
-                      src={`${API_BASE}${cover}`}
-                      alt={album.title}
-                      className="h-full w-full object-cover group-hover:scale-105 transition-transform"
-                    />
-                  ) : (
-                    <div className="h-full flex items-center justify-center text-sm text-gray-500">
-                      No Image
-                    </div>
-                  )}
-                </div>
+          return (
+            <Link
+              key={album.id}
+              href={`/gallery/${album.slug}`}
+              className="block bg-white border rounded-lg shadow-sm overflow-hidden"
+            >
+              <div className="relative h-48 bg-gray-100">
+                {cover && (
+                  <Image
+                    src={`${API_BASE}${cover.imageUrl}`}
+                    alt={album.title}
+                    fill
+                    className="object-cover"
+                    unoptimized={isDev}
+                  />
+                )}
+              </div>
 
-                <div className="p-4">
-                  <h2 className="font-semibold">{album.title}</h2>
-                  {album.season && (
-                    <p className="text-sm text-gray-500 mt-1">
-                      Season {album.season.year}
-                    </p>
-                  )}
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-      )}
+              <div className="p-4">
+                <h2 className="font-semibold text-sm truncate">
+                  {album.title}
+                </h2>
+              </div>
+            </Link>
+          );
+        })}
+      </div>
     </main>
   );
 }

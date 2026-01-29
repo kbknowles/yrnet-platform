@@ -2,8 +2,7 @@
 
 import HomeHero from "../components/home/HomeHero";
 import HomeMission from "../components/home/HomeMission";
-import UpcomingRodeos from "../components/home/UpcomingRodeos";
-import LatestAnnouncements from "../components/home/LatestAnnouncements";
+import HomeHighlights from "../components/home/HomeHighlights";
 import EventGallery from "../components/home/EventGallery";
 import SponsorStrip from "../components/home/SponsorStrip";
 import HomeCTA from "../components/home/HomeCTA";
@@ -11,14 +10,8 @@ import HomeCTA from "../components/home/HomeCTA";
 export default async function HomePage() {
   const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
-  console.log("HOMEPAGE API_BASE:", API_BASE);
-
   async function safeFetch(url) {
-    console.log("FETCHING:", url);
-
     const res = await fetch(url, { cache: "no-store" });
-
-    console.log("RESPONSE STATUS:", res.status);
 
     if (!res.ok) {
       let errText = "";
@@ -31,21 +24,24 @@ export default async function HomePage() {
     return res.json();
   }
 
-  const [events, announcements, sponsors, galleryAlbums] = await Promise.all([
-    safeFetch(`${API_BASE}/api/events?status=published`),
-    safeFetch(`${API_BASE}/api/announcements?published=true`),
-    safeFetch(`${API_BASE}/api/sponsors?active=true`),
-    safeFetch(`${API_BASE}/api/gallery`),
-  ]);
+  const [homeData, announcements, sponsors, galleryAlbums] =
+    await Promise.all([
+      safeFetch(`${API_BASE}/api/home`),
+      safeFetch(`${API_BASE}/api/announcements?published=true`),
+      safeFetch(`${API_BASE}/api/sponsors?active=true`),
+      safeFetch(`${API_BASE}/api/gallery`),
+    ]);
+
+  const { rodeos } = homeData;
 
   return (
     <>
       <HomeHero />
 
-      <section className="max-w-6xl mx-auto px-4 py-12 grid md:grid-cols-2 gap-10">
-        <UpcomingRodeos events={events} />
-        <LatestAnnouncements announcements={announcements} />
-      </section>
+      <HomeHighlights
+        rodeos={rodeos}
+        announcements={announcements}
+      />
 
       <HomeMission />
 

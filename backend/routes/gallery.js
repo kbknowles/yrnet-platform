@@ -5,27 +5,36 @@ import prisma from "../prismaClient.mjs";
 
 const router = express.Router();
 
+/* ----------------------- */
+/* UTIL: SLUG NORMALIZER   */
+/* ----------------------- */
+function toSlug(str) {
+  return str
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)+/g, "");
+}
+
 /* -------------------------------- */
 /* GET ALL PUBLISHED ALBUMS (PUBLIC) */
 /* -------------------------------- */
 router.get("/", async (req, res) => {
   try {
     const albums = await prisma.galleryAlbum.findMany({
-      where: {
-        published: true,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
+      where: { published: true },
+      orderBy: { createdAt: "desc" },
       include: {
-        images: {
-          orderBy: { sortOrder: "asc" }, // ALL images
-        },
+        images: { orderBy: { sortOrder: "asc" } },
         season: true,
       },
     });
 
-    res.json(albums);
+    const withSlugs = albums.map((a) => ({
+      ...a,
+      slug: toSlug(a.title),
+    }));
+
+    res.json(withSlugs);
   } catch (err) {
     console.error("PUBLIC GALLERY LIST ERROR:", err);
     res.status(500).json({ error: "Failed to fetch gallery albums" });
@@ -33,30 +42,32 @@ router.get("/", async (req, res) => {
 });
 
 /* -------------------------------- */
-/* GET SINGLE ALBUM + IMAGES (PUBLIC)*/
+/* GET SINGLE ALBUM BY SLUG (PUBLIC) */
 /* -------------------------------- */
-router.get("/albums/:id", async (req, res) => {
+router.get("/albums/:slug", async (req, res) => {
   try {
-    const albumId = Number(req.params.id);
+    const slug = req.params.slug;
 
-    const album = await prisma.galleryAlbum.findFirst({
-      where: {
-        id: albumId,
-        published: true,
-      },
+    const albums = await prisma.galleryAlbum.findMany({
+      where: { published: true },
       include: {
-        images: {
-          orderBy: { sortOrder: "asc" },
-        },
+        images: { orderBy: { sortOrder: "asc" } },
         season: true,
       },
     });
+
+    const album = albums.find(
+      (a) => toSlug(a.title) === slug
+    );
 
     if (!album) {
       return res.status(404).json({ error: "Album not found" });
     }
 
-    res.json(album);
+    res.json({
+      ...album,
+      slug,
+    });
   } catch (err) {
     console.error("PUBLIC GALLERY ALBUM ERROR:", err);
     res.status(500).json({ error: "Failed to fetch album" });

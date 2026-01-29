@@ -2,6 +2,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 
 export default function EventGallery({ albums = [] }) {
   const API_BASE = process.env.NEXT_PUBLIC_API_URL;
@@ -15,15 +16,25 @@ export default function EventGallery({ albums = [] }) {
   return (
     <section className="py-12 bg-slate-50">
       <div className="max-w-6xl mx-auto px-4">
-        <h2 className="text-xl font-semibold mb-6">
-          {album.title || "Event Gallery"}
-        </h2>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-semibold">
+            {album.title || "Event Gallery"}
+          </h2>
+
+          <Link
+            href={`/gallery/${album.id}`}
+            className="text-sm text-ahsra-blue hover:underline"
+          >
+            View Full Album →
+          </Link>
+        </div>
 
         <div className="overflow-x-auto">
           <div className="flex gap-4 pb-4">
             {images.map((img) => (
-              <div
+              <Link
                 key={img.id}
+                href={`/gallery/${album.id}`}
                 className="min-w-[260px] bg-white rounded-lg border shadow-sm overflow-hidden"
               >
                 <div className="relative h-48 w-full">
@@ -36,13 +47,7 @@ export default function EventGallery({ albums = [] }) {
                     unoptimized={isDev}
                   />
                 </div>
-
-                {img.caption && (
-                  <div className="p-3">
-                    <p className="text-xs truncate">{img.caption}</p>
-                  </div>
-                )}
-              </div>
+              </Link>
             ))}
           </div>
         </div>

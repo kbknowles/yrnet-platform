@@ -14,7 +14,7 @@ module.exports = {
         },
       },
         fontFamily: {
-         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+         sans: ["Fira Sans", "system-ui", "sans-serif"],
     },
     },
   },

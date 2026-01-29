@@ -23,6 +23,7 @@ import announcementsPublicRouter from "./announcements.js";
 import sponsorsRoutes from "./sponsors.js";
 import seasonsRoutes from "./seasons.js";
 import galleryRoutes from "./gallery.js";
+import homeRoutes from "./home.js";
 
 const router = express.Router();
 
@@ -41,5 +42,6 @@ router.use("/announcements", announcementsPublicRouter);
 router.use("/sponsors", sponsorsRoutes);
 router.use("/seasons", seasonsRoutes);
 router.use("/gallery", galleryRoutes);
+router.use("/home", homeRoutes);
 
 export default router;
