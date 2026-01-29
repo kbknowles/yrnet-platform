@@ -12,7 +12,7 @@ const nextConfig = {
       },
       {
         protocol: "https",
-        hostname: "ahsra.onrender.com",
+        hostname: "ahsra-api.onrender.com",
         pathname: "/uploads/**",
       },
     ],
