@@ -7,6 +7,38 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum OfficerRole {
+  // Adult – Executive
+  PRESIDENT
+  VICE_PRESIDENT
+  SECOND_VICE_PRESIDENT
+  SECRETARY
+  TREASURER
+  POINTS_SECRETARY
+
+  // Adult – Directors
+  NATIONAL_DIRECTOR
+  STATE_DIRECTOR
+  REGION_DIRECTOR
+  BOARD_MEMBER
+
+  // Student Leadership
+  STUDENT_PRESIDENT
+  STUDENT_VICE_PRESIDENT
+  STUDENT_SECRETARY
+  QUEEN
+  JH_PRINCESS
+}
+
+enum OfficerType {
+  EXECUTIVE
+  DIRECTOR
+  STUDENT
+  STAFF
+}
+
+
+
 /**
  * =========================
  * CORE SEASON
@@ -134,21 +166,21 @@ model EventScheduleItem {
  */
 
 model Officer {
-  id   Int    @id @default(autoincrement())
-  name String
-  role String // President, Secretary, Treasurer, etc.
-  type String // adult, student, queen
+  id        Int          @id @default(autoincrement())
+  name      String
+  role      OfficerRole
+  type      OfficerType
 
-  emailAlias String?
-  phone      String?
+  email     String?      // internal-only (never public)
+  phone     String?      // stored raw, masked on render
 
-  seasonId Int
-  active   Boolean @default(true)
+  seasonId  Int
+  active    Boolean      @default(true)
+  createdAt DateTime     @default(now())
 
   season Season @relation(fields: [seasonId], references: [id])
-
-  createdAt DateTime @default(now())
 }
+
 
 /**
  * =========================
