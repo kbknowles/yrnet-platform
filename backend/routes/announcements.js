@@ -8,28 +8,54 @@ const router = express.Router();
 /**
  * GET /api/announcements
  * Public announcements
- * Optional filters:
- *  - ?published=true
- *  - ?seasonId=#
- *  - ?eventId=#
+ *
+ * Query params:
+ *  - seasonId=#
+ *  - eventId=#
+ *
+ * Public rules (enforced):
+ *  - published = true
+ *  - publishAt <= now OR publishAt is null
+ *  - expireAt  > now OR expireAt is null
  */
 router.get("/", async (req, res) => {
-  const { published, seasonId, eventId } = req.query;
+  try {
+    const { seasonId, eventId } = req.query;
+    const now = new Date();
 
-  const announcements = await prisma.announcement.findMany({
-    where: {
-      ...(published === "true" ? { published: true } : {}),
-      ...(seasonId ? { seasonId: Number(seasonId) } : {}),
-      ...(eventId ? { eventId: Number(eventId) } : {}),
-    },
-    orderBy: [
-      { sortOrder: "asc" },
-      { publishAt: "desc" },
-      { createdAt: "desc" },
-    ],
-  });
+    const announcements = await prisma.announcement.findMany({
+      where: {
+        published: true,
 
-  res.json(announcements);
+        ...(seasonId ? { seasonId: Number(seasonId) } : {}),
+        ...(eventId ? { eventId: Number(eventId) } : {}),
+
+        AND: [
+          {
+            OR: [
+              { publishAt: null },
+              { publishAt: { lte: now } },
+            ],
+          },
+          {
+            OR: [
+              { expireAt: null },
+              { expireAt: { gt: now } },
+            ],
+          },
+        ],
+      },
+      orderBy: [
+        { sortOrder: "asc" },
+        { publishAt: "desc" },
+        { createdAt: "desc" },
+      ],
+    });
+
+    res.json(announcements);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to load announcements" });
+  }
 });
 
 export default router;

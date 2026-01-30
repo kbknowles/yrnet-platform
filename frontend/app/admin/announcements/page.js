@@ -7,21 +7,47 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 export default function AdminAnnouncementsPage() {
   const [announcements, setAnnouncements] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [seasons, setSeasons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState(null);
 
-  async function load() {
-    const res = await fetch(`${API_BASE}/api/admin/announcements`);
-    const data = await res.json();
-    setAnnouncements(data);
+  async function loadAll() {
+    setLoading(true);
+
+    const [aRes, eRes, sRes] = await Promise.all([
+      fetch(`${API_BASE}/api/admin/announcements`),
+      fetch(`${API_BASE}/api/admin/events`),
+      fetch(`${API_BASE}/api/admin/seasons`),
+    ]);
+
+    const [aData, eData, sData] = await Promise.all([
+      aRes.json(),
+      eRes.json(),
+      sRes.json(),
+    ]);
+
+    setAnnouncements(aData);
+    setEvents(eData);
+    setSeasons(sData);
     setLoading(false);
   }
 
   useEffect(() => {
-    load();
+    loadAll();
   }, []);
 
   async function save() {
+    const payload = {
+      ...active,
+      eventId: active.eventId || null,
+      seasonId: active.seasonId || null,
+      extras:
+        typeof active.extras === "string" && active.extras.trim()
+          ? JSON.parse(active.extras)
+          : null,
+    };
+
     const method = active.id ? "PUT" : "POST";
     const url = active.id
       ? `${API_BASE}/api/admin/announcements/${active.id}`
@@ -30,11 +56,11 @@ export default function AdminAnnouncementsPage() {
     await fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(active),
+      body: JSON.stringify(payload),
     });
 
     setActive(null);
-    load();
+    loadAll();
   }
 
   async function remove(id) {
@@ -42,7 +68,7 @@ export default function AdminAnnouncementsPage() {
     await fetch(`${API_BASE}/api/admin/announcements/${id}`, {
       method: "DELETE",
     });
-    load();
+    loadAll();
   }
 
   if (loading) return <p className="p-6">Loading…</p>;
@@ -59,6 +85,11 @@ export default function AdminAnnouncementsPage() {
               type: "general",
               sortOrder: 0,
               published: false,
+              eventId: "",
+              seasonId: "",
+              publishAt: "",
+              expireAt: "",
+              extras: "",
             })
           }
           className="bg-ahsra-blue text-white px-4 py-2 rounded"
@@ -73,7 +104,8 @@ export default function AdminAnnouncementsPage() {
             <tr>
               <th className="p-3 text-left">Title</th>
               <th className="p-3">Type</th>
-              <th className="p-3">Order</th>
+              <th className="p-3">Event</th>
+              <th className="p-3">Season</th>
               <th className="p-3">Published</th>
               <th className="p-3 text-right">Actions</th>
             </tr>
@@ -83,13 +115,33 @@ export default function AdminAnnouncementsPage() {
               <tr key={a.id} className="border-t hover:bg-slate-50">
                 <td className="p-3 font-medium">{a.title}</td>
                 <td className="p-3 capitalize">{a.type}</td>
-                <td className="p-3 text-center">{a.sortOrder}</td>
+                <td className="p-3">
+                  {events.find((e) => e.id === a.eventId)?.name || "—"}
+                </td>
+                <td className="p-3">
+                  {seasons.find((s) => s.id === a.seasonId)?.name || "—"}
+                </td>
                 <td className="p-3 text-center">
                   {a.published ? "✓" : "—"}
                 </td>
                 <td className="p-3 text-right space-x-3">
                   <button
-                    onClick={() => setActive(a)}
+                    onClick={() =>
+                      setActive({
+                        ...a,
+                        eventId: a.eventId ?? "",
+                        seasonId: a.seasonId ?? "",
+                        publishAt: a.publishAt
+                          ? a.publishAt.slice(0, 16)
+                          : "",
+                        expireAt: a.expireAt
+                          ? a.expireAt.slice(0, 16)
+                          : "",
+                        extras: a.extras
+                          ? JSON.stringify(a.extras, null, 2)
+                          : "",
+                      })
+                    }
                     className="text-ahsra-blue"
                   >
                     Edit
@@ -110,7 +162,7 @@ export default function AdminAnnouncementsPage() {
       {/* MODAL */}
       {active && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white w-full max-w-lg rounded shadow-lg p-6 space-y-4">
+          <div className="bg-white w-full max-w-2xl rounded shadow-lg p-6 space-y-4">
             <h2 className="text-lg font-semibold">
               {active.id ? "Edit Announcement" : "New Announcement"}
             </h2>
@@ -126,7 +178,7 @@ export default function AdminAnnouncementsPage() {
 
             <textarea
               className="w-full border rounded p-2"
-              rows={5}
+              rows={4}
               placeholder="Content"
               value={active.content}
               onChange={(e) =>
@@ -148,32 +200,66 @@ export default function AdminAnnouncementsPage() {
                 <option value="reminder">Reminder</option>
               </select>
 
-              <input
-                type="number"
+              <select
                 className="border rounded p-2"
-                value={active.sortOrder}
+                value={active.eventId}
                 onChange={(e) =>
-                  setActive({
-                    ...active,
-                    sortOrder: Number(e.target.value),
-                  })
+                  setActive({ ...active, eventId: e.target.value })
+                }
+              >
+                <option value="">All Events</option>
+                {events.map((e) => (
+                  <option key={e.id} value={e.id}>
+                    {e.name}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                className="border rounded p-2"
+                value={active.seasonId}
+                onChange={(e) =>
+                  setActive({ ...active, seasonId: e.target.value })
+                }
+              >
+                <option value="">All Seasons</option>
+                {seasons.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <input
+                type="datetime-local"
+                className="border rounded p-2"
+                value={active.publishAt}
+                onChange={(e) =>
+                  setActive({ ...active, publishAt: e.target.value })
                 }
               />
 
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={active.published}
-                  onChange={(e) =>
-                    setActive({
-                      ...active,
-                      published: e.target.checked,
-                    })
-                  }
-                />
-                Published
-              </label>
+              <input
+                type="datetime-local"
+                className="border rounded p-2"
+                value={active.expireAt}
+                onChange={(e) =>
+                  setActive({ ...active, expireAt: e.target.value })
+                }
+              />
             </div>
+
+            <textarea
+              className="w-full border rounded p-2 font-mono text-xs"
+              rows={4}
+              placeholder="Extras (JSON)"
+              value={active.extras}
+              onChange={(e) =>
+                setActive({ ...active, extras: e.target.value })
+              }
+            />
 
             <div className="flex justify-end gap-3 pt-4">
               <button

@@ -7,13 +7,22 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 export default function AdminOfficersPage() {
   const [officers, setOfficers] = useState([]);
+  const [seasons, setSeasons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState(null);
 
   async function load() {
-    const res = await fetch(`${API_BASE}/api/admin/officers`);
-    const data = await res.json();
-    setOfficers(data);
+    setLoading(true);
+    const [officersRes, seasonsRes] = await Promise.all([
+      fetch(`${API_BASE}/api/admin/officers`),
+      fetch(`${API_BASE}/api/admin/seasons`),
+    ]);
+
+    const officersData = await officersRes.json();
+    const seasonsData = await seasonsRes.json();
+
+    setOfficers(officersData);
+    setSeasons(seasonsData);
     setLoading(false);
   }
 
@@ -30,7 +39,15 @@ export default function AdminOfficersPage() {
     await fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(active),
+      body: JSON.stringify({
+        name: active.name,
+        role: active.role,
+        type: active.type,
+        emailAlias: active.emailAlias || null,
+        phone: active.phone || null,
+        seasonId: parseInt(active.seasonId),
+        active: active.active,
+      }),
     });
 
     setActive(null);
@@ -55,11 +72,12 @@ export default function AdminOfficersPage() {
           onClick={() =>
             setActive({
               name: "",
-              title: "",
-              email: "",
+              role: "",
+              type: "",
+              emailAlias: "",
               phone: "",
-              bio: "",
-              sortOrder: 0,
+              seasonId: seasons[0]?.id || "",
+              active: true,
             })
           }
           className="bg-ahsra-blue text-white px-4 py-2 rounded"
@@ -73,7 +91,9 @@ export default function AdminOfficersPage() {
           <thead className="bg-slate-100 border-b">
             <tr>
               <th className="p-3 text-left">Name</th>
-              <th className="p-3 text-left">Title</th>
+              <th className="p-3 text-left">Role</th>
+              <th className="p-3 text-left">Type</th>
+              <th className="p-3 text-left">Season</th>
               <th className="p-3 text-left">Contact</th>
               <th className="p-3 text-right">Actions</th>
             </tr>
@@ -82,9 +102,11 @@ export default function AdminOfficersPage() {
             {officers.map((o) => (
               <tr key={o.id} className="border-t hover:bg-slate-50">
                 <td className="p-3 font-medium">{o.name}</td>
-                <td className="p-3">{o.title}</td>
-                <td className="p-3 text-sm text-slate-600">
-                  {o.email || "—"}
+                <td className="p-3">{o.role}</td>
+                <td className="p-3">{o.type}</td>
+                <td className="p-3">{o.season?.name || "—"}</td>
+                <td className="p-3 text-sm">
+                  {o.emailAlias || "—"}
                 </td>
                 <td className="p-3 text-right space-x-3">
                   <button
@@ -125,19 +147,28 @@ export default function AdminOfficersPage() {
 
             <input
               className="w-full border rounded p-2"
-              placeholder="Title / Role"
-              value={active.title}
+              placeholder="Role (President, Secretary, etc.)"
+              value={active.role}
               onChange={(e) =>
-                setActive({ ...active, title: e.target.value })
+                setActive({ ...active, role: e.target.value })
               }
             />
 
             <input
               className="w-full border rounded p-2"
-              placeholder="Email"
-              value={active.email || ""}
+              placeholder="Type (Executive, Board, Staff)"
+              value={active.type}
               onChange={(e) =>
-                setActive({ ...active, email: e.target.value })
+                setActive({ ...active, type: e.target.value })
+              }
+            />
+
+            <input
+              className="w-full border rounded p-2"
+              placeholder="Email Alias"
+              value={active.emailAlias || ""}
+              onChange={(e) =>
+                setActive({ ...active, emailAlias: e.target.value })
               }
             />
 
@@ -150,15 +181,30 @@ export default function AdminOfficersPage() {
               }
             />
 
-            <textarea
+            <select
               className="w-full border rounded p-2"
-              rows={4}
-              placeholder="Bio / Notes"
-              value={active.bio || ""}
+              value={active.seasonId}
               onChange={(e) =>
-                setActive({ ...active, bio: e.target.value })
+                setActive({ ...active, seasonId: e.target.value })
               }
-            />
+            >
+              {seasons.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={active.active}
+                onChange={(e) =>
+                  setActive({ ...active, active: e.target.checked })
+                }
+              />
+              Active
+            </label>
 
             <div className="flex justify-end gap-3 pt-4">
               <button
