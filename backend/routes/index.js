@@ -21,6 +21,7 @@ import adminGalleryRoutes from "./admin/gallery.js";
    ========================= */
 
 import eventsPublicRouter from "./events.js";
+import schedulePublicRouter from "./schedule.js"; // ✅ ADD
 import announcementsPublicRouter from "./announcements.js";
 import sponsorsRoutes from "./sponsors.js";
 import seasonsRoutes from "./seasons.js";
@@ -42,6 +43,7 @@ router.use("/admin/gallery", adminGalleryRoutes);
 
 /* ---------- Public ---------- */
 router.use("/events", eventsPublicRouter);
+router.use("/schedule", schedulePublicRouter); // ✅ ADD
 router.use("/announcements", announcementsPublicRouter);
 router.use("/sponsors", sponsorsRoutes);
 router.use("/seasons", seasonsRoutes);
