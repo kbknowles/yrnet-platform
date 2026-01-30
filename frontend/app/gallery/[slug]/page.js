@@ -5,7 +5,9 @@ import Image from "next/image";
 export default async function GalleryAlbumPage({ params }) {
   const API_BASE = process.env.NEXT_PUBLIC_API_URL;
   const isDev = process.env.NODE_ENV !== "production";
-  const { slug } = params;
+
+  // Next.js App Router: params is async
+  const { slug } = await params;
 
   const res = await fetch(
     `${API_BASE}/api/gallery/albums/${slug}`,
