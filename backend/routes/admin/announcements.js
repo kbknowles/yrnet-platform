@@ -1,4 +1,4 @@
-// filepath: backend/routes/admin/announcements.mjs
+// filepath: backend/routes/admin/announcements.js
 
 import express from "express";
 import prisma from "../../prismaClient.mjs";

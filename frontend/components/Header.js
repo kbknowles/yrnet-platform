@@ -2,14 +2,25 @@
 
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+
 export default function Header() {
   const [open, setOpen] = useState(false);
+  const [pages, setPages] = useState([]);
   const pathname = usePathname();
   const isHome = pathname === "/";
+
+  useEffect(() => {
+    fetch(`${API_BASE}/api/pages`)
+      .then((res) => res.json())
+      .then((data) =>
+        setPages(data.filter((p) => p.showInMenu))
+      );
+  }, []);
 
   return (
     <header
@@ -30,7 +41,6 @@ export default function Header() {
           </Link>
         )}
 
-        {/* Spacer when brand is hidden (keeps nav aligned) */}
         {isHome && <div />}
 
         {/* Desktop Nav */}
@@ -38,7 +48,12 @@ export default function Header() {
           <Link href="/schedule">Schedule</Link>
           <Link href="/gallery">Gallery</Link>
           <Link href="/leadership">Leadership</Link>
-          <Link href="/about">About</Link>
+
+          {pages.map((p) => (
+            <Link key={p.slug} href={`/pages/${p.slug}`}>
+              {p.title}
+            </Link>
+          ))}
         </nav>
 
         {/* Mobile Toggle */}
@@ -68,9 +83,16 @@ export default function Header() {
           <Link href="/leadership" onClick={() => setOpen(false)}>
             Leadership
           </Link>
-          <Link href="/about" onClick={() => setOpen(false)}>
-            About
-          </Link>
+
+          {pages.map((p) => (
+            <Link
+              key={p.slug}
+              href={`/pages/${p.slug}`}
+              onClick={() => setOpen(false)}
+            >
+              {p.title}
+            </Link>
+          ))}
         </nav>
       )}
     </header>

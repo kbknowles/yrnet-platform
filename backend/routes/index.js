@@ -15,6 +15,8 @@ import announcementsAdminRouter from "./admin/announcements.js";
 import adminOfficersRouter from "./admin/officers.js";
 import sponsorsRouter from "./admin/sponsors.js";
 import adminGalleryRoutes from "./admin/gallery.js";
+import adminPagesRoutes from "./admin/pages.js";
+import uploadRoutes from "./admin/uploads.js";
 
 /* =========================
    PUBLIC ROUTES
@@ -27,7 +29,8 @@ import sponsorsRoutes from "./sponsors.js";
 import seasonsRoutes from "./seasons.js";
 import galleryRoutes from "./gallery.js";
 import homeRoutes from "./home.js";
-import officersPublicRouter from "./officers.js"; // ✅ ADD
+import officersPublicRouter from "./officers.js";
+import pagesRoutes from "./pages.js";
 
 const router = express.Router();
 
@@ -41,6 +44,8 @@ router.use("/admin/announcements", announcementsAdminRouter);
 router.use("/admin/officers", adminOfficersRouter);
 router.use("/admin/sponsors", sponsorsRouter);
 router.use("/admin/gallery", adminGalleryRoutes);
+router.use("/admin/pages", adminPagesRoutes);
+router.use("/admin/uploads", uploadRoutes);
 
 /* ---------- Public ---------- */
 router.use("/events", eventsPublicRouter);
@@ -50,6 +55,7 @@ router.use("/sponsors", sponsorsRoutes);
 router.use("/seasons", seasonsRoutes);
 router.use("/gallery", galleryRoutes);
 router.use("/home", homeRoutes);
-router.use("/officers", officersPublicRouter); // ✅ ADD
+router.use("/officers", officersPublicRouter);
+router.use("/pages", pagesRoutes);
 
 export default router;

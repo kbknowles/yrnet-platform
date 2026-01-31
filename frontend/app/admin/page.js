@@ -46,6 +46,11 @@ export default function AdminIndexPage() {
           href="/admin/announcements"
           description="Homepage, season, and event announcements"
         />
+        <AdminCard
+          title="Pages"
+          href="/admin/pages"
+          description="Create and manage custom pages (Membership, Rules, Forms)"
+        />
       </section>
     </main>
   );
