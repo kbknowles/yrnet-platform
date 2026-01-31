@@ -6,27 +6,34 @@ import prisma from "../prismaClient.mjs";
 const router = express.Router();
 
 /**
- * GET active officers (public)
- * Optional query: ?seasonId=#
+ * GET active officers for current season (public)
  */
 router.get("/", async (req, res) => {
   try {
-    const where = {
-      active: true,
-    };
+    const currentSeason = await prisma.season.findFirst({
+      where: { active: true },
+      select: { id: true },
+    });
 
-    if (req.query.seasonId) {
-      where.seasonId = parseInt(req.query.seasonId);
+    if (!currentSeason) {
+      return res.json([]);
     }
 
     const officers = await prisma.officer.findMany({
-      where,
-      include: {
-        season: true,
+      where: {
+        active: true,
+        seasonId: currentSeason.id,
+      },
+      select: {
+        id: true,
+        name: true,
+        role: true,
+        type: true,
+        phone: true,
       },
       orderBy: [
-        { type: "asc" },
-        { role: "asc" },
+        { type: "asc" },   // EXECUTIVE → DIRECTOR → STUDENT
+        { role: "asc" },   // enum order
         { name: "asc" },
       ],
     });

@@ -12,7 +12,7 @@ import eventsAdminRouter from "./admin/events.js";
 import eventScheduleItemsRouter from "./admin/eventScheduleItems.js";
 import eventContactsRouter from "./admin/eventContacts.js";
 import announcementsAdminRouter from "./admin/announcements.js";
-import officersRouter from "./admin/officers.js";
+import adminOfficersRouter from "./admin/officers.js";
 import sponsorsRouter from "./admin/sponsors.js";
 import adminGalleryRoutes from "./admin/gallery.js";
 
@@ -21,12 +21,13 @@ import adminGalleryRoutes from "./admin/gallery.js";
    ========================= */
 
 import eventsPublicRouter from "./events.js";
-import schedulePublicRouter from "./schedule.js"; // ✅ ADD
+import schedulePublicRouter from "./schedule.js";
 import announcementsPublicRouter from "./announcements.js";
 import sponsorsRoutes from "./sponsors.js";
 import seasonsRoutes from "./seasons.js";
 import galleryRoutes from "./gallery.js";
 import homeRoutes from "./home.js";
+import officersPublicRouter from "./officers.js"; // ✅ ADD
 
 const router = express.Router();
 
@@ -37,17 +38,18 @@ router.use("/admin/events", eventsAdminRouter);
 router.use("/admin/event-schedule-items", eventScheduleItemsRouter);
 router.use("/admin/event-contacts", eventContactsRouter);
 router.use("/admin/announcements", announcementsAdminRouter);
-router.use("/admin/officers", officersRouter);
+router.use("/admin/officers", adminOfficersRouter);
 router.use("/admin/sponsors", sponsorsRouter);
 router.use("/admin/gallery", adminGalleryRoutes);
 
 /* ---------- Public ---------- */
 router.use("/events", eventsPublicRouter);
-router.use("/schedule", schedulePublicRouter); // ✅ ADD
+router.use("/schedule", schedulePublicRouter);
 router.use("/announcements", announcementsPublicRouter);
 router.use("/sponsors", sponsorsRoutes);
 router.use("/seasons", seasonsRoutes);
 router.use("/gallery", galleryRoutes);
 router.use("/home", homeRoutes);
+router.use("/officers", officersPublicRouter); // ✅ ADD
 
 export default router;

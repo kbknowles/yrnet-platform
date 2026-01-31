@@ -1,13 +1,12 @@
-//backend/routes/admin/officers.js
+// filepath: backend/routes/admin/officers.js
 
 import express from "express";
 import prisma from "../../prismaClient.mjs";
 
-
 const router = express.Router();
 
 /**
- * GET all officers
+ * GET all officers (admin)
  */
 router.get("/", async (req, res) => {
   try {
@@ -15,6 +14,7 @@ router.get("/", async (req, res) => {
       include: { season: true },
       orderBy: { name: "asc" },
     });
+
     res.json(officers);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -29,14 +29,15 @@ router.post("/", async (req, res) => {
     const officer = await prisma.officer.create({
       data: {
         name: req.body.name,
-        role: req.body.role,
-        type: req.body.type,
-        emailAlias: req.body.emailAlias || null,
+        role: req.body.role,          // OfficerRole enum
+        type: req.body.type,          // OfficerType enum
+        email: req.body.email || null,
         phone: req.body.phone || null,
-        seasonId: parseInt(req.body.seasonId),
+        seasonId: Number(req.body.seasonId),
         active: req.body.active ?? true,
       },
     });
+
     res.json(officer);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -49,17 +50,18 @@ router.post("/", async (req, res) => {
 router.put("/:id", async (req, res) => {
   try {
     const officer = await prisma.officer.update({
-      where: { id: parseInt(req.params.id) },
+      where: { id: Number(req.params.id) },
       data: {
         name: req.body.name,
         role: req.body.role,
         type: req.body.type,
-        emailAlias: req.body.emailAlias || null,
+        email: req.body.email || null,
         phone: req.body.phone || null,
-        seasonId: parseInt(req.body.seasonId),
+        seasonId: Number(req.body.seasonId),
         active: req.body.active,
       },
     });
+
     res.json(officer);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -72,8 +74,9 @@ router.put("/:id", async (req, res) => {
 router.delete("/:id", async (req, res) => {
   try {
     await prisma.officer.delete({
-      where: { id: parseInt(req.params.id) },
+      where: { id: Number(req.params.id) },
     });
+
     res.json({ success: true });
   } catch (err) {
     res.status(400).json({ error: err.message });

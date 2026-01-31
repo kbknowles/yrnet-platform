@@ -5,6 +5,44 @@ import { useEffect, useState } from "react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
+/* =========================
+   ENUM OPTIONS
+========================= */
+
+const ROLE_OPTIONS = [
+  // Adult – Executive
+  { value: "PRESIDENT", label: "President" },
+  { value: "VICE_PRESIDENT", label: "Vice President" },
+  { value: "SECOND_VICE_PRESIDENT", label: "2nd Vice President" },
+  { value: "SECRETARY", label: "Secretary" },
+  { value: "TREASURER", label: "Treasurer" },
+  { value: "POINTS_SECRETARY", label: "Points Secretary" },
+
+  // Adult – Directors
+  { value: "NATIONAL_DIRECTOR", label: "National Director" },
+  { value: "STATE_DIRECTOR", label: "State Director" },
+  { value: "REGION_DIRECTOR", label: "Region Director" },
+  { value: "BOARD_MEMBER", label: "Board Member" },
+
+  // Student
+  { value: "STUDENT_PRESIDENT", label: "Student President" },
+  { value: "STUDENT_VICE_PRESIDENT", label: "Student Vice President" },
+  { value: "STUDENT_SECRETARY", label: "Student Secretary" },
+  { value: "QUEEN", label: "Queen" },
+  { value: "JH_PRINCESS", label: "JH Princess" },
+];
+
+const TYPE_OPTIONS = [
+  { value: "EXECUTIVE", label: "Executive (Adult)" },
+  { value: "DIRECTOR", label: "Director / Board" },
+  { value: "STUDENT", label: "Student Officer" },
+  { value: "STAFF", label: "Staff" },
+];
+
+/* =========================
+   PAGE
+========================= */
+
 export default function AdminOfficersPage() {
   const [officers, setOfficers] = useState([]);
   const [seasons, setSeasons] = useState([]);
@@ -13,16 +51,13 @@ export default function AdminOfficersPage() {
 
   async function load() {
     setLoading(true);
-    const [officersRes, seasonsRes] = await Promise.all([
+    const [officerRes, seasonRes] = await Promise.all([
       fetch(`${API_BASE}/api/admin/officers`),
       fetch(`${API_BASE}/api/admin/seasons`),
     ]);
 
-    const officersData = await officersRes.json();
-    const seasonsData = await seasonsRes.json();
-
-    setOfficers(officersData);
-    setSeasons(seasonsData);
+    setOfficers(await officerRes.json());
+    setSeasons(await seasonRes.json());
     setLoading(false);
   }
 
@@ -43,7 +78,7 @@ export default function AdminOfficersPage() {
         name: active.name,
         role: active.role,
         type: active.type,
-        emailAlias: active.emailAlias || null,
+        email: active.email || null,
         phone: active.phone || null,
         seasonId: parseInt(active.seasonId),
         active: active.active,
@@ -62,7 +97,7 @@ export default function AdminOfficersPage() {
     load();
   }
 
-  if (loading) return <p className="p-6">Loading…</p>;
+  if (loading) return <div className="p-6">Loading…</div>;
 
   return (
     <div className="p-6 bg-slate-50 min-h-screen">
@@ -72,11 +107,11 @@ export default function AdminOfficersPage() {
           onClick={() =>
             setActive({
               name: "",
-              role: "",
-              type: "",
-              emailAlias: "",
+              role: "PRESIDENT",
+              type: "EXECUTIVE",
+              email: "",
               phone: "",
-              seasonId: seasons[0]?.id || "",
+              seasonId: seasons.find(s => s.active)?.id || seasons[0]?.id,
               active: true,
             })
           }
@@ -94,20 +129,18 @@ export default function AdminOfficersPage() {
               <th className="p-3 text-left">Role</th>
               <th className="p-3 text-left">Type</th>
               <th className="p-3 text-left">Season</th>
-              <th className="p-3 text-left">Contact</th>
+              <th className="p-3 text-left">Active</th>
               <th className="p-3 text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {officers.map((o) => (
+            {officers.map(o => (
               <tr key={o.id} className="border-t hover:bg-slate-50">
                 <td className="p-3 font-medium">{o.name}</td>
                 <td className="p-3">{o.role}</td>
                 <td className="p-3">{o.type}</td>
-                <td className="p-3">{o.season?.name || "—"}</td>
-                <td className="p-3 text-sm">
-                  {o.emailAlias || "—"}
-                </td>
+                <td className="p-3">{o.season?.year}</td>
+                <td className="p-3">{o.active ? "Yes" : "No"}</td>
                 <td className="p-3 text-right space-x-3">
                   <button
                     onClick={() => setActive(o)}
@@ -140,57 +173,57 @@ export default function AdminOfficersPage() {
               className="w-full border rounded p-2"
               placeholder="Full Name"
               value={active.name}
-              onChange={(e) =>
-                setActive({ ...active, name: e.target.value })
-              }
+              onChange={e => setActive({ ...active, name: e.target.value })}
             />
 
-            <input
+            <select
               className="w-full border rounded p-2"
-              placeholder="Role (President, Secretary, etc.)"
               value={active.role}
-              onChange={(e) =>
-                setActive({ ...active, role: e.target.value })
-              }
-            />
+              onChange={e => setActive({ ...active, role: e.target.value })}
+            >
+              {ROLE_OPTIONS.map(r => (
+                <option key={r.value} value={r.value}>
+                  {r.label}
+                </option>
+              ))}
+            </select>
 
-            <input
+            <select
               className="w-full border rounded p-2"
-              placeholder="Type (Executive, Board, Staff)"
               value={active.type}
-              onChange={(e) =>
-                setActive({ ...active, type: e.target.value })
-              }
+              onChange={e => setActive({ ...active, type: e.target.value })}
+            >
+              {TYPE_OPTIONS.map(t => (
+                <option key={t.value} value={t.value}>
+                  {t.label}
+                </option>
+              ))}
+            </select>
+
+            <input
+              className="w-full border rounded p-2"
+              placeholder="Internal Email (not public)"
+              value={active.email || ""}
+              onChange={e => setActive({ ...active, email: e.target.value })}
             />
 
             <input
               className="w-full border rounded p-2"
-              placeholder="Email Alias"
-              value={active.emailAlias || ""}
-              onChange={(e) =>
-                setActive({ ...active, emailAlias: e.target.value })
-              }
-            />
-
-            <input
-              className="w-full border rounded p-2"
-              placeholder="Phone"
+              placeholder="Phone (internal)"
               value={active.phone || ""}
-              onChange={(e) =>
-                setActive({ ...active, phone: e.target.value })
-              }
+              onChange={e => setActive({ ...active, phone: e.target.value })}
             />
 
             <select
               className="w-full border rounded p-2"
               value={active.seasonId}
-              onChange={(e) =>
+              onChange={e =>
                 setActive({ ...active, seasonId: e.target.value })
               }
             >
-              {seasons.map((s) => (
+              {seasons.map(s => (
                 <option key={s.id} value={s.id}>
-                  {s.name}
+                  {s.year} {s.active ? "(Current)" : ""}
                 </option>
               ))}
             </select>
@@ -199,7 +232,7 @@ export default function AdminOfficersPage() {
               <input
                 type="checkbox"
                 checked={active.active}
-                onChange={(e) =>
+                onChange={e =>
                   setActive({ ...active, active: e.target.checked })
                 }
               />
