@@ -1,4 +1,5 @@
 // filepath: frontend/app/admin/pages/PageEditor.js
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -65,6 +66,51 @@ export default function PageEditor({ title, form, setForm, onSave }) {
     <main className="max-w-5xl mx-auto px-4 py-10 space-y-6">
       <h1 className="text-2xl font-bold">{title}</h1>
 
+      {/* Title */}
+      <input
+        className="w-full border p-3"
+        placeholder="Page title"
+        value={form.title || ""}
+        onChange={(e) =>
+          setForm({ ...form, title: e.target.value })
+        }
+      />
+
+      {/* Slug */}
+      <input
+        className="w-full border p-3"
+        placeholder="Slug (example: welcome)"
+        value={form.slug || ""}
+        onChange={(e) =>
+          setForm({ ...form, slug: e.target.value })
+        }
+      />
+
+      {/* NAV TOGGLES — ADDED BACK */}
+      <div className="flex gap-6">
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={!!form.showInMenu}
+            onChange={(e) =>
+              setForm({ ...form, showInMenu: e.target.checked })
+            }
+          />
+          Show in main navigation
+        </label>
+
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={!!form.showInFooter}
+            onChange={(e) =>
+              setForm({ ...form, showInFooter: e.target.checked })
+            }
+          />
+          Show in footer
+        </label>
+      </div>
+
       {/* Toolbar */}
       <div className="flex flex-wrap gap-2 border p-3 bg-gray-50">
         <button onClick={() => wrap("h2")} className="btn">
@@ -113,9 +159,23 @@ export default function PageEditor({ title, form, setForm, onSave }) {
         />
       )}
 
-      {/* Save */}
-      <div className="flex justify-end">
-        <button onClick={onSave} className="bg-ahsra-blue text-white px-6 py-2">
+      {/* Status + Save */}
+      <div className="flex items-center justify-between">
+        <select
+          className="border p-2"
+          value={form.status || "draft"}
+          onChange={(e) =>
+            setForm({ ...form, status: e.target.value })
+          }
+        >
+          <option value="draft">Draft</option>
+          <option value="published">Published</option>
+        </select>
+
+        <button
+          onClick={onSave}
+          className="bg-ahsra-blue text-white px-6 py-2"
+        >
           Save Page
         </button>
       </div>

@@ -50,7 +50,7 @@ export default function Header() {
           <Link href="/leadership">Leadership</Link>
 
           {pages.map((p) => (
-            <Link key={p.slug} href={`/pages/${p.slug}`}>
+            <Link key={p.slug} href={`/${p.slug}`}>
               {p.title}
             </Link>
           ))}
@@ -87,7 +87,7 @@ export default function Header() {
           {pages.map((p) => (
             <Link
               key={p.slug}
-              href={`/pages/${p.slug}`}
+              href={`/${p.slug}`}
               onClick={() => setOpen(false)}
             >
               {p.title}
