@@ -1,7 +1,7 @@
 // filepath: backend/routes/admin/uploads.js
 
 import express from "express";
-import uploadPdf from "../../middleware/uploadPdf.js";
+import uploadPdf from "../../middleware/uploadPdf_tmp.js";
 
 const router = express.Router();
 
