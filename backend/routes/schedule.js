@@ -1,28 +1,57 @@
-// filepath: backend/routes/pages.js
+// backend/routes/schedule.js
 
 import express from "express";
 import prisma from "../prismaClient.mjs";
 
 const router = express.Router();
 
-/* ---------------------------------
-   PUBLIC PAGE BY SLUG
----------------------------------- */
-router.get("/:slug", async (req, res) => {
-  const { slug } = req.params;
+/**
+ * GET full schedule
+ */
+router.get("/", async (req, res) => {
+  try {
+    const events = await prisma.event.findMany({
+      where: { status: "published" },
+      orderBy: { startDate: "asc" },
+      include: {
+        location: true,
+      },
+    });
 
-  const page = await prisma.page.findFirst({
-    where: {
-      slug,
-      published: true,
-    },
-  });
-
-  if (!page) {
-    return res.status(404).json({ error: "Not found" });
+    res.json(events);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to load schedule" });
   }
+});
 
-  res.json(page);
+/**
+ * GET single event by slug
+ */
+router.get("/:slug", async (req, res) => {
+  try {
+    const event = await prisma.event.findFirst({
+      where: {
+        slug: req.params.slug,
+        status: "published",
+      },
+      include: {
+        location: true,
+        scheduleItems: true,
+        announcements: {
+          where: { published: true },
+          orderBy: { sortOrder: "asc" },
+        },
+      },
+    });
+
+    if (!event) {
+      return res.status(404).json({ error: "Event not found" });
+    }
+
+    res.json(event);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to load event" });
+  }
 });
 
 export default router;
