@@ -1,5 +1,4 @@
 // filepath: frontend/components/Header.js
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -17,9 +16,7 @@ export default function Header() {
   useEffect(() => {
     fetch(`${API_BASE}/api/pages`)
       .then((res) => res.json())
-      .then((data) =>
-        setPages(data.filter((p) => p.showInMenu))
-      );
+      .then((data) => setPages(data.filter((p) => p.showInMenu)));
   }, []);
 
   return (
@@ -31,20 +28,21 @@ export default function Header() {
       } text-white z-50`}
     >
       <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-        {/* Brand — hidden on home */}
-        {!isHome && (
+        {/* Brand */}
+        {!isHome ? (
           <Link href="/" className="font-bold tracking-wide">
             <span className="hidden md:inline text-lg">
               Alabama High School Rodeo Association
             </span>
             <span className="md:hidden text-lg">AHSRA</span>
           </Link>
+        ) : (
+          <div />
         )}
-
-        {isHome && <div />}
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex gap-6 text-sm font-medium">
+          <Link href="/">Home</Link>
           <Link href="/schedule">Schedule</Link>
           <Link href="/gallery">Gallery</Link>
           <Link href="/leadership">Leadership</Link>
@@ -74,6 +72,9 @@ export default function Header() {
             isHome ? "bg-black/80" : "bg-ahsra-blue"
           }`}
         >
+          <Link href="/" onClick={() => setOpen(false)}>
+            Home
+          </Link>
           <Link href="/schedule" onClick={() => setOpen(false)}>
             Schedule
           </Link>
