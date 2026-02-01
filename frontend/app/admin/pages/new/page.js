@@ -4,7 +4,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import PageEditor from "../PageEditor_tmp";
+import PageEditor from "../PageEditor";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
