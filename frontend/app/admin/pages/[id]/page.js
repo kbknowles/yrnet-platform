@@ -3,14 +3,26 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import PageEditor from "../PageEditor";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
+/* ----------------------------
+   Helper: text → HTML paragraphs
+----------------------------- */
+function toParagraphs(text = "") {
+  return text
+    .split(/\n\s*\n/) // split on blank lines
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .map((p) => `<p>${p.replace(/\n/g, "<br />")}</p>`)
+    .join("");
+}
+
 export default function EditPage() {
-  const { id } = useParams(); // ✅ unwrap params correctly
+  const { id } = useParams();
   const router = useRouter();
 
-  const [pages, setPages] = useState([]);
   const [form, setForm] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -19,12 +31,13 @@ export default function EditPage() {
 
     async function load() {
       setLoading(true);
-      const res = await fetch(`${API_BASE}/api/admin/pages`);
-      const data = await res.json();
-      setPages(data);
 
-      const match = data.find((p) => p.id === Number(id));
-      setForm(match || null);
+      const res = await fetch(`${API_BASE}/api/admin/pages`);
+      const pages = await res.json();
+
+      const page = pages.find((p) => p.id === Number(id));
+      setForm(page || null);
+
       setLoading(false);
     }
 
@@ -32,10 +45,15 @@ export default function EditPage() {
   }, [id]);
 
   async function save() {
+    const formatted = {
+      ...form,
+      content: toParagraphs(form.content),
+    };
+
     await fetch(`${API_BASE}/api/admin/pages/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify(formatted),
     });
 
     router.push("/admin/pages");
@@ -45,27 +63,11 @@ export default function EditPage() {
   if (!form) return <div className="p-8">Page not found.</div>;
 
   return (
-    <main className="max-w-4xl mx-auto px-4 py-10 space-y-6">
-      <h1 className="text-2xl font-bold">Edit Page</h1>
-
-      <input
-        className="w-full border p-2"
-        value={form.title || ""}
-        onChange={(e) => setForm({ ...form, title: e.target.value })}
-      />
-
-      <textarea
-        className="w-full border p-2 h-64"
-        value={form.content || ""}
-        onChange={(e) => setForm({ ...form, content: e.target.value })}
-      />
-
-      <button
-        onClick={save}
-        className="bg-ahsra-blue text-white px-4 py-2"
-      >
-        Save
-      </button>
-    </main>
+    <PageEditor
+      title="Edit Page"
+      form={form}
+      setForm={setForm}
+      onSave={save}
+    />
   );
 }
