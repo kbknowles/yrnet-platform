@@ -37,6 +37,20 @@ enum OfficerType {
   STAFF
 }
 
+enum AthleteEvent {
+  BAREBACK
+  SADDLE_BRONC
+  BULL_RIDING
+  BARREL_RACING
+  POLE_BENDING
+  GOAT_TYING
+  BREAKAWAY_ROPING
+  TIE_DOWN_ROPING
+  TEAM_ROPING
+  STEER_WRESTLING
+  RANCH_SADDLE_BRONC
+  REINED_COW
+}
 
 
 /**
@@ -56,6 +70,7 @@ model Season {
   officers      Officer[] 
   announcements Announcement[]
   gallery       GalleryAlbum[]
+  athletes       Athlete[]
 
   createdAt DateTime @default(now())
 }
@@ -287,4 +302,42 @@ model CustomPage {
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+}
+
+
+model Athlete {
+  id Int @id @default(autoincrement())
+
+  // Core
+  firstName String
+  lastName  String
+  school    String?
+  grade     String?
+  hometown  String?
+  bio       String?
+
+  // Media
+  headshotUrl     String?
+  actionPhotoUrl String?
+
+  // Rodeo
+  seasonId Int
+  season   Season? @relation(fields: [seasonId], references: [id])
+  
+  events AthleteEvent[]   // multi-select dropdown
+  standings String?
+  awards    Json?         // [{ title, year, event }]
+
+  // Extras
+  futureGoals String?
+  sponsors    Json?       // [{ name, logoUrl, link }]
+  socialLinks Json?       // { instagram, facebook }
+
+  // Admin
+  isActive   Boolean @default(true)
+  isFeatured Boolean @default(false)
+  sortOrder  Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

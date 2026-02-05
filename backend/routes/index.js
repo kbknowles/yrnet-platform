@@ -17,6 +17,8 @@ import sponsorsRouter from "./admin/sponsors.js";
 import adminGalleryRoutes from "./admin/gallery.js";
 import adminPagesRoutes from "./admin/pages.js";
 import uploadRoutes from "./admin/uploads.js";
+import athletesRouter from "./admin/athletes.js";
+
 
 /* =========================
    PUBLIC ROUTES
@@ -46,6 +48,7 @@ router.use("/admin/sponsors", sponsorsRouter);
 router.use("/admin/gallery", adminGalleryRoutes);
 router.use("/admin/pages", adminPagesRoutes);
 router.use("/admin/uploads", uploadRoutes);
+router.use("/admin/athletes", athletesRouter);
 
 /* ---------- Public ---------- */
 router.use("/events", eventsPublicRouter);
