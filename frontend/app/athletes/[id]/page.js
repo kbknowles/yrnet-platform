@@ -3,7 +3,7 @@ import Image from "next/image";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 async function getAthlete(id) {
-  const res = await fetch(`${API_BASE}/api/admin/athletes/${id}`, {
+  const res = await fetch(`${API_BASE}/api/athletes/${id}`, {
     cache: "no-store",
   });
 
@@ -11,7 +11,8 @@ async function getAthlete(id) {
   return res.json();
 }
 
-export default async function AthleteDetailPage({ params }) {
+export default async function AthleteDetailPage(props) {
+  const params = await props.params; // ✅ REQUIRED IN NEXT 15+
   const athlete = await getAthlete(params.id);
 
   if (!athlete || !athlete.isActive) {
@@ -44,15 +45,27 @@ export default async function AthleteDetailPage({ params }) {
           </h1>
 
           <div className="text-sm text-gray-700 space-y-1">
-            {athlete.school && <div><strong>School:</strong> {athlete.school}</div>}
-            {athlete.grade && <div><strong>Grade:</strong> {athlete.grade}</div>}
-            {athlete.hometown && <div><strong>Hometown:</strong> {athlete.hometown}</div>}
+            {athlete.school && (
+              <div>
+                <strong>School:</strong> {athlete.school}
+              </div>
+            )}
+            {athlete.grade && (
+              <div>
+                <strong>Grade:</strong> {athlete.grade}
+              </div>
+            )}
+            {athlete.hometown && (
+              <div>
+                <strong>Hometown:</strong> {athlete.hometown}
+              </div>
+            )}
           </div>
 
           {athlete.events?.length > 0 && (
             <div>
               <strong>Events:</strong>{" "}
-              {athlete.events.map(e => e.replaceAll("_", " ")).join(", ")}
+              {athlete.events.map((e) => e.replaceAll("_", " ")).join(", ")}
             </div>
           )}
         </div>
@@ -82,7 +95,9 @@ export default async function AthleteDetailPage({ params }) {
       {/* AWARDS */}
       {Array.isArray(athlete.awards) && athlete.awards.length > 0 && (
         <section>
-          <h2 className="text-xl font-semibold mb-2">Awards & Achievements</h2>
+          <h2 className="text-xl font-semibold mb-2">
+            Awards & Achievements
+          </h2>
           <ul className="list-disc pl-5 space-y-1">
             {athlete.awards.map((a, i) => (
               <li key={i}>
@@ -117,7 +132,11 @@ export default async function AthleteDetailPage({ params }) {
                 className="border p-3 flex items-center justify-center bg-white"
               >
                 {s.logoUrl ? (
-                  <img src={s.logoUrl} alt={s.name} className="max-h-16" />
+                  <img
+                    src={s.logoUrl}
+                    alt={s.name}
+                    className="max-h-16"
+                  />
                 ) : (
                   <span>{s.name}</span>
                 )}

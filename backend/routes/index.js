@@ -33,6 +33,9 @@ import galleryRoutes from "./gallery.js";
 import homeRoutes from "./home.js";
 import officersPublicRouter from "./officers.js";
 import pagesRoutes from "./pages.js";
+import athletesPublicRouter from "./athletes.js";
+
+
 
 const router = express.Router();
 
@@ -60,5 +63,6 @@ router.use("/gallery", galleryRoutes);
 router.use("/home", homeRoutes);
 router.use("/officers", officersPublicRouter);
 router.use("/pages", pagesRoutes);
+router.use("/athletes", athletesPublicRouter);
 
 export default router;
