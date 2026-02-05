@@ -1,13 +1,11 @@
 import express from "express";
-import uploadPdf from "../../middleware/uploadPdf.js";
+import uploadPdf from "../../middleware/uploadPdf_tmp.js";
 import uploadImage from "../../middleware/uploadImage.js";
 
 const router = express.Router();
 
-const API_BASE =
-  process.env.NODE_ENV === "production"
-    ? process.env.PUBLIC_API_URL
-    : "http://localhost:3001";
+const PUBLIC_API_URL =
+  process.env.PUBLIC_API_URL || "http://localhost:3001";
 
 /* ---------------------------- */
 /* UPLOAD PDF */
@@ -18,7 +16,7 @@ router.post("/pdf", uploadPdf.single("file"), (req, res) => {
   }
 
   res.json({
-    url: `${API_BASE}/uploads/pdfs/${req.file.filename}`,
+    url: `${PUBLIC_API_URL}/uploads/pdfs/${req.file.filename}`,
   });
 });
 
@@ -31,7 +29,7 @@ router.post("/image", uploadImage.single("file"), (req, res) => {
   }
 
   res.json({
-    url: `${API_BASE}/uploads/images/${req.file.filename}`,
+    url: `${PUBLIC_API_URL}/uploads/images/${req.file.filename}`,
   });
 });
 
