@@ -316,6 +316,8 @@ model Athlete {
   hometown  String?
   bio       String?
 
+  slug      String @unique
+  
   // Media
   headshotUrl     String?
   actionPhotoUrl String?
