@@ -1,10 +1,12 @@
+// filepath: backend/routes/admin/athletes.js
+
 import express from "express";
 import prisma from "../../prismaClient.mjs";
 
 const router = express.Router();
 
 /* ----------------------------
-   GET ALL
+   GET ALL (ADMIN)
 ----------------------------- */
 router.get("/", async (_req, res) => {
   const athletes = await prisma.athlete.findMany({
@@ -16,32 +18,28 @@ router.get("/", async (_req, res) => {
 });
 
 /* ----------------------------
-   GET ONE
+   GET ONE BY SLUG (ADMIN)
 ----------------------------- */
-router.get("/:id", async (req, res) => {
-  const id = Number(req.params.id);
+router.get("/:slug", async (req, res) => {
+  const { slug } = req.params;
 
-  if (!id || Number.isNaN(id)) {
-    return res.status(400).json({
-      error: "Invalid athlete id",
-    });
+  if (!slug) {
+    return res.status(400).json({ error: "Invalid athlete slug" });
   }
 
   const athlete = await prisma.athlete.findUnique({
-    where: { id },
+    where: { slug },
   });
 
   if (!athlete) {
-    return res.status(404).json({
-      error: "Athlete not found",
-    });
+    return res.status(404).json({ error: "Athlete not found" });
   }
 
   res.json(athlete);
 });
 
 /* ----------------------------
-   CREATE
+   CREATE (ADMIN)
 ----------------------------- */
 router.post("/", async (req, res) => {
   const activeSeason = await prisma.season.findFirst({
@@ -49,9 +47,11 @@ router.post("/", async (req, res) => {
   });
 
   if (!activeSeason) {
-    return res.status(400).json({
-      error: "No active season found",
-    });
+    return res.status(400).json({ error: "No active season found" });
+  }
+
+  if (!req.body.slug) {
+    return res.status(400).json({ error: "Slug is required" });
   }
 
   const athlete = await prisma.athlete.create({
@@ -65,19 +65,17 @@ router.post("/", async (req, res) => {
 });
 
 /* ----------------------------
-   UPDATE
+   UPDATE BY SLUG (ADMIN)
 ----------------------------- */
-router.put("/:id", async (req, res) => {
-  const id = Number(req.params.id);
+router.put("/:slug", async (req, res) => {
+  const { slug } = req.params;
 
-  if (!id || Number.isNaN(id)) {
-    return res.status(400).json({
-      error: "Invalid athlete id",
-    });
+  if (!slug) {
+    return res.status(400).json({ error: "Invalid athlete slug" });
   }
 
   const athlete = await prisma.athlete.update({
-    where: { id },
+    where: { slug },
     data: req.body,
   });
 
@@ -85,19 +83,17 @@ router.put("/:id", async (req, res) => {
 });
 
 /* ----------------------------
-   DELETE
+   DELETE BY SLUG (ADMIN)
 ----------------------------- */
-router.delete("/:id", async (req, res) => {
-  const id = Number(req.params.id);
+router.delete("/:slug", async (req, res) => {
+  const { slug } = req.params;
 
-  if (!id || Number.isNaN(id)) {
-    return res.status(400).json({
-      error: "Invalid athlete id",
-    });
+  if (!slug) {
+    return res.status(400).json({ error: "Invalid athlete slug" });
   }
 
   await prisma.athlete.delete({
-    where: { id },
+    where: { slug },
   });
 
   res.json({ ok: true });

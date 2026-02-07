@@ -1,7 +1,22 @@
+// filepath: backend/routes/athletes.js
+
 import express from "express";
 import prisma from "../prismaClient.mjs";
 
 const router = express.Router();
+
+/* ----------------------------
+   GET ALL (PUBLIC)
+   Active athletes only
+----------------------------- */
+router.get("/", async (_req, res) => {
+  const athletes = await prisma.athlete.findMany({
+    where: { isActive: true },
+    orderBy: [{ sortOrder: "asc" }, { lastName: "asc" }],
+  });
+
+  res.json(athletes);
+});
 
 /* ----------------------------
    GET ONE BY SLUG (PUBLIC)
@@ -14,14 +29,11 @@ router.get("/:slug", async (req, res) => {
     return res.status(400).json({ error: "Invalid athlete slug" });
   }
 
-  const athlete = await prisma.athlete.findFirst({
-    where: {
-      slug,
-      isActive: true,
-    },
+  const athlete = await prisma.athlete.findUnique({
+    where: { slug },
   });
 
-  if (!athlete) {
+  if (!athlete || !athlete.isActive) {
     return res.status(404).json({ error: "Athlete not found" });
   }
 

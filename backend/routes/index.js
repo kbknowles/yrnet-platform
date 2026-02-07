@@ -3,7 +3,7 @@
 import express from "express";
 
 /* =========================
-   ADMIN ROUTES
+   ADMIN ROUTES (MUST COME FIRST)
    ========================= */
 
 import seasonsRouter from "./admin/seasons.js";
@@ -17,8 +17,7 @@ import sponsorsRouter from "./admin/sponsors.js";
 import adminGalleryRoutes from "./admin/gallery.js";
 import adminPagesRoutes from "./admin/pages.js";
 import uploadRoutes from "./admin/uploads.js";
-import athletesRouter from "./admin/athletes.js";
-
+import adminAthletesRouter from "./admin/athletes.js";
 
 /* =========================
    PUBLIC ROUTES
@@ -35,8 +34,6 @@ import officersPublicRouter from "./officers.js";
 import pagesRoutes from "./pages.js";
 import athletesPublicRouter from "./athletes.js";
 
-
-
 const router = express.Router();
 
 /* ---------- Admin ---------- */
@@ -51,7 +48,7 @@ router.use("/admin/sponsors", sponsorsRouter);
 router.use("/admin/gallery", adminGalleryRoutes);
 router.use("/admin/pages", adminPagesRoutes);
 router.use("/admin/uploads", uploadRoutes);
-router.use("/admin/athletes", athletesRouter);
+router.use("/admin/athletes", adminAthletesRouter);
 
 /* ---------- Public ---------- */
 router.use("/events", eventsPublicRouter);

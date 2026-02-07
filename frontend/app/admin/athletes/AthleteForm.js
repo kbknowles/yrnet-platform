@@ -1,6 +1,8 @@
+// filepath: frontend/app/admin/athletes/AthleteForm.js
+
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -39,15 +41,77 @@ const EMPTY_FORM = {
   sortOrder: 0,
 };
 
-export default function AthleteForm() {
+export default function AthleteForm({ slug, mode = "create" }) {
   const [form, setForm] = useState(EMPTY_FORM);
+  const [loading, setLoading] = useState(mode === "edit");
+  const [saving, setSaving] = useState(false);
 
   function update(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
+  /* ----------------------------
+     LOAD ATHLETE (EDIT MODE)
+  ----------------------------- */
+  useEffect(() => {
+    if (mode !== "edit" || !slug) return;
+
+    async function loadAthlete() {
+      setLoading(true);
+
+      const res = await fetch(
+        `${API_BASE}/api/admin/athletes/${slug}`,
+        { cache: "no-store" }
+      );
+
+      if (res.ok) {
+        const data = await res.json();
+        setForm({
+          ...EMPTY_FORM,
+          ...data,
+          sponsors: data.sponsors || [],
+          events: data.events || [],
+        });
+      }
+
+      setLoading(false);
+    }
+
+    loadAthlete();
+  }, [slug, mode]);
+
+  /* ----------------------------
+     SAVE
+  ----------------------------- */
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setSaving(true);
+
+    const res = await fetch(
+      `${API_BASE}/api/admin/athletes${mode === "edit" ? `/${slug}` : ""}`,
+      {
+        method: mode === "edit" ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      }
+    );
+
+    setSaving(false);
+
+    if (res.ok) {
+      window.location.href = "/admin/athletes";
+    }
+  }
+
+  if (loading) {
+    return <p className="p-6">Loading athlete…</p>;
+  }
+
   return (
-    <form className="max-w-7xl mx-auto px-4 py-6 space-y-10">
+    <form
+      onSubmit={handleSubmit}
+      className="max-w-7xl mx-auto px-4 py-6 space-y-10"
+    >
       {/* BASIC INFO */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <input
@@ -85,7 +149,7 @@ export default function AthleteForm() {
       <section>
         <label className="font-semibold block mb-2">Athlete Bio</label>
         <textarea
-          className="w-full min-h-[220px]"
+          className="w-full min-h-[260px]"
           value={form.bio}
           onChange={(e) => update("bio", e.target.value)}
         />
@@ -100,14 +164,14 @@ export default function AthleteForm() {
               <input
                 type="checkbox"
                 checked={form.events.includes(event)}
-                onChange={(e) => {
+                onChange={(e) =>
                   update(
                     "events",
                     e.target.checked
                       ? [...form.events, event]
                       : form.events.filter((v) => v !== event)
-                  );
-                }}
+                  )
+                }
               />
               {event.replaceAll("_", " ")}
             </label>
@@ -119,7 +183,7 @@ export default function AthleteForm() {
       <section>
         <label className="font-semibold block mb-2">Future Goals</label>
         <textarea
-          className="w-full min-h-[160px]"
+          className="w-full min-h-[180px]"
           value={form.futureGoals}
           onChange={(e) => update("futureGoals", e.target.value)}
         />
@@ -228,6 +292,17 @@ export default function AthleteForm() {
           ))}
         </div>
       </section>
+
+      {/* ACTIONS */}
+      <div className="pt-6">
+        <button
+          type="submit"
+          disabled={saving}
+          className="px-6 py-2 bg-black text-white"
+        >
+          {saving ? "Saving…" : "Save Athlete"}
+        </button>
+      </div>
     </form>
   );
 }
