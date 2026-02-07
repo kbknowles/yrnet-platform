@@ -1,9 +1,13 @@
+// filepath: frontend/app/admin/athletes/page.js
+
 import Link from "next/link";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 async function getAthletes() {
-  const res = await fetch(`${API_BASE}/api/admin/athletes`, { cache: "no-store" });
+  const res = await fetch(`${API_BASE}/api/admin/athletes`, {
+    cache: "no-store",
+  });
   return res.json();
 }
 
@@ -19,16 +23,78 @@ export default async function AthletesAdminPage() {
         </Link>
       </div>
 
-      <ul className="divide-y bg-white border">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {athletes.map((a) => (
-          <li key={a.id} className="p-4 flex justify-between">
-            <span>{a.firstName} {a.lastName}</span>
-            <Link href={`/admin/athletes/${a.id}`} className="text-ahsra-blue">
-              Edit
-            </Link>
-          </li>
+          <div
+            key={a.slug}
+            className="border rounded-lg bg-white p-4 flex gap-5"
+          >
+            {/* HEADSHOT THUMBNAIL */}
+            <div className="w-24 h-24 rounded overflow-hidden bg-gray-100 flex items-center justify-center shrink-0">
+              {a.headshotUrl ? (
+                <img
+                  src={a.headshotUrl}
+                  alt={`${a.firstName} ${a.lastName}`}
+                  className="w-full h-full object-contain"
+                />
+              ) : (
+                <span className="text-xs text-gray-400 text-center px-1">
+                  No Photo
+                </span>
+              )}
+            </div>
+
+            {/* INFO */}
+            <div className="flex flex-col justify-between flex-1">
+              <div className="space-y-1">
+                <h2 className="text-lg font-semibold">
+                  <Link
+                    href={`/athletes/${a.slug}`}
+                    className="text-ahsra-blue hover:underline"
+                    target="_blank"
+                  >
+                    {a.firstName} {a.lastName}
+                  </Link>
+                </h2>
+
+                {a.school && (
+                  <p className="text-sm">
+                    <strong>School:</strong> {a.school}
+                  </p>
+                )}
+
+                {a.grade && (
+                  <p className="text-sm">
+                    <strong>Grade:</strong> {a.grade}
+                  </p>
+                )}
+
+                <p className="text-sm flex items-center gap-2">
+                  <strong>Status:</strong>
+                  <span
+                    className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
+                      a.isActive
+                        ? "bg-green-100 text-green-700"
+                        : "bg-gray-200 text-gray-600"
+                    }`}
+                  >
+                    {a.isActive ? "Active" : "Inactive"}
+                  </span>
+                </p>
+              </div>
+
+              <div className="mt-3">
+                <Link
+                  href={`/admin/athletes/${a.slug}`}
+                  className="text-ahsra-blue text-sm font-medium"
+                >
+                  Edit Athlete →
+                </Link>
+              </div>
+            </div>
+          </div>
         ))}
-      </ul>
+      </div>
     </main>
   );
 }

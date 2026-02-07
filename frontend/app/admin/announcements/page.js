@@ -112,7 +112,7 @@ export default function AdminAnnouncementsPage() {
           </thead>
           <tbody>
             {announcements.map((a) => (
-              <tr key={a.id} className="border-t hover:bg-slate-50">
+              <tr key={a.slug} className="border-t hover:bg-slate-50">
                 <td className="p-3 font-medium">{a.title}</td>
                 <td className="p-3 capitalize">{a.type}</td>
                 <td className="p-3">

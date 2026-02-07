@@ -30,9 +30,6 @@ const EMPTY_FORM = {
   events: [],
   headshotUrl: "",
   actionPhotoUrl: "",
-  seasonId: null,
-  standings: null,
-  awards: null,
   futureGoals: "",
   sponsors: [],
   socialLinks: [],
@@ -64,21 +61,54 @@ export default function AthleteForm({ slug, mode = "create" }) {
         { cache: "no-store" }
       );
 
-      if (res.ok) {
-        const data = await res.json();
-        setForm({
-          ...EMPTY_FORM,
-          ...data,
-          sponsors: data.sponsors || [],
-          events: data.events || [],
-        });
+      if (!res.ok) {
+        alert("Failed to load athlete");
+        setLoading(false);
+        return;
       }
+
+      const data = await res.json();
+
+      setForm({
+        ...EMPTY_FORM,
+        ...data,
+        events: data.events || [],
+        isActive: data.isActive ?? true,
+      });
 
       setLoading(false);
     }
 
     loadAthlete();
-  }, [slug, mode]);
+  }, [mode, slug]);
+
+  /* ----------------------------
+     IMAGE UPLOAD
+  ----------------------------- */
+  async function uploadImage(file, field) {
+    if (!file) return;
+
+    if (!["image/jpeg", "image/png"].includes(file.type)) {
+      alert("Only JPEG and PNG images allowed");
+      return;
+    }
+
+    const data = new FormData();
+    data.append("file", file);
+
+    const res = await fetch(`${API_BASE}/api/admin/uploads/image`, {
+      method: "POST",
+      body: data,
+    });
+
+    if (!res.ok) {
+      alert("Image upload failed");
+      return;
+    }
+
+    const { url } = await res.json();
+    update(field, url);
+  }
 
   /* ----------------------------
      SAVE
@@ -96,11 +126,15 @@ export default function AthleteForm({ slug, mode = "create" }) {
       }
     );
 
-    setSaving(false);
-
-    if (res.ok) {
-      window.location.href = "/admin/athletes";
+    if (!res.ok) {
+      const err = await res.text();
+      console.error("Save failed:", err);
+      alert("Failed to save athlete. See console.");
+      setSaving(false);
+      return;
     }
+
+    window.location.href = "/admin/athletes";
   }
 
   if (loading) {
@@ -108,48 +142,94 @@ export default function AthleteForm({ slug, mode = "create" }) {
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="max-w-7xl mx-auto px-4 py-6 space-y-10"
-    >
-      {/* BASIC INFO */}
+    <form onSubmit={handleSubmit} className="space-y-10 p-6 max-w-6xl mx-auto">
+      {/* BASIC */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <input
-          placeholder="First Name"
+        <input required placeholder="First Name"
           value={form.firstName}
           onChange={(e) => update("firstName", e.target.value)}
         />
-
-        <input
-          placeholder="Last Name"
+        <input required placeholder="Last Name"
           value={form.lastName}
           onChange={(e) => update("lastName", e.target.value)}
         />
-
-        <input
-          placeholder="School"
+        <input placeholder="School"
           value={form.school}
           onChange={(e) => update("school", e.target.value)}
         />
-
-        <input
-          placeholder="Grade"
+        <input placeholder="Grade"
           value={form.grade}
           onChange={(e) => update("grade", e.target.value)}
         />
-
-        <input
-          placeholder="Hometown"
+        <input placeholder="Hometown"
           value={form.hometown}
           onChange={(e) => update("hometown", e.target.value)}
         />
+      </section>
+
+      {/* STATUS */}
+      <section>
+        <label className="flex items-center gap-2 font-semibold">
+          <input
+            type="checkbox"
+            checked={form.isActive}
+            onChange={(e) => update("isActive", e.target.checked)}
+          />
+          Athlete is Active
+        </label>
+        <p className="text-sm text-gray-500 mt-1">
+          Inactive athletes will not appear on public pages.
+        </p>
+      </section>
+
+      {/* IMAGES */}
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div>
+          <label className="font-semibold block mb-2">Headshot</label>
+          <input
+            type="file"
+            accept="image/jpeg,image/png"
+            onChange={(e) =>
+              uploadImage(e.target.files?.[0], "headshotUrl")
+            }
+          />
+          <div className="mt-3 w-40 aspect-square border rounded overflow-hidden bg-gray-100 flex items-center justify-center">
+            {form.headshotUrl && (
+              <img
+                src={form.headshotUrl}
+                className="max-w-full max-h-full object-contain"
+                alt="Headshot preview"
+              />
+            )}
+          </div>
+        </div>
+
+        <div>
+          <label className="font-semibold block mb-2">Action Photo</label>
+          <input
+            type="file"
+            accept="image/jpeg,image/png"
+            onChange={(e) =>
+              uploadImage(e.target.files?.[0], "actionPhotoUrl")
+            }
+          />
+          <div className="mt-3 w-full max-w-md aspect-[16/9] border rounded overflow-hidden bg-gray-100 flex items-center justify-center">
+            {form.actionPhotoUrl && (
+              <img
+                src={form.actionPhotoUrl}
+                className="max-w-full max-h-full object-contain"
+                alt="Action preview"
+              />
+            )}
+          </div>
+        </div>
       </section>
 
       {/* BIO */}
       <section>
         <label className="font-semibold block mb-2">Athlete Bio</label>
         <textarea
-          className="w-full min-h-[260px]"
+          className="w-full min-h-[200px]"
           value={form.bio}
           onChange={(e) => update("bio", e.target.value)}
         />
@@ -179,130 +259,13 @@ export default function AthleteForm({ slug, mode = "create" }) {
         </div>
       </section>
 
-      {/* FUTURE GOALS */}
-      <section>
-        <label className="font-semibold block mb-2">Future Goals</label>
-        <textarea
-          className="w-full min-h-[180px]"
-          value={form.futureGoals}
-          onChange={(e) => update("futureGoals", e.target.value)}
-        />
-      </section>
-
-      {/* SPONSORS */}
-      <section>
-        <div className="flex items-center justify-between mb-2">
-          <label className="font-semibold">Sponsors</label>
-          <button
-            type="button"
-            onClick={() =>
-              update("sponsors", [
-                ...form.sponsors,
-                { name: "", logoUrl: "", link: "" },
-              ])
-            }
-            className="text-sm underline"
-          >
-            + Add Sponsor
-          </button>
-        </div>
-
-        {form.sponsors.length === 0 && (
-          <p className="text-sm text-gray-500">No sponsors added.</p>
-        )}
-
-        <div className="space-y-4">
-          {form.sponsors.map((sponsor, index) => (
-            <div
-              key={index}
-              className="grid grid-cols-1 md:grid-cols-4 gap-2 items-center"
-            >
-              <input
-                placeholder="Sponsor Name"
-                value={sponsor.name}
-                onChange={(e) => {
-                  const sponsors = [...form.sponsors];
-                  sponsors[index] = {
-                    ...sponsors[index],
-                    name: e.target.value,
-                  };
-                  update("sponsors", sponsors);
-                }}
-              />
-
-              <input
-                placeholder="Website URL"
-                value={sponsor.link}
-                onChange={(e) => {
-                  const sponsors = [...form.sponsors];
-                  sponsors[index] = {
-                    ...sponsors[index],
-                    link: e.target.value,
-                  };
-                  update("sponsors", sponsors);
-                }}
-              />
-
-              <input
-                type="file"
-                accept="image/*"
-                onChange={async (e) => {
-                  const file = e.target.files[0];
-                  if (!file) return;
-
-                  const data = new FormData();
-                  data.append("file", file);
-
-                  const res = await fetch(
-                    `${API_BASE}/api/admin/uploads/image`,
-                    { method: "POST", body: data }
-                  );
-
-                  const result = await res.json();
-
-                  const sponsors = [...form.sponsors];
-                  sponsors[index] = {
-                    ...sponsors[index],
-                    logoUrl: result.url,
-                  };
-                  update("sponsors", sponsors);
-                }}
-              />
-
-              <button
-                type="button"
-                onClick={() =>
-                  update(
-                    "sponsors",
-                    form.sponsors.filter((_, i) => i !== index)
-                  )
-                }
-                className="text-sm text-red-600"
-              >
-                Remove
-              </button>
-
-              {sponsor.logoUrl && (
-                <img
-                  src={sponsor.logoUrl}
-                  className="h-16 col-span-full object-contain"
-                />
-              )}
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ACTIONS */}
-      <div className="pt-6">
-        <button
-          type="submit"
-          disabled={saving}
-          className="px-6 py-2 bg-black text-white"
-        >
-          {saving ? "Saving…" : "Save Athlete"}
-        </button>
-      </div>
+      <button
+        type="submit"
+        disabled={saving}
+        className="bg-black text-white px-6 py-2"
+      >
+        {saving ? "Saving…" : "Save Athlete"}
+      </button>
     </form>
   );
 }

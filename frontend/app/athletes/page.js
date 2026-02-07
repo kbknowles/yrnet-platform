@@ -5,7 +5,7 @@ import Link from "next/link";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 async function getAthletes() {
-  const res = await fetch(`${API_BASE}/api/admin/athletes`, {
+  const res = await fetch(`${API_BASE}/api/athletes`, {
     cache: "no-store",
   });
 
@@ -16,7 +16,9 @@ async function getAthletes() {
 export default async function AthleteSpotlightPage() {
   const athletes = await getAthletes();
 
-  const activeAthletes = athletes.filter((a) => a.isActive);
+  const activeAthletes = athletes.filter(
+    (a) => a.isActive && a.slug
+  );
 
   return (
     <main className="max-w-7xl mx-auto px-4 py-10">
