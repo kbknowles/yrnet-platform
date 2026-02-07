@@ -4,18 +4,19 @@ import prisma from "../prismaClient.mjs";
 const router = express.Router();
 
 /* ----------------------------
-   GET ONE (PUBLIC)
+   GET ONE BY SLUG (PUBLIC)
+   Canonical: slug-only
 ----------------------------- */
-router.get("/:id", async (req, res) => {
-  const id = Number(req.params.id);
+router.get("/:slug", async (req, res) => {
+  const { slug } = req.params;
 
-  if (!id || Number.isNaN(id)) {
-    return res.status(400).json({ error: "Invalid athlete id" });
+  if (!slug) {
+    return res.status(400).json({ error: "Invalid athlete slug" });
   }
 
   const athlete = await prisma.athlete.findFirst({
     where: {
-      id,
+      slug,
       isActive: true,
     },
   });
