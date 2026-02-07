@@ -17,9 +17,10 @@ async function getAthlete(slug) {
   return res.json();
 }
 
-export default async function AthleteDetailPage(props) {
-  const params = await props.params;
-  const athlete = await getAthlete(params.slug);
+export default async function AthleteDetailPage({ params }) {
+  const { slug } = params;
+
+  const athlete = await getAthlete(slug);
 
   if (!athlete) {
     return (
@@ -45,19 +46,31 @@ export default async function AthleteDetailPage(props) {
           />
         )}
 
-        <div className="md:col-span-2">
+        <div className="md:col-span-2 space-y-3">
           <h1 className="text-3xl font-bold">
             {athlete.firstName} {athlete.lastName}
           </h1>
 
           {athlete.events?.length > 0 && (
-            <p className="mt-2">
+            <p>
               <strong>Events:</strong>{" "}
               {athlete.events.map(e => e.replaceAll("_", " ")).join(", ")}
             </p>
           )}
         </div>
       </section>
+
+      {actionPhoto && (
+        <section>
+          <Image
+            src={actionPhoto}
+            alt={`${athlete.firstName} ${athlete.lastName} action photo`}
+            width={1200}
+            height={800}
+            className="rounded object-cover"
+          />
+        </section>
+      )}
     </main>
   );
 }
