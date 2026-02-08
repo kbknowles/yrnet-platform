@@ -8,6 +8,9 @@ import Footer from "../components/Footer";
 export const metadata = {
   title: "Alabama High School Rodeo Association",
   description: "Official AHSRA website",
+  icons: {
+    icon: "/favicon.png",
+  },
 };
 
 const firaSans = Fira_Sans({
@@ -25,9 +28,7 @@ export default function RootLayout({ children }) {
         className={`${firaSans.variable} min-h-screen flex flex-col`}
       >
         <Header />
-        <main className="flex-1">
-          {children}
-        </main>
+        <main className="flex-1">{children}</main>
         <Footer />
       </body>
     </html>
