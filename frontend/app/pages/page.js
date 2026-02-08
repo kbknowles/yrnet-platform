@@ -10,7 +10,11 @@ async function getPages() {
       cache: "no-store",
     });
     if (!res.ok) return [];
-    return res.json();
+
+    const data = await res.json();
+    return data
+      .filter((p) => p.status === "published")
+      .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
   } catch {
     return [];
   }
@@ -32,7 +36,7 @@ export default async function PagesIndex() {
           {pages.map((page) => (
             <li key={page.slug}>
               <Link
-                href={`/pages/${page.slug}`}
+                href={`/${page.slug}`}
                 className="text-ahsra-blue font-medium underline"
               >
                 {page.title}

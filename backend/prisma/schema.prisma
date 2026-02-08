@@ -290,18 +290,19 @@ model GalleryImage {
 }
 
 model CustomPage {
-  id           Int      @id @default(autoincrement())
-  title        String
-  slug         String   @unique
-  content      String   // markdown or rich text
-  status       String   // "draft" | "published"
+  id             Int      @id @default(autoincrement())
+  title          String
+  slug           String   @unique
+  content        String
+  status         String   // "draft" | "published"
 
-  showInMenu   Boolean  @default(false)
-  showInFooter Boolean  @default(false)
-  sortOrder    Int      @default(0)
+  showInMenu     Boolean  @default(false)
+  showInFooter   Boolean  @default(false)
+  sortOrder      Int      @default(0)
+  isPlaceholder  Boolean  @default(false)
 
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
 
 

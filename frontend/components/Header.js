@@ -7,6 +7,13 @@ import { usePathname } from "next/navigation";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
+const STATIC_LINKS = [
+  { title: "Home", href: "/" },
+  { title: "Schedule", href: "/schedule" },
+  { title: "Gallery", href: "/gallery" },
+  { title: "Leadership", href: "/leadership" },
+];
+
 export default function Header() {
   const [open, setOpen] = useState(false);
   const [pages, setPages] = useState([]);
@@ -16,7 +23,12 @@ export default function Header() {
   useEffect(() => {
     fetch(`${API_BASE}/api/pages`)
       .then((res) => res.json())
-      .then((data) => setPages(data.filter((p) => p.showInMenu)));
+      .then((data) => {
+        const menuPages = data
+          .filter((p) => p.showInMenu)
+          .sort((a, b) => (a.menuOrder ?? 0) - (b.menuOrder ?? 0));
+        setPages(menuPages);
+      });
   }, []);
 
   return (
@@ -42,10 +54,11 @@ export default function Header() {
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex gap-6 text-sm font-medium">
-          <Link href="/">Home</Link>
-          <Link href="/schedule">Schedule</Link>
-          <Link href="/gallery">Gallery</Link>
-          <Link href="/leadership">Leadership</Link>
+          {STATIC_LINKS.map((l) => (
+            <Link key={l.href} href={l.href}>
+              {l.title}
+            </Link>
+          ))}
 
           {pages.map((p) => (
             <Link key={p.slug} href={`/${p.slug}`}>
@@ -72,26 +85,16 @@ export default function Header() {
             isHome ? "bg-black/80" : "bg-ahsra-blue"
           }`}
         >
-          <Link href="/" onClick={() => setOpen(false)}>
-            Home
-          </Link>
-          <Link href="/schedule" onClick={() => setOpen(false)}>
-            Schedule
-          </Link>
-          <Link href="/gallery" onClick={() => setOpen(false)}>
-            Gallery
-          </Link>
-          <Link href="/leadership" onClick={() => setOpen(false)}>
-            Leadership
-          </Link>
-
-          {pages.map((p) => (
+          {[...STATIC_LINKS, ...pages.map(p => ({
+            title: p.title,
+            href: `/${p.slug}`
+          }))].map((l) => (
             <Link
-              key={p.slug}
-              href={`/${p.slug}`}
+              key={l.href}
+              href={l.href}
               onClick={() => setOpen(false)}
             >
-              {p.title}
+              {l.title}
             </Link>
           ))}
         </nav>

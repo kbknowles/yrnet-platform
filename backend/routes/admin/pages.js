@@ -10,7 +10,10 @@ const router = express.Router();
 /* ------------------------------ */
 router.get("/", async (req, res) => {
   const pages = await prisma.customPage.findMany({
-    orderBy: { updatedAt: "desc" },
+    orderBy: [
+      { sortOrder: "asc" },
+      { updatedAt: "desc" },
+    ],
   });
 
   res.json(pages);

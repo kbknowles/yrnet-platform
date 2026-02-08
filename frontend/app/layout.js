@@ -19,17 +19,15 @@ const firaSans = Fira_Sans({
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
-        className={`
-          ${firaSans.variable}
-          min-h-screen flex flex-col
-          bg-gray-100 text-gray-900
-          font-sans
-        `}
+        suppressHydrationWarning
+        className={`${firaSans.variable} min-h-screen flex flex-col`}
       >
         <Header />
-        <main className="flex-1">{children}</main>
+        <main className="flex-1">
+          {children}
+        </main>
         <Footer />
       </body>
     </html>

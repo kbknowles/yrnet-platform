@@ -1,5 +1,4 @@
 // filepath: frontend/components/Footer.js
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -13,9 +12,12 @@ export default function Footer() {
   useEffect(() => {
     fetch(`${API_BASE}/api/pages`)
       .then((res) => res.json())
-      .then((data) =>
-        setPages(data.filter((p) => p.showInFooter))
-      );
+      .then((data) => {
+        const footerPages = data
+          .filter((p) => p.showInFooter)
+          .sort((a, b) => (a.menuOrder ?? 0) - (b.menuOrder ?? 0));
+        setPages(footerPages);
+      });
   }, []);
 
   return (
@@ -25,7 +27,7 @@ export default function Footer() {
           {pages.map((p) => (
             <Link
               key={p.slug}
-              href={`/pages/${p.slug}`}
+              href={`/${p.slug}`}
               className="text-gray-300 hover:text-white"
             >
               {p.title}

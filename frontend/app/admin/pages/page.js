@@ -1,5 +1,4 @@
 // filepath: frontend/app/admin/pages/page.js
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -7,7 +6,7 @@ import Link from "next/link";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
-export default function AdminPagesList() {
+export default function AdminPagesPage() {
   const [pages, setPages] = useState([]);
 
   useEffect(() => {
@@ -16,54 +15,116 @@ export default function AdminPagesList() {
       .then(setPages);
   }, []);
 
+  const menuPages = pages
+    .filter((p) => p.showInMenu)
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+
+  const footerPages = pages
+    .filter((p) => p.showInFooter)
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+
   return (
-    <main className="max-w-6xl mx-auto px-4 py-12 space-y-6">
-      <div className="flex items-center justify-between">
+    <main className="max-w-6xl mx-auto px-4 py-10 space-y-10">
+      <header className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-ahsra-blue">
-          Pages
+          Pages & Navigation
         </h1>
-
-        <Link
-          href="/admin/pages/new"
-          className="rounded bg-ahsra-blue px-4 py-2 text-white"
-        >
-          + New Page
+        <Link href="/admin/pages/new" className="btn-primary">
+          Add Page
         </Link>
-      </div>
+      </header>
 
-      <table className="w-full border bg-white">
-        <thead className="bg-gray-50 text-left text-sm">
-          <tr>
-            <th className="p-3">Title</th>
-            <th>Status</th>
-            <th>Menu</th>
-            <th>Footer</th>
-            <th>Updated</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
+      {/* MENU PREVIEW */}
+      <section className="grid md:grid-cols-2 gap-6">
+        <MenuPreview
+          title="Main Menu Preview"
+          pages={menuPages}
+        />
+        <MenuPreview
+          title="Footer Menu Preview"
+          pages={footerPages}
+        />
+      </section>
+
+      {/* PAGE LIST */}
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold">
+          All Pages
+        </h2>
+
+        <div className="border rounded-lg divide-y bg-white">
           {pages.map((p) => (
-            <tr key={p.id} className="border-t">
-              <td className="p-3 font-medium">{p.title}</td>
-              <td>{p.status}</td>
-              <td>{p.showInMenu ? "Yes" : "—"}</td>
-              <td>{p.showInFooter ? "Yes" : "—"}</td>
-              <td>
-                {new Date(p.updatedAt).toLocaleDateString()}
-              </td>
-              <td className="text-right pr-3">
+            <div
+              key={p.id}
+              className="flex items-center justify-between p-4"
+            >
+              <div>
+                <div className="font-medium">
+                  {p.title}
+                </div>
+                <div className="text-xs text-gray-500">
+                  /{p.slug}
+                  {p.isPlaceholder && " • Placeholder"}
+                  {p.status !== "published" && " • Draft"}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4 text-sm">
+                {p.showInMenu && (
+                  <span className="badge">Menu</span>
+                )}
+                {p.showInFooter && (
+                  <span className="badge">Footer</span>
+                )}
+
                 <Link
                   href={`/admin/pages/${p.id}`}
-                  className="text-ahsra-blue underline"
+                  className="text-ahsra-blue font-medium underline"
                 >
                   Edit
                 </Link>
-              </td>
-            </tr>
+              </div>
+            </div>
           ))}
-        </tbody>
-      </table>
+        </div>
+      </section>
     </main>
+  );
+}
+
+function MenuPreview({ title, pages }) {
+  return (
+    <div className="border rounded-lg bg-white p-4">
+      <h3 className="font-semibold mb-3">
+        {title}
+      </h3>
+
+      {pages.length === 0 ? (
+        <p className="text-sm text-gray-500">
+          No pages assigned.
+        </p>
+      ) : (
+        <ol className="space-y-2 text-sm">
+          {pages.map((p) => (
+            <li
+              key={p.id}
+              className="flex justify-between items-center"
+            >
+              <span>
+                {p.title}
+                {p.isPlaceholder && (
+                  <span className="text-xs text-gray-500">
+                    {" "} (coming soon)
+                  </span>
+                )}
+              </span>
+              <span className="text-gray-400">
+                {p.sortOrder}
+              </span>
+            </li>
+          ))}
+        </ol>
+      )}
+    </div>
   );
 }
