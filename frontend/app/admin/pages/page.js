@@ -8,6 +8,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 export default function AdminPagesPage() {
   const [pages, setPages] = useState([]);
+  const [savingId, setSavingId] = useState(null);
 
   useEffect(() => {
     fetch(`${API_BASE}/api/admin/pages`)
@@ -23,6 +24,31 @@ export default function AdminPagesPage() {
     .filter((p) => p.showInFooter)
     .sort((a, b) => a.sortOrder - b.sortOrder);
 
+  function updatePage(id, field, value) {
+    setPages((prev) =>
+      prev.map((p) =>
+        p.id === id ? { ...p, [field]: value } : p
+      )
+    );
+  }
+
+  async function savePage(page) {
+    setSavingId(page.id);
+
+    await fetch(`${API_BASE}/api/admin/pages/${page.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        showInMenu: page.showInMenu,
+        showInFooter: page.showInFooter,
+        isPlaceholder: page.isPlaceholder,
+        sortOrder: Number(page.sortOrder),
+      }),
+    });
+
+    setSavingId(null);
+  }
+
   return (
     <main className="max-w-6xl mx-auto px-4 py-10 space-y-10">
       <header className="flex justify-between items-center">
@@ -36,17 +62,11 @@ export default function AdminPagesPage() {
 
       {/* MENU PREVIEW */}
       <section className="grid md:grid-cols-2 gap-6">
-        <MenuPreview
-          title="Main Menu Preview"
-          pages={menuPages}
-        />
-        <MenuPreview
-          title="Footer Menu Preview"
-          pages={footerPages}
-        />
+        <MenuPreview title="Main Menu Preview" pages={menuPages} />
+        <MenuPreview title="Footer Menu Preview" pages={footerPages} />
       </section>
 
-      {/* PAGE LIST */}
+      {/* PAGE LIST + CONTROLS */}
       <section className="space-y-4">
         <h2 className="text-lg font-semibold">
           All Pages
@@ -56,12 +76,11 @@ export default function AdminPagesPage() {
           {pages.map((p) => (
             <div
               key={p.id}
-              className="flex items-center justify-between p-4"
+              className="grid grid-cols-1 md:grid-cols-8 gap-4 p-4 items-center"
             >
-              <div>
-                <div className="font-medium">
-                  {p.title}
-                </div>
+              {/* TITLE */}
+              <div className="md:col-span-2">
+                <div className="font-medium">{p.title}</div>
                 <div className="text-xs text-gray-500">
                   /{p.slug}
                   {p.isPlaceholder && " • Placeholder"}
@@ -69,17 +88,56 @@ export default function AdminPagesPage() {
                 </div>
               </div>
 
+              {/* TOGGLES */}
+              <Toggle
+                label="Menu"
+                checked={p.showInMenu}
+                onChange={(v) =>
+                  updatePage(p.id, "showInMenu", v)
+                }
+              />
+              <Toggle
+                label="Footer"
+                checked={p.showInFooter}
+                onChange={(v) =>
+                  updatePage(p.id, "showInFooter", v)
+                }
+              />
+              <Toggle
+                label="Placeholder"
+                checked={p.isPlaceholder}
+                onChange={(v) =>
+                  updatePage(p.id, "isPlaceholder", v)
+                }
+              />
+
+              {/* SORT ORDER */}
+              <input
+                type="number"
+                className="w-20 border rounded px-2 py-1 text-sm"
+                value={p.sortOrder}
+                onChange={(e) =>
+                  updatePage(
+                    p.id,
+                    "sortOrder",
+                    e.target.value
+                  )
+                }
+              />
+
+              {/* ACTIONS */}
               <div className="flex items-center gap-4 text-sm">
-                {p.showInMenu && (
-                  <span className="badge">Menu</span>
-                )}
-                {p.showInFooter && (
-                  <span className="badge">Footer</span>
-                )}
+                <button
+                  onClick={() => savePage(p)}
+                  disabled={savingId === p.id}
+                  className="text-ahsra-blue font-medium underline disabled:opacity-50"
+                >
+                  {savingId === p.id ? "Saving…" : "Save"}
+                </button>
 
                 <Link
                   href={`/admin/pages/${p.id}`}
-                  className="text-ahsra-blue font-medium underline"
+                  className="text-gray-600 underline"
                 >
                   Edit
                 </Link>
@@ -89,6 +147,19 @@ export default function AdminPagesPage() {
         </div>
       </section>
     </main>
+  );
+}
+
+function Toggle({ label, checked, onChange }) {
+  return (
+    <label className="flex items-center gap-2 text-sm">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+      />
+      {label}
+    </label>
   );
 }
 

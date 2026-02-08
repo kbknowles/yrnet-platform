@@ -1,6 +1,7 @@
 // filepath: frontend/app/athletes/[slug]/page.js
 
 import Image from "next/image";
+import { notFound } from "next/navigation";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -18,12 +19,9 @@ export default async function AthleteDetailPage(props) {
 
   const athlete = await getAthlete(slug);
 
-  if (!athlete) {
-    return (
-      <main className="max-w-5xl mx-auto px-4 py-12">
-        <h1 className="text-xl font-semibold">Athlete not found</h1>
-      </main>
-    );
+  // ✅ Phase-1 rule: inactive or missing athlete = 404
+  if (!athlete || !athlete.isActive) {
+    notFound();
   }
 
   return (
@@ -49,9 +47,15 @@ export default async function AthleteDetailPage(props) {
           </h1>
 
           <div className="text-sm space-y-1">
-            {athlete.school && <p><strong>School:</strong> {athlete.school}</p>}
-            {athlete.grade && <p><strong>Grade:</strong> {athlete.grade}</p>}
-            {athlete.hometown && <p><strong>Hometown:</strong> {athlete.hometown}</p>}
+            {athlete.school && (
+              <p><strong>School:</strong> {athlete.school}</p>
+            )}
+            {athlete.grade && (
+              <p><strong>Grade:</strong> {athlete.grade}</p>
+            )}
+            {athlete.hometown && (
+              <p><strong>Hometown:</strong> {athlete.hometown}</p>
+            )}
           </div>
 
           {athlete.events?.length > 0 && (

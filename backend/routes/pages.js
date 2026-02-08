@@ -1,3 +1,5 @@
+// filepath: backend/routes/pages.js
+
 import express from "express";
 import prisma from "../prismaClient.mjs";
 
@@ -15,6 +17,8 @@ router.get("/", async (req, res) => {
       slug: true,
       showInMenu: true,
       showInFooter: true,
+      sortOrder: true,
+      isPlaceholder: true,
     },
   });
 
