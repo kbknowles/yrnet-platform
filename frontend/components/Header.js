@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
@@ -26,7 +27,7 @@ export default function Header() {
       .then((data) => {
         const menuPages = data
           .filter((p) => p.showInMenu)
-          .sort((a, b) => (a.menuOrder ?? 0) - (b.menuOrder ?? 0));
+          .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
         setPages(menuPages);
       });
   }, []);
@@ -42,7 +43,17 @@ export default function Header() {
       <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
         {/* Brand */}
         {!isHome ? (
-          <Link href="/" className="font-bold tracking-wide">
+          <Link
+            href="/"
+            className="flex items-center gap-3 font-bold tracking-wide"
+          >
+            <Image
+              src="/ahsra-logo.png"
+              alt="Alabama High School Rodeo Association"
+              width={40}
+              height={40}
+              priority
+            />
             <span className="hidden md:inline text-lg">
               Alabama High School Rodeo Association
             </span>
@@ -85,9 +96,9 @@ export default function Header() {
             isHome ? "bg-black/80" : "bg-ahsra-blue"
           }`}
         >
-          {[...STATIC_LINKS, ...pages.map(p => ({
+          {[...STATIC_LINKS, ...pages.map((p) => ({
             title: p.title,
-            href: `/${p.slug}`
+            href: `/${p.slug}`,
           }))].map((l) => (
             <Link
               key={l.href}

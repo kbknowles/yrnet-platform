@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -15,14 +16,25 @@ export default function Footer() {
       .then((data) => {
         const footerPages = data
           .filter((p) => p.showInFooter)
-          .sort((a, b) => (a.menuOrder ?? 0) - (b.menuOrder ?? 0));
+          .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
         setPages(footerPages);
       });
   }, []);
 
   return (
-    <footer className="bg-gray-900 text-white text-sm py-8">
-      <div className="max-w-6xl mx-auto px-4 space-y-4 text-center">
+    <footer className="bg-gray-900 text-white text-sm py-10">
+      <div className="max-w-6xl mx-auto px-4 space-y-6 text-center">
+        {/* Logo */}
+        <div className="flex justify-center">
+          <Image
+            src="/ahsra-logo.png"
+            alt="Alabama High School Rodeo Association"
+            width={60}
+            height={60}
+          />
+        </div>
+
+        {/* Footer Nav */}
         <nav className="flex flex-wrap justify-center gap-4">
           {pages.map((p) => (
             <Link
