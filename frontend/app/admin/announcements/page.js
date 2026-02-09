@@ -7,6 +7,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 const EMPTY = {
   title: "",
   content: "",
+  type: "general",
   mode: "STANDARD",
   imageUrl: "",
   sortOrder: 0,
@@ -22,10 +23,11 @@ export default function AdminAnnouncementsPage() {
   const [announcements, setAnnouncements] = useState([]);
   const [events, setEvents] = useState([]);
   const [seasons, setSeasons] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [active, setActive] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
 
+  /* ---------------- LOAD ---------------- */
   async function loadAll() {
     setLoading(true);
     const [a, e, s] = await Promise.all([
@@ -43,11 +45,17 @@ export default function AdminAnnouncementsPage() {
     loadAll();
   }, []);
 
+  /* ---------------- SAVE ---------------- */
   async function save() {
     const payload = {
       ...active,
       eventId: active.eventId || null,
       seasonId: active.seasonId || null,
+      sortOrder: Number(active.sortOrder) || 0,
+      content: active.content || "",
+      published: Boolean(active.published),
+      publishAt: active.publishAt ? new Date(active.publishAt) : null,
+      expireAt: active.expireAt ? new Date(active.expireAt) : null,
       extras:
         active.extras && active.extras.trim()
           ? JSON.parse(active.extras)
@@ -59,32 +67,71 @@ export default function AdminAnnouncementsPage() {
       ? `${API_BASE}/api/admin/announcements/${active.id}`
       : `${API_BASE}/api/admin/announcements`;
 
-    const res = await fetch(url, {
+    await fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
 
-    const saved = await res.json();
+    setActive(null);
+    loadAll();
+  }
+
+  /* ---------------- DELETE ---------------- */
+  async function remove(id) {
+    if (!confirm("Delete this announcement?")) return;
+
+    await fetch(`${API_BASE}/api/admin/announcements/${id}`, {
+      method: "DELETE",
+    });
 
     setActive(null);
     loadAll();
   }
 
-  async function uploadPoster(file, id) {
+  /* ---------------- POSTER UPLOAD ---------------- */
+  async function uploadPoster(file) {
     setUploading(true);
+    let announcement = active;
+
+    // Auto-create draft if needed
+    if (!announcement.id) {
+      const res = await fetch(`${API_BASE}/api/admin/announcements`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: announcement.title || "Untitled Poster",
+          content: announcement.content || "",
+          mode: "POSTER",
+          published: false,
+        }),
+      });
+
+      announcement = await res.json();
+      setActive((prev) => ({ ...prev, id: announcement.id }));
+    }
+
     const form = new FormData();
     form.append("file", file);
 
-    const res = await fetch(
-      `${API_BASE}/api/admin/announcements/upload/${id}/poster`,
+    const uploadRes = await fetch(
+      `${API_BASE}/api/admin/announcements/upload/${announcement.id}/poster`,
       { method: "POST", body: form }
     );
 
-    const data = await res.json();
-    setUploading(false);
+    const data = await uploadRes.json();
+
+    await fetch(`${API_BASE}/api/admin/announcements/${announcement.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...announcement,
+        imageUrl: data.imageUrl,
+      }),
+    });
 
     setActive((prev) => ({ ...prev, imageUrl: data.imageUrl }));
+    setUploading(false);
   }
 
   if (loading) return <p className="p-6">Loading…</p>;
@@ -101,6 +148,7 @@ export default function AdminAnnouncementsPage() {
         </button>
       </div>
 
+      {/* LIST */}
       <table className="w-full bg-white text-sm border">
         <thead className="bg-slate-100">
           <tr>
@@ -116,7 +164,7 @@ export default function AdminAnnouncementsPage() {
               <td className="p-3">{a.title}</td>
               <td className="p-3 text-center">{a.mode}</td>
               <td className="p-3 text-center">{a.published ? "✓" : "—"}</td>
-              <td className="p-3 text-right">
+              <td className="p-3 text-right space-x-3">
                 <button
                   onClick={() =>
                     setActive({
@@ -134,15 +182,22 @@ export default function AdminAnnouncementsPage() {
                 >
                   Edit
                 </button>
+                <button
+                  onClick={() => remove(a.id)}
+                  className="text-red-600"
+                >
+                  Delete
+                </button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
 
+      {/* MODAL */}
       {active && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white w-full max-w-2xl rounded p-6 space-y-4">
+          <div className="bg-white w-full max-w-3xl rounded p-6 space-y-4">
             <h2 className="font-semibold">
               {active.id ? "Edit Announcement" : "New Announcement"}
             </h2>
@@ -156,27 +211,59 @@ export default function AdminAnnouncementsPage() {
               }
             />
 
-            <select
-              className="border p-2 rounded"
-              value={active.mode}
-              onChange={(e) =>
-                setActive({ ...active, mode: e.target.value })
-              }
-            >
-              <option value="STANDARD">Standard</option>
-              <option value="POSTER">Poster</option>
-            </select>
-
-            {active.mode === "STANDARD" ? (
-              <textarea
-                className="w-full border p-2 rounded"
-                rows={4}
-                value={active.content}
+            <div className="grid grid-cols-3 gap-4">
+              <select
+                className="border p-2 rounded"
+                value={active.mode}
                 onChange={(e) =>
-                  setActive({ ...active, content: e.target.value })
+                  setActive({ ...active, mode: e.target.value })
+                }
+              >
+                <option value="STANDARD">Standard</option>
+                <option value="POSTER">Poster</option>
+              </select>
+
+              <select
+                className="border p-2 rounded"
+                value={active.type}
+                onChange={(e) =>
+                  setActive({ ...active, type: e.target.value })
+                }
+              >
+                <option value="general">General</option>
+                <option value="entry">Entry</option>
+                <option value="stall">Stall</option>
+                <option value="reminder">Reminder</option>
+              </select>
+
+              <input
+                type="number"
+                className="border p-2 rounded"
+                placeholder="Sort order"
+                value={active.sortOrder}
+                onChange={(e) =>
+                  setActive({ ...active, sortOrder: e.target.value })
                 }
               />
-            ) : (
+            </div>
+
+            {/* CONTENT */}
+            <textarea
+              className="w-full border p-2 rounded"
+              rows={4}
+              placeholder={
+                active.mode === "POSTER"
+                  ? "Internal description (not publicly shown)"
+                  : "Content"
+              }
+              value={active.content}
+              onChange={(e) =>
+                setActive({ ...active, content: e.target.value })
+              }
+            />
+
+            {/* POSTER UPLOAD */}
+            {active.mode === "POSTER" && (
               <>
                 {active.imageUrl && (
                   <p className="text-sm text-green-600">
@@ -186,32 +273,109 @@ export default function AdminAnnouncementsPage() {
                 <input
                   type="file"
                   accept=".png,.jpg,.jpeg,.pdf"
-                  disabled={!active.id || uploading}
-                  onChange={(e) =>
-                    uploadPoster(e.target.files[0], active.id)
-                  }
+                  disabled={uploading}
+                  onChange={(e) => uploadPoster(e.target.files[0])}
                 />
-                {!active.id && (
-                  <p className="text-xs text-red-600">
-                    Save first, then upload poster
-                  </p>
-                )}
               </>
             )}
 
-            <div className="flex justify-end gap-3 pt-4">
-              <button
-                onClick={() => setActive(null)}
-                className="border px-4 py-2 rounded"
+            {/* EVENT / SEASON */}
+            <div className="grid grid-cols-2 gap-4">
+              <select
+                className="border p-2 rounded"
+                value={active.eventId}
+                onChange={(e) =>
+                  setActive({ ...active, eventId: e.target.value })
+                }
               >
-                Cancel
-              </button>
-              <button
-                onClick={save}
-                className="bg-ahsra-blue text-white px-4 py-2 rounded"
+                <option value="">All Events</option>
+                {events.map((e) => (
+                  <option key={e.id} value={e.id}>
+                    {e.name}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                className="border p-2 rounded"
+                value={active.seasonId}
+                onChange={(e) =>
+                  setActive({ ...active, seasonId: e.target.value })
+                }
               >
-                Save
+                <option value="">All Seasons</option>
+                {seasons.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* PUBLISH */}
+            <div className="grid grid-cols-3 gap-4 items-center">
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={active.published}
+                  onChange={(e) =>
+                    setActive({ ...active, published: e.target.checked })
+                  }
+                />
+                Published
+              </label>
+
+              <input
+                type="datetime-local"
+                className="border p-2 rounded"
+                value={active.publishAt}
+                onChange={(e) =>
+                  setActive({ ...active, publishAt: e.target.value })
+                }
+              />
+
+              <input
+                type="datetime-local"
+                className="border p-2 rounded"
+                value={active.expireAt}
+                onChange={(e) =>
+                  setActive({ ...active, expireAt: e.target.value })
+                }
+              />
+            </div>
+
+            {/* EXTRAS */}
+            <textarea
+              className="w-full border p-2 rounded font-mono text-xs"
+              rows={3}
+              placeholder="Extras (JSON)"
+              value={active.extras}
+              onChange={(e) =>
+                setActive({ ...active, extras: e.target.value })
+              }
+            />
+
+            <div className="flex justify-between pt-4">
+              <button
+                onClick={() => remove(active.id)}
+                className="text-red-600"
+              >
+                Delete
               </button>
+              <div className="space-x-3">
+                <button
+                  onClick={() => setActive(null)}
+                  className="border px-4 py-2 rounded"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={save}
+                  className="bg-ahsra-blue text-white px-4 py-2 rounded"
+                >
+                  Save
+                </button>
+              </div>
             </div>
           </div>
         </div>
