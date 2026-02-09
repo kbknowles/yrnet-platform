@@ -39,15 +39,15 @@ export default async function AthletesPage() {
       {activeAthletes.length === 0 ? (
         <p>No athletes available.</p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
           {activeAthletes.map((a) => (
             <Link
               key={a.slug}
               href={`/athletes/${a.slug}`}
-              className="border bg-white p-4 hover:shadow transition flex flex-col"
+              className="border bg-white p-3 hover:shadow transition flex flex-col"
             >
               {/* Image */}
-              <div className="w-full aspect-[3/4] bg-gray-100 rounded overflow-hidden">
+              <div className="w-full aspect-square bg-gray-100 rounded overflow-hidden">
                 {a.headshotUrl && (
                   <img
                     src={a.headshotUrl}
@@ -58,12 +58,12 @@ export default async function AthletesPage() {
               </div>
 
               {/* Content */}
-              <h3 className="font-bold text-lg mt-3">
+              <h3 className="font-semibold text-base mt-2 leading-tight">
                 {a.firstName} {a.lastName}
               </h3>
 
               {a.bio && (
-                <p className="text-sm mt-2 line-clamp-3">
+                <p className="text-sm mt-1 line-clamp-2">
                   {a.bio}
                 </p>
               )}
