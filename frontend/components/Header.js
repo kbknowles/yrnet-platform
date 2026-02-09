@@ -10,6 +10,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 const STATIC_LINKS = [
   { title: "Home", href: "/" },
+  { title: "Athletes", href: "/athletes" },
   { title: "Schedule", href: "/schedule" },
   { title: "Gallery", href: "/gallery" },
   { title: "Leadership", href: "/leadership" },
