@@ -13,7 +13,14 @@ export default function AnnouncementsPage() {
     setLoading(true);
     const res = await fetch(`${API_BASE}/api/announcements`);
     const data = await res.json();
-    setAnnouncements(data);
+
+    const sorted = [...data].sort((a, b) => {
+      const aDate = new Date(a.publishAt || a.createdAt);
+      const bDate = new Date(b.publishAt || b.createdAt);
+      return bDate - aDate;
+    });
+
+    setAnnouncements(sorted);
     setLoading(false);
   }
 

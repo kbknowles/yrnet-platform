@@ -1,6 +1,14 @@
 import Link from "next/link";
 
 export default function HomeHighlights({ rodeos, announcements }) {
+  const sorted = [...announcements].sort((a, b) => {
+    const aDate = new Date(a.publishAt || a.createdAt);
+    const bDate = new Date(b.publishAt || b.createdAt);
+    return bDate - aDate;
+  });
+
+  const featured = sorted[0];
+
   return (
     <section className="w-full mt-1">
       <div className="grid grid-cols-1 md:grid-cols-2">
@@ -46,49 +54,47 @@ export default function HomeHighlights({ rodeos, announcements }) {
           </div>
         </div>
 
-        {/* Announcements */}
+        {/* Announcement (SINGLE FEATURED) */}
         <div className="bg-gray-100 flex justify-center">
           <div className="w-full max-w-xl p-6 md:p-8 flex flex-col">
             <h2 className="text-xl md:text-2xl font-semibold mb-4 text-ahsra-red">
               Announcements
             </h2>
 
-            <ul className="space-y-4 flex-1">
-              {announcements.map((item) => (
-                <li
-                  key={item.id}
-                  className="bg-white rounded-md shadow-sm overflow-hidden"
-                >
-                  {item.mode === "POSTER" && item.imageUrl ? (
-                    <Link href={`/announcements/${item.id}`}>
-                      <img
-                        src={item.imageUrl}
-                        alt={item.title}
-                        className="w-full object-contain"
-                      />
+            {featured ? (
+              <div className="bg-white rounded-md shadow-sm overflow-hidden">
+                {featured.mode === "POSTER" && featured.imageUrl ? (
+                  <Link href={`/announcements/${featured.id}`}>
+                    <img
+                      src={featured.imageUrl}
+                      alt={featured.title}
+                      className="w-full object-contain"
+                    />
+                  </Link>
+                ) : (
+                  <div className="p-4 space-y-2">
+                    <p className="font-medium">{featured.title}</p>
+                    {(featured.publishAt || featured.createdAt) && (
+                      <p className="text-sm text-gray-600">
+                        {new Date(
+                          featured.publishAt || featured.createdAt
+                        ).toLocaleDateString()}
+                      </p>
+                    )}
+                    <Link
+                      href={`/announcements/${featured.id}`}
+                      className="inline-block text-sm font-medium bg-ahsra-red text-white px-4 py-2 rounded-md"
+                    >
+                      View Details
                     </Link>
-                  ) : (
-                    <div className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                      <div>
-                        <p className="font-medium">{item.title}</p>
-                        {item.publishAt && (
-                          <p className="text-sm text-gray-600">
-                            {new Date(item.publishAt).toLocaleDateString()}
-                          </p>
-                        )}
-                      </div>
-
-                      <Link
-                        href={`/announcements/${item.id}`}
-                        className="text-sm font-medium bg-ahsra-red text-white px-4 py-2 rounded-md"
-                      >
-                        View Details
-                      </Link>
-                    </div>
-                  )}
-                </li>
-              ))}
-            </ul>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-600">
+                No current announcements.
+              </p>
+            )}
 
             <div className="pt-6">
               <Link
