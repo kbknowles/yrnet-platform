@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+
 export default function HomeHighlights({ rodeos, announcements }) {
   const sorted = [...announcements].sort((a, b) => {
     const aDate = new Date(a.publishAt || a.createdAt);
@@ -66,7 +68,7 @@ export default function HomeHighlights({ rodeos, announcements }) {
                 {featured.mode === "POSTER" && featured.imageUrl ? (
                   <Link href={`/announcements/${featured.id}`}>
                     <img
-                      src={featured.imageUrl}
+                      src={`${API_BASE}${featured.imageUrl}`}
                       alt={featured.title}
                       className="w-full object-contain"
                     />

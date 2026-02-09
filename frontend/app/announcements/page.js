@@ -9,87 +9,58 @@ export default function AnnouncementsPage() {
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  async function load() {
-    setLoading(true);
-    const res = await fetch(`${API_BASE}/api/announcements`);
-    const data = await res.json();
-
-    const sorted = [...data].sort((a, b) => {
-      const aDate = new Date(a.publishAt || a.createdAt);
-      const bDate = new Date(b.publishAt || b.createdAt);
-      return bDate - aDate;
-    });
-
-    setAnnouncements(sorted);
-    setLoading(false);
-  }
-
   useEffect(() => {
-    load();
+    fetch(`${API_BASE}/api/announcements`)
+      .then((r) => r.json())
+      .then((data) => {
+        const sorted = [...data].sort((a, b) => {
+          const aDate = new Date(a.publishAt || a.createdAt);
+          const bDate = new Date(b.publishAt || b.createdAt);
+          return bDate - aDate;
+        });
+        setAnnouncements(sorted);
+        setLoading(false);
+      });
   }, []);
 
-  if (loading) {
-    return <p className="p-6">Loading announcements…</p>;
-  }
+  if (loading) return <p className="p-6">Loading…</p>;
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-10">
-      <h1 className="text-2xl font-semibold mb-6">Announcements</h1>
+    <div className="max-w-5xl mx-auto px-6 py-10 space-y-6">
+      <h1 className="text-2xl font-semibold">Announcements</h1>
 
-      {announcements.length === 0 ? (
-        <p className="text-slate-600">No current announcements.</p>
-      ) : (
-        <div className="space-y-6">
-          {announcements.map((a) => (
-            <article
-              key={a.id}
-              className="bg-white border rounded shadow-sm overflow-hidden"
-            >
-              {a.mode === "POSTER" && a.imageUrl ? (
-                <Link href={`/announcements/${a.id}`}>
-                  {a.imageUrl.endsWith(".pdf") ? (
-                    <div className="p-6 flex items-center justify-center bg-slate-50">
-                      <span className="text-sm text-ahsra-blue underline">
-                        View Poster (PDF)
-                      </span>
-                    </div>
-                  ) : (
-                    <img
-                      src={a.imageUrl}
-                      alt={a.title}
-                      className="w-full object-contain"
-                    />
-                  )}
-                </Link>
-              ) : (
-                <div className="p-6">
-                  <div className="flex items-start justify-between gap-4">
-                    <h2 className="text-lg font-semibold">{a.title}</h2>
-                    {a.type && (
-                      <span className="text-xs uppercase tracking-wide bg-slate-100 px-2 py-1 rounded">
-                        {a.type}
-                      </span>
-                    )}
-                  </div>
+      {announcements.map((a) => {
+        const posterSrc =
+          a.imageUrl && `${API_BASE}${a.imageUrl}`;
 
-                  <div className="mt-3 whitespace-pre-line text-slate-800">
-                    {a.content}
+        return (
+          <article
+            key={a.id}
+            className="bg-white border rounded shadow-sm overflow-hidden"
+          >
+            {a.mode === "POSTER" && posterSrc ? (
+              <Link href={`/announcements/${a.id}`}>
+                {a.imageUrl.endsWith(".pdf") ? (
+                  <div className="p-6 text-center text-ahsra-blue underline">
+                    View Poster (PDF)
                   </div>
-
-                  <div className="mt-4">
-                    <Link
-                      href={`/announcements/${a.id}`}
-                      className="text-sm text-ahsra-blue underline"
-                    >
-                      View details →
-                    </Link>
-                  </div>
-                </div>
-              )}
-            </article>
-          ))}
-        </div>
-      )}
+                ) : (
+                  <img
+                    src={posterSrc}
+                    alt={a.title}
+                    className="w-full object-contain"
+                  />
+                )}
+              </Link>
+            ) : (
+              <div className="p-6">
+                <h2 className="font-semibold">{a.title}</h2>
+                <p className="mt-2 whitespace-pre-line">{a.content}</p>
+              </div>
+            )}
+          </article>
+        );
+      })}
     </div>
   );
 }
