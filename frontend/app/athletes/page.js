@@ -13,6 +13,15 @@ async function getAthletes() {
   return res.json();
 }
 
+/* Convert ENUM_LIKE values to readable labels */
+function formatEvent(label) {
+  return label
+    .toLowerCase()
+    .split("_")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
 export default async function AthletesPage() {
   const athletes = await getAthletes();
 
@@ -46,13 +55,13 @@ export default async function AthletesPage() {
               href={`/athletes/${a.slug}`}
               className="border bg-white p-3 hover:shadow transition space-y-2"
             >
-              {/* Image */}
-              <div className="w-full h-40 bg-gray-100 rounded overflow-hidden">
+              {/* Image (full image, scaled down — no crop) */}
+              <div className="w-full h-40 bg-gray-100 rounded flex items-center justify-center overflow-hidden">
                 {a.headshotUrl && (
                   <img
                     src={a.headshotUrl}
                     alt={`${a.firstName} ${a.lastName}`}
-                    className="w-full h-full object-cover object-top"
+                    className="max-h-full max-w-full object-contain"
                   />
                 )}
               </div>
@@ -64,10 +73,11 @@ export default async function AthletesPage() {
 
               {/* Meta */}
               <div className="text-sm text-gray-700 space-y-1">
-                {a.grade && <div>Grade: {a.grade}</div>}
+                {a.grade && <div>Grade {a.grade}</div>}
+
                 {a.events?.length > 0 && (
-                  <div className="text-xs text-gray-600">
-                    Events: {a.events.join(", ")}
+                  <div className="text-xs text-gray-600 leading-snug">
+                    {a.events.map(formatEvent).join(", ")}
                   </div>
                 )}
               </div>
