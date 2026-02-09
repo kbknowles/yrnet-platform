@@ -25,13 +25,13 @@ export default async function CustomPage({ params }) {
   }
 
   return (
-    <main className="flex-1 max-w-5xl mx-auto px-4 py-10 space-y-6">
-      <h1 className="text-3xl font-bold">{page.title}</h1>
+    <main className="flex-1 max-w-5xl mx-auto px-4 py-10 flex flex-col">
+      <h1 className="text-3xl font-bold mb-6">{page.title}</h1>
 
       {page.isPlaceholder ? (
-        <p className="text-gray-600 text-center">
-          This page is coming soon.
-        </p>
+        <div className="flex-1 flex items-center justify-center text-center">
+          <p className="text-gray-600">This page is coming soon.</p>
+        </div>
       ) : (
         <div
           className="prose max-w-none"
