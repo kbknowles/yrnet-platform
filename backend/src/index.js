@@ -1,5 +1,3 @@
-// filepath: backend/src/index.js
-
 import express from "express";
 import cors from "cors";
 import path from "path";
@@ -10,9 +8,9 @@ import routes from "../routes/index.js";
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-/* -------------------- */
-/* PATH RESOLUTION      */
-/* -------------------- */
+/* --------------------
+   PATH RESOLUTION
+-------------------- */
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -23,9 +21,9 @@ const BACKEND_ROOT = path.resolve(__dirname, "..");
 // uploads folder: /backend/uploads
 const UPLOADS_DIR = path.join(BACKEND_ROOT, "uploads");
 
-/* -------------------- */
-/* MIDDLEWARE (ORDERED) */
-/* -------------------- */
+/* --------------------
+   MIDDLEWARE (ORDERED)
+-------------------- */
 
 const allowedOrigins = [
   "http://localhost:3000",
@@ -47,25 +45,42 @@ app.use(
 
 app.use(express.json());
 
-/* -------------------- */
-/* STATIC UPLOADS       */
-/* -------------------- */
+/* --------------------
+   STATIC UPLOADS
+-------------------- */
 
-app.use("/uploads", express.static(UPLOADS_DIR));
+app.use(
+  "/uploads",
+  express.static(UPLOADS_DIR, {
+    setHeaders: (res, filePath) => {
+      // Cache images + PDFs safely
+      if (filePath.endsWith(".jpg") || filePath.endsWith(".jpeg")) {
+        res.setHeader("Content-Type", "image/jpeg");
+        res.setHeader("Cache-Control", "public, max-age=31536000");
+      } else if (filePath.endsWith(".png")) {
+        res.setHeader("Content-Type", "image/png");
+        res.setHeader("Cache-Control", "public, max-age=31536000");
+      } else if (filePath.endsWith(".pdf")) {
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader("Cache-Control", "public, max-age=31536000");
+      }
+    },
+  })
+);
 
-/* -------- */
-/* ROUTES   */
-/* -------- */
+/* --------------------
+   ROUTES
+-------------------- */
 
-app.get("/", (req, res) => {
+app.get("/", (_req, res) => {
   res.json({ status: "AHSRA backend running" });
 });
 
 app.use("/api", routes);
 
-/* -------- */
-/* START    */
-/* -------- */
+/* --------------------
+   START
+-------------------- */
 
 app.listen(PORT, () => {
   console.log(`Backend listening on port ${PORT}`);
