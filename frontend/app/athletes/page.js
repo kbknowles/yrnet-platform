@@ -44,29 +44,33 @@ export default async function AthletesPage() {
             <Link
               key={a.slug}
               href={`/athletes/${a.slug}`}
-              className="border bg-white p-3 hover:shadow transition flex flex-col"
+              className="border bg-white p-3 hover:shadow transition space-y-2"
             >
               {/* Image */}
-              <div className="w-full aspect-square bg-gray-100 rounded overflow-hidden">
+              <div className="w-full h-40 bg-gray-100 rounded overflow-hidden">
                 {a.headshotUrl && (
                   <img
                     src={a.headshotUrl}
                     alt={`${a.firstName} ${a.lastName}`}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover object-top"
                   />
                 )}
               </div>
 
-              {/* Content */}
-              <h3 className="font-semibold text-base mt-2 leading-tight">
+              {/* Name */}
+              <h3 className="font-semibold text-base leading-tight">
                 {a.firstName} {a.lastName}
               </h3>
 
-              {a.bio && (
-                <p className="text-sm mt-1 line-clamp-2">
-                  {a.bio}
-                </p>
-              )}
+              {/* Meta */}
+              <div className="text-sm text-gray-700 space-y-1">
+                {a.grade && <div>Grade: {a.grade}</div>}
+                {a.events?.length > 0 && (
+                  <div className="text-xs text-gray-600">
+                    Events: {a.events.join(", ")}
+                  </div>
+                )}
+              </div>
             </Link>
           ))}
         </div>

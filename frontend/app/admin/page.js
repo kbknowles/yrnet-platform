@@ -57,6 +57,11 @@ export default function AdminIndexPage() {
       {/* PEOPLE */}
       <AdminSection title="People">
         <AdminCard
+          title="Athletes"
+          href="/admin/athletes"
+          description="Manage athlete profiles and spotlight participation"
+        />
+        <AdminCard
           title="Officers"
           href="/admin/officers"
           description="Board members and leadership"
