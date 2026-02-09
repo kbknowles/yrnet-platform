@@ -11,6 +11,10 @@ export default function HomeHighlights({ rodeos, announcements }) {
 
   const featured = sorted[0];
 
+  const featuredHref = featured?.event?.slug
+    ? `/schedule/${featured.event.slug}`
+    : "/announcements";
+
   return (
     <section className="w-full mt-1">
       <div className="grid grid-cols-1 md:grid-cols-2">
@@ -56,7 +60,7 @@ export default function HomeHighlights({ rodeos, announcements }) {
           </div>
         </div>
 
-        {/* Announcement (SINGLE FEATURED) */}
+        {/* Featured Announcement */}
         <div className="bg-gray-100 flex justify-center">
           <div className="w-full max-w-xl p-6 md:p-8 flex flex-col">
             <h2 className="text-xl md:text-2xl font-semibold mb-4 text-ahsra-red">
@@ -66,16 +70,17 @@ export default function HomeHighlights({ rodeos, announcements }) {
             {featured ? (
               <div className="bg-white rounded-md shadow-sm overflow-hidden">
                 {featured.mode === "POSTER" && featured.imageUrl ? (
-                  <Link href={`/announcements/${featured.id}`}>
+                  <Link href={featuredHref}>
                     <img
                       src={`${API_BASE}${featured.imageUrl}`}
                       alt={featured.title}
-                      className="w-full object-contain"
+                      className="w-full max-h-[420px] object-contain"
                     />
                   </Link>
                 ) : (
                   <div className="p-4 space-y-2">
                     <p className="font-medium">{featured.title}</p>
+
                     {(featured.publishAt || featured.createdAt) && (
                       <p className="text-sm text-gray-600">
                         {new Date(
@@ -83,8 +88,9 @@ export default function HomeHighlights({ rodeos, announcements }) {
                         ).toLocaleDateString()}
                       </p>
                     )}
+
                     <Link
-                      href={`/announcements/${featured.id}`}
+                      href={featuredHref}
                       className="inline-block text-sm font-medium bg-ahsra-red text-white px-4 py-2 rounded-md"
                     >
                       View Details
