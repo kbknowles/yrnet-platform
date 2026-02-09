@@ -1,15 +1,11 @@
-// filepath: frontend/components/home/HomeHighlights.js
-
 import Link from "next/link";
 
 export default function HomeHighlights({ rodeos, announcements }) {
   return (
     <section className="w-full mt-1">
-      {/* Full-width row */}
       <div className="grid grid-cols-1 md:grid-cols-2">
-        {/* Upcoming Rodeos — BLUE */}
+        {/* Upcoming Rodeos */}
         <div className="bg-gray-900 text-white flex justify-center">
-          {/* Inner content container */}
           <div className="w-full max-w-xl p-6 md:p-8 flex flex-col">
             <h2 className="text-xl md:text-2xl font-semibold mb-4">
               Upcoming Rodeos
@@ -50,9 +46,8 @@ export default function HomeHighlights({ rodeos, announcements }) {
           </div>
         </div>
 
-        {/* Announcements — GRAY */}
-        <div className="bg-gray-100 text-ashra-blue flex justify-center">
-          {/* Inner content container */}
+        {/* Announcements */}
+        <div className="bg-gray-100 flex justify-center">
           <div className="w-full max-w-xl p-6 md:p-8 flex flex-col">
             <h2 className="text-xl md:text-2xl font-semibold mb-4 text-ahsra-red">
               Announcements
@@ -62,23 +57,35 @@ export default function HomeHighlights({ rodeos, announcements }) {
               {announcements.map((item) => (
                 <li
                   key={item.id}
-                  className="bg-white rounded-md p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-sm"
+                  className="bg-white rounded-md shadow-sm overflow-hidden"
                 >
-                  <div>
-                    <p className="font-medium">{item.title}</p>
-                    {item.publishAt && (
-                      <p className="text-sm text-gray-600">
-                        {new Date(item.publishAt).toLocaleDateString()}
-                      </p>
-                    )}
-                  </div>
+                  {item.mode === "POSTER" && item.imageUrl ? (
+                    <Link href={`/announcements/${item.id}`}>
+                      <img
+                        src={item.imageUrl}
+                        alt={item.title}
+                        className="w-full object-contain"
+                      />
+                    </Link>
+                  ) : (
+                    <div className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                      <div>
+                        <p className="font-medium">{item.title}</p>
+                        {item.publishAt && (
+                          <p className="text-sm text-gray-600">
+                            {new Date(item.publishAt).toLocaleDateString()}
+                          </p>
+                        )}
+                      </div>
 
-                  <Link
-                    href={`/announcements/${item.id}`}
-                    className="text-sm font-medium bg-ahsra-red text-white px-4 py-2 rounded-md"
-                  >
-                    View Details
-                  </Link>
+                      <Link
+                        href={`/announcements/${item.id}`}
+                        className="text-sm font-medium bg-ahsra-red text-white px-4 py-2 rounded-md"
+                      >
+                        View Details
+                      </Link>
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>

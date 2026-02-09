@@ -1,5 +1,3 @@
-// filepath: backend/routes/index.js
-
 import express from "express";
 
 /* =========================
@@ -12,6 +10,7 @@ import eventsAdminRouter from "./admin/events.js";
 import eventScheduleItemsRouter from "./admin/eventScheduleItems.js";
 import eventContactsRouter from "./admin/eventContacts.js";
 import announcementsAdminRouter from "./admin/announcements.js";
+import announcementUploadRouter from "./admin/announcementUpload.js";
 import adminOfficersRouter from "./admin/officers.js";
 import sponsorsRouter from "./admin/sponsors.js";
 import adminGalleryRoutes from "./admin/gallery.js";
@@ -43,6 +42,7 @@ router.use("/admin/events", eventsAdminRouter);
 router.use("/admin/event-schedule-items", eventScheduleItemsRouter);
 router.use("/admin/event-contacts", eventContactsRouter);
 router.use("/admin/announcements", announcementsAdminRouter);
+router.use("/admin/announcements/upload", announcementUploadRouter);
 router.use("/admin/officers", adminOfficersRouter);
 router.use("/admin/sponsors", sponsorsRouter);
 router.use("/admin/gallery", adminGalleryRoutes);

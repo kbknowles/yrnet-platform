@@ -238,9 +238,17 @@ model Announcement {
   eventId  Int?
   seasonId Int?
 
-  title   String
-  content String
-  type    String?   // general, entry, stall, reminder
+  title String
+
+  // STANDARD announcements use content
+  content String?
+
+  // STANDARD | POSTER
+  mode String @default("STANDARD")
+
+  // POSTER image
+  imageUrl String?
+
   sortOrder Int @default(0)
 
   extras Json?
@@ -255,6 +263,7 @@ model Announcement {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
 
 /**
  * =========================
@@ -295,11 +304,17 @@ model CustomPage {
   slug           String   @unique
   content        String
   status         String   // "draft" | "published"
-
+ 
+ //Navigation
   showInMenu     Boolean  @default(false)
   showInFooter   Boolean  @default(false)
   sortOrder      Int      @default(0)
   isPlaceholder  Boolean  @default(false)
+
+  // Phase 2 (layout system)
+  layoutType    String   @default("standard")
+  sections      Json?    // ordered layout sections (see below)
+  heroImage     String?  // optional per-page image
 
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt

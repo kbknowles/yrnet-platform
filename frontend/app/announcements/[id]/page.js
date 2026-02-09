@@ -1,4 +1,3 @@
-// filepath: frontend/app/announcements/[id]/page.js
 "use client";
 
 import { useEffect, useState } from "react";
@@ -14,9 +13,9 @@ export default function AnnouncementDetailPage() {
 
   async function load() {
     setLoading(true);
-    const res = await fetch(`${API_BASE}/api/announcements?id=${id}`);
+    const res = await fetch(`${API_BASE}/api/announcements/${id}`);
     const data = await res.json();
-    setAnnouncement(data?.[0] || null);
+    setAnnouncement(data);
     setLoading(false);
   }
 
@@ -26,6 +25,9 @@ export default function AnnouncementDetailPage() {
 
   if (loading) return <p className="p-6">Loading…</p>;
   if (!announcement) return <p className="p-6">Announcement not found.</p>;
+
+  const isPdf =
+    announcement.imageUrl && announcement.imageUrl.endsWith(".pdf");
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-10 space-y-6">
@@ -44,32 +46,53 @@ export default function AnnouncementDetailPage() {
         </span>
       </nav>
 
-      {/* Back link */}
-      <div>
-        <Link
-          href="/announcements"
-          className="text-sm text-ahsra-blue hover:underline"
-        >
-          ← Back to Announcements
-        </Link>
-      </div>
+      {/* Back */}
+      <Link
+        href="/announcements"
+        className="text-sm text-ahsra-blue hover:underline"
+      >
+        ← Back to Announcements
+      </Link>
 
       {/* Content */}
-      <article className="bg-white border rounded shadow-sm p-6 space-y-4">
-        <div className="flex items-start justify-between gap-4">
-          <h1 className="text-2xl font-semibold">{announcement.title}</h1>
-          {announcement.type && (
-            <span className="text-xs uppercase tracking-wide bg-slate-100 px-2 py-1 rounded">
-              {announcement.type}
-            </span>
-          )}
-        </div>
+      <article className="bg-white border rounded shadow-sm overflow-hidden">
+        {announcement.mode === "POSTER" && announcement.imageUrl ? (
+          <div className="w-full">
+            {isPdf ? (
+              <iframe
+                src={announcement.imageUrl}
+                className="w-full h-[80vh]"
+                title={announcement.title}
+              />
+            ) : (
+              <img
+                src={announcement.imageUrl}
+                alt={announcement.title}
+                className="w-full object-contain"
+              />
+            )}
+          </div>
+        ) : (
+          <div className="p-6 space-y-4">
+            <div className="flex items-start justify-between gap-4">
+              <h1 className="text-2xl font-semibold">
+                {announcement.title}
+              </h1>
+              {announcement.type && (
+                <span className="text-xs uppercase tracking-wide bg-slate-100 px-2 py-1 rounded">
+                  {announcement.type}
+                </span>
+              )}
+            </div>
 
-        <div className="whitespace-pre-line text-slate-800">
-          {announcement.content}
-        </div>
+            <div className="whitespace-pre-line text-slate-800">
+              {announcement.content}
+            </div>
+          </div>
+        )}
 
-        <div className="text-xs text-slate-500 flex flex-wrap gap-4 pt-4 border-t">
+        {/* Meta */}
+        <div className="text-xs text-slate-500 flex flex-wrap gap-4 p-6 border-t">
           {announcement.publishAt && (
             <span>
               Posted{" "}

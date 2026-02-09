@@ -1,7 +1,7 @@
-// filepath: frontend/app/announcements/page.js
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -36,31 +36,47 @@ export default function AnnouncementsPage() {
           {announcements.map((a) => (
             <article
               key={a.id}
-              className="bg-white border rounded shadow-sm p-6"
+              className="bg-white border rounded shadow-sm overflow-hidden"
             >
-              <div className="flex items-start justify-between gap-4">
-                <h2 className="text-lg font-semibold">{a.title}</h2>
-                {a.type && (
-                  <span className="text-xs uppercase tracking-wide bg-slate-100 px-2 py-1 rounded">
-                    {a.type}
-                  </span>
-                )}
-              </div>
-
-              <div className="mt-3 whitespace-pre-line text-slate-800">
-                {a.content}
-              </div>
-
-              {(a.publishAt || a.eventId || a.seasonId) && (
-                <div className="mt-4 text-xs text-slate-500 flex flex-wrap gap-4">
-                  {a.publishAt && (
-                    <span>
-                      Posted{" "}
-                      {new Date(a.publishAt).toLocaleDateString()}
-                    </span>
+              {a.mode === "POSTER" && a.imageUrl ? (
+                <Link href={`/announcements/${a.id}`}>
+                  {a.imageUrl.endsWith(".pdf") ? (
+                    <div className="p-6 flex items-center justify-center bg-slate-50">
+                      <span className="text-sm text-ahsra-blue underline">
+                        View Poster (PDF)
+                      </span>
+                    </div>
+                  ) : (
+                    <img
+                      src={a.imageUrl}
+                      alt={a.title}
+                      className="w-full object-contain"
+                    />
                   )}
-                  {a.eventId && <span>Event #{a.eventId}</span>}
-                  {a.seasonId && <span>Season #{a.seasonId}</span>}
+                </Link>
+              ) : (
+                <div className="p-6">
+                  <div className="flex items-start justify-between gap-4">
+                    <h2 className="text-lg font-semibold">{a.title}</h2>
+                    {a.type && (
+                      <span className="text-xs uppercase tracking-wide bg-slate-100 px-2 py-1 rounded">
+                        {a.type}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="mt-3 whitespace-pre-line text-slate-800">
+                    {a.content}
+                  </div>
+
+                  <div className="mt-4">
+                    <Link
+                      href={`/announcements/${a.id}`}
+                      className="text-sm text-ahsra-blue underline"
+                    >
+                      View details →
+                    </Link>
+                  </div>
                 </div>
               )}
             </article>
