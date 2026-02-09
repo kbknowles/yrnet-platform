@@ -14,12 +14,10 @@ async function getPage(slug) {
 }
 
 export default async function CustomPage({ params }) {
-  // ✅ MUST unwrap params in Next 16
+  // Next 16 param unwrap
   const { slug } = await params;
 
-  if (!slug) {
-    notFound();
-  }
+  if (!slug) notFound();
 
   const page = await getPage(slug);
 
@@ -27,23 +25,24 @@ export default async function CustomPage({ params }) {
     notFound();
   }
 
-  if (page.isPlaceholder) {
-    return (
-      <main className="max-w-5xl mx-auto px-4 py-12 text-center">
-        <h1 className="text-3xl font-bold mb-4">{page.title}</h1>
-        <p className="text-gray-600">This page is coming soon.</p>
-      </main>
-    );
-  }
-
   return (
-    <main className="max-w-5xl mx-auto px-4 py-12 space-y-6">
-      <h1 className="text-3xl font-bold">{page.title}</h1>
+    <div className="min-h-screen flex flex-col">
+      {/* Page Content */}
+      <main className="flex-1 max-w-5xl mx-auto px-4 py-12 space-y-6">
+        <h1 className="text-3xl font-bold">{page.title}</h1>
 
-      <div
-        className="prose max-w-none"
-        dangerouslySetInnerHTML={{ __html: page.content }}
-      />
-    </main>
+        {page.isPlaceholder ? (
+          <p className="text-gray-600 text-center">
+            This page is coming soon.
+          </p>
+        ) : (
+          <div
+            className="prose max-w-none"
+            dangerouslySetInnerHTML={{ __html: page.content }}
+          />
+        )}
+      </main>
+      {/* Footer is rendered by global layout and will sit at bottom */}
+    </div>
   );
 }
