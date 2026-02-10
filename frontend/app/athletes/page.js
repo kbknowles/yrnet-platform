@@ -13,7 +13,6 @@ async function getAthletes() {
   return res.json();
 }
 
-/* Convert ENUM_LIKE values to readable labels */
 function formatEvent(label) {
   return label
     .toLowerCase()
@@ -55,13 +54,13 @@ export default async function AthletesPage() {
               href={`/athletes/${a.slug}`}
               className="border bg-white p-3 hover:shadow transition space-y-2"
             >
-              {/* Image (full image, scaled down — no crop) */}
-              <div className="w-full h-40 bg-gray-100 rounded flex items-center justify-center overflow-hidden">
+              {/* Image wrapper – mobile safe */}
+              <div className="w-full aspect-[3/4] bg-gray-100 rounded flex items-center justify-center">
                 {a.headshotUrl && (
                   <img
                     src={a.headshotUrl}
                     alt={`${a.firstName} ${a.lastName}`}
-                    className="max-h-full max-w-full object-contain"
+                    className="max-w-full max-h-full object-contain"
                   />
                 )}
               </div>
