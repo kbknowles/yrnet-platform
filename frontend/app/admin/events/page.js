@@ -79,7 +79,7 @@ export default function AdminEventsPage() {
       </div>
 
       <table className="w-full border text-sm">
-        <thead className="bg-slate-100">
+        <thead className="bg-ahsra-blue text-white">
           <tr>
             <th className="border p-2">Name</th>
             <th className="border p-2">Season</th>
@@ -88,7 +88,7 @@ export default function AdminEventsPage() {
             <th className="border p-2 text-right">Actions</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody classname="bg-white">
           {events.map((e) => (
             <tr key={e.id} className="border-t">
               <td className="p-2 font-medium">{e.name}</td>
