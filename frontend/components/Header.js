@@ -55,10 +55,10 @@ export default function Header() {
               height={40}
               priority
             />
-            <span className="hidden md:inline text-lg">
+            <span className="hidden lg:inline text-lg">
               Alabama High School Rodeo Association
             </span>
-            <span className="md:hidden text-lg">AHSRA</span>
+            <span className="lg:hidden text-lg">AHSRA</span>
           </Link>
         ) : (
           <div />
