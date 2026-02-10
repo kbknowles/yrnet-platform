@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { formatDate } from "../../../lib/formatDate";
+import { useParams } from "next/navigation";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -15,8 +16,8 @@ async function fetchEvent(slug) {
   return res.json();
 }
 
-export default function EventPage({ params }) {
-  const { slug } = params;
+export default function EventPage() {
+  const { slug } = useParams();
 
   const [event, setEvent] = useState(null);
   const [activeIndex, setActiveIndex] = useState(null);
