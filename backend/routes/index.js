@@ -18,6 +18,7 @@ import adminPagesRoutes from "./admin/pages.js";
 import uploadRoutes from "./admin/uploads.js";
 import adminAthletesRouter from "./admin/athletes.js";
 
+
 /* =========================
    PUBLIC ROUTES
    ========================= */
@@ -31,7 +32,9 @@ import galleryRoutes from "./gallery.js";
 import homeRoutes from "./home.js";
 import officersPublicRouter from "./officers.js";
 import pagesRoutes from "./pages.js";
-import athletesPublicRouter from "./athletes.js";
+import athletesPublicRouter from "./athletes.js";// backend/routes/index.js
+import calendarRoutes from "./calendar.js";
+
 
 const router = express.Router();
 
@@ -61,5 +64,6 @@ router.use("/home", homeRoutes);
 router.use("/officers", officersPublicRouter);
 router.use("/pages", pagesRoutes);
 router.use("/athletes", athletesPublicRouter);
+router.use("/calendar", calendarRoutes);
 
 export default router;
