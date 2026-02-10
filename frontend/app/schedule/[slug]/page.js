@@ -1,32 +1,51 @@
+// filepath: frontend/app/schedule/[slug]/page.js
+
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { formatDate } from "../../../lib/formatDate";
-import { useParams } from "next/navigation";
+
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Zoom, Navigation } from "swiper/modules";
+
+import "swiper/css";
+import "swiper/css/zoom";
+import "swiper/css/navigation";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
-async function fetchEvent(slug) {
-  const res = await fetch(
-    `${API_BASE}/api/schedule/${encodeURIComponent(slug)}`,
-    { cache: "no-store" }
-  );
-  if (!res.ok) return null;
-  return res.json();
+/* =========================
+   DATA
+========================= */
+
+async function getEvent(slug) {
+  try {
+    const res = await fetch(
+      `${API_BASE}/api/schedule/${encodeURIComponent(slug)}`,
+      { cache: "no-store" }
+    );
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
+  }
 }
 
-export default function EventPage() {
-  const { slug } = useParams();
+/* =========================
+   PAGE
+========================= */
 
-  const [event, setEvent] = useState(null);
+export default function EventPage({ params }) {
   const [activeIndex, setActiveIndex] = useState(null);
+  const [open, setOpen] = useState(false);
 
-  useEffect(() => {
-    fetchEvent(slug).then(setEvent);
-  }, [slug]);
+  const slug = params.slug;
+  const [event, setEvent] = useState(null);
 
-  if (!event) return <div className="p-10">Loading…</div>;
+  if (!event) {
+    throw getEvent(slug).then(setEvent);
+  }
 
   const location = event.location;
 
@@ -38,50 +57,61 @@ export default function EventPage() {
       ? `${location.streetAddress}, ${location.city}, ${location.state} ${location.zip}`
       : null;
 
-  const posters =
+  const announcements =
     event.announcements
-      ?.filter((a) => a.mode === "POSTER" && a.imageUrl)
-      ?.sort(
-        (a, b) =>
-          (a.sortOrder ?? 0) - (b.sortOrder ?? 0) ||
-          new Date(b.publishAt || b.createdAt) -
-            new Date(a.publishAt || a.createdAt)
-      ) || [];
+      ?.slice()
+      .sort((a, b) => {
+        if (a.sortOrder !== b.sortOrder) {
+          return a.sortOrder - b.sortOrder;
+        }
+        const aDate = new Date(a.publishAt || a.createdAt);
+        const bDate = new Date(b.publishAt || b.createdAt);
+        return bDate - aDate;
+      }) || [];
 
-  const open = typeof activeIndex === "number";
-  const current = posters[activeIndex];
+  const posters = announcements.filter(
+    (a) => a.mode === "POSTER" && a.imageUrl
+  );
+
+  /* =========================
+     RENDER
+  ========================= */
 
   return (
     <main className="max-w-7xl mx-auto px-4 py-10 space-y-10">
       {/* HEADER */}
-      <header className="space-y-2">
+      <section>
         <h1 className="text-3xl font-bold">{event.name}</h1>
         <p className="text-gray-600">
           {formatDate(event.startDate)}
           {event.endDate && ` – ${formatDate(event.endDate)}`}
         </p>
-      </header>
+      </section>
 
-      {/* TWO COLUMN */}
+      {/* TWO COLUMN LAYOUT */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* LEFT */}
-        <div className="lg:col-span-2 space-y-8">
+        <div className="lg:col-span-1 space-y-6">
           {event.generalInfo && (
-            <section>
-              <h2 className="text-xl font-semibold mb-2">General Info</h2>
-              <p className="whitespace-pre-line">{event.generalInfo}</p>
-            </section>
+            <div>
+              <h2 className="font-semibold mb-2">General Info</h2>
+              <p className="whitespace-pre-line text-sm">
+                {event.generalInfo}
+              </p>
+            </div>
           )}
 
           {location && (
-            <section className="space-y-3">
-              <h2 className="text-xl font-semibold">Location</h2>
-
-              {location.name && <div>{location.name}</div>}
-              {fullAddress && <div>{fullAddress}</div>}
+            <div>
+              <h2 className="font-semibold mb-2">Location</h2>
+              <p className="text-sm">
+                {location.name}
+                <br />
+                {fullAddress}
+              </p>
 
               {fullAddress && (
-                <div className="w-full h-[260px] border rounded overflow-hidden">
+                <div className="mt-3 h-[220px] border rounded overflow-hidden">
                   <iframe
                     width="100%"
                     height="100%"
@@ -92,97 +122,108 @@ export default function EventPage() {
                   />
                 </div>
               )}
-            </section>
+            </div>
           )}
         </div>
 
         {/* RIGHT */}
-        <aside className="space-y-6">
-          {/* QUICK FACTS */}
-          <section className="border rounded p-4 bg-slate-50">
-            <h3 className="font-semibold text-sm uppercase mb-2">
-              Quick Facts
-            </h3>
-            <div className="text-sm space-y-1">
-              <div>
-                <strong>Date:</strong> {formatDate(event.startDate)}
-              </div>
-              {location?.city && (
-                <div>
-                  <strong>City:</strong> {location.city}
-                </div>
-              )}
-            </div>
-          </section>
+        <div className="lg:col-span-2 space-y-6">
+          <h2 className="text-xl font-semibold">Announcements</h2>
 
-          {/* POSTER THUMBNAILS */}
+          {/* POSTER GRID */}
           {posters.length > 0 && (
-            <section className="space-y-3">
-              <h2 className="text-xl font-semibold">Announcements</h2>
-
-              <div className="grid grid-cols-2 gap-3">
-                {posters.map((a, i) => (
-                  <button
-                    key={a.id}
-                    onClick={() => setActiveIndex(i)}
-                    className="border rounded overflow-hidden"
-                  >
-                    <img
-                      src={`${API_BASE}${a.imageUrl}`}
-                      alt={a.title}
-                      className="w-full h-[160px] object-contain bg-white"
-                    />
-                  </button>
-                ))}
-              </div>
-            </section>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {posters.map((p, idx) => (
+                <button
+                  key={p.id}
+                  onClick={() => {
+                    setActiveIndex(idx);
+                    setOpen(true);
+                  }}
+                  className="border rounded overflow-hidden bg-white"
+                >
+                  <img
+                    src={`${API_BASE}${p.imageUrl}`}
+                    alt={p.title}
+                    className="w-full h-[220px] object-contain"
+                  />
+                  <div className="p-2 text-sm font-medium truncate">
+                    {p.title}
+                  </div>
+                </button>
+              ))}
+            </div>
           )}
-        </aside>
+
+          {/* STANDARD ANNOUNCEMENTS */}
+          {announcements
+            .filter((a) => a.mode !== "POSTER")
+            .map((a) => (
+              <div
+                key={a.id}
+                className="border rounded p-4 bg-white"
+              >
+                <div className="font-medium">{a.title}</div>
+                <div className="text-sm whitespace-pre-line">
+                  {a.content}
+                </div>
+              </div>
+            ))}
+        </div>
       </div>
 
-      {/* MODAL OVERLAY */}
+      {/* POSTER MODAL */}
       {open && (
-        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center">
-          <button
-            onClick={() => setActiveIndex(null)}
-            className="absolute top-4 right-4 text-white text-3xl"
-          >
-            ×
-          </button>
-
-          {activeIndex > 0 && (
-            <button
-              onClick={() => setActiveIndex(activeIndex - 1)}
-              className="absolute left-4 text-white text-3xl"
-            >
-              ‹
-            </button>
-          )}
-
-          {activeIndex < posters.length - 1 && (
-            <button
-              onClick={() => setActiveIndex(activeIndex + 1)}
-              className="absolute right-4 text-white text-3xl"
-            >
-              ›
-            </button>
-          )}
-
-          <div className="max-w-full max-h-full overflow-auto">
-            <img
-              src={`${API_BASE}${current.imageUrl}`}
-              alt={current.title}
-              className="max-w-full max-h-screen object-contain"
-            />
-          </div>
-        </div>
+        <PosterModal
+          posters={posters}
+          startIndex={activeIndex}
+          onClose={() => setOpen(false)}
+        />
       )}
 
-      <footer>
+      <div>
         <Link href="/schedule" className="underline">
           Back to schedule
         </Link>
-      </footer>
+      </div>
     </main>
+  );
+}
+
+/* =========================
+   POSTER MODAL
+========================= */
+
+function PosterModal({ posters, startIndex, onClose }) {
+  return (
+    <div className="fixed inset-0 z-50 bg-black/95">
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 text-white text-2xl z-50"
+      >
+        ✕
+      </button>
+
+      <Swiper
+        modules={[Zoom, Navigation]}
+        zoom
+        navigation
+        initialSlide={startIndex}
+        slidesPerView={1}
+        className="w-full h-full"
+      >
+        {posters.map((p) => (
+          <SwiperSlide key={p.id}>
+            <div className="swiper-zoom-container flex items-center justify-center h-full">
+              <img
+                src={`${API_BASE}${p.imageUrl}`}
+                alt={p.title}
+                className="max-w-full max-h-full object-contain"
+              />
+            </div>
+          </SwiperSlide>
+        ))}
+      </Swiper>
+    </div>
   );
 }
