@@ -8,9 +8,10 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 async function getEvent(slug) {
   const res = await fetch(
-    `${API_BASE}/api/events/${encodeURIComponent(slug)}`,
+    `${API_BASE}/api/schedule/${encodeURIComponent(slug)}`,
     { cache: "no-store" }
   );
+
   if (!res.ok) return null;
   return res.json();
 }
@@ -101,12 +102,10 @@ export default async function EventPage({ params }) {
         <div className="lg:col-span-2 space-y-6">
           <h2 className="text-xl font-semibold">Announcements</h2>
 
-          {/* POSTERS */}
           {posters.length > 0 && (
             <PosterGallery posters={posters} />
           )}
 
-          {/* STANDARD ANNOUNCEMENTS */}
           {announcements
             .filter((a) => a.mode !== "POSTER")
             .map((a) => (
@@ -124,7 +123,7 @@ export default async function EventPage({ params }) {
       </div>
 
       <div>
-        <Link href="/events" className="underline">
+        <Link href="/schedule" className="underline">
           Back to schedule
         </Link>
       </div>
