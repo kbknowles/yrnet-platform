@@ -1,4 +1,4 @@
-// filepath: frontend/app/schedule/[slug]/page.js
+// filepath: frontend/app/events/[slug]/page.js
 
 import Link from "next/link";
 import { formatDate } from "../../../lib/formatDate";
@@ -8,7 +8,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 async function getEvent(slug) {
   const res = await fetch(
-    `${API_BASE}/api/schedule/${encodeURIComponent(slug)}`,
+    `${API_BASE}/api/events/${encodeURIComponent(slug)}`,
     { cache: "no-store" }
   );
   if (!res.ok) return null;
