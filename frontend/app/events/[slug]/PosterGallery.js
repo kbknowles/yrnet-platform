@@ -1,5 +1,4 @@
-// filepath: frontend/app/schedule/[slug]/PosterGallery.js
-
+// filepath: frontend/app/events/[slug]/PosterGallery.js
 "use client";
 
 import { useState } from "react";
@@ -32,7 +31,7 @@ export default function PosterGallery({ posters }) {
             <img
               src={`${API_BASE}${p.imageUrl}`}
               alt={p.title}
-              className="w-full h-[220px] object-contain"
+              className="w-full h-[220px] object-contain block"
             />
             <div className="p-2 text-sm font-medium truncate">
               {p.title}
@@ -43,7 +42,7 @@ export default function PosterGallery({ posters }) {
 
       {/* MODAL */}
       {open && (
-        <div className="fixed inset-0 z-50 bg-black/95">
+        <div className="fixed inset-0 z-50 bg-black">
           <button
             onClick={() => setOpen(false)}
             className="absolute top-4 right-4 text-white text-2xl z-50"
@@ -61,11 +60,18 @@ export default function PosterGallery({ posters }) {
           >
             {posters.map((p) => (
               <SwiperSlide key={p.id}>
-                <div className="swiper-zoom-container flex items-center justify-center h-full">
+                <div
+                  className="swiper-zoom-container flex items-center justify-center h-full"
+                  style={{ transform: "translateZ(0)" }} // 🔑 iOS repaint
+                >
                   <img
                     src={`${API_BASE}${p.imageUrl}`}
                     alt={p.title}
-                    className="max-w-full max-h-full object-contain"
+                    className="max-w-full max-h-full object-contain block"
+                    style={{
+                      backfaceVisibility: "hidden",
+                      WebkitBackfaceVisibility: "hidden",
+                    }}
                   />
                 </div>
               </SwiperSlide>
