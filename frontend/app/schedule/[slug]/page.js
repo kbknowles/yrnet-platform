@@ -1,50 +1,26 @@
 // filepath: frontend/app/schedule/[slug]/page.js
 
-"use client";
-
-import { useState } from "react";
 import Link from "next/link";
 import { formatDate } from "../../../lib/formatDate";
-
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Zoom, Navigation } from "swiper/modules";
-
-import "swiper/css";
-import "swiper/css/zoom";
-import "swiper/css/navigation";
+import PosterGallery from "./PosterGallery";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
-/* =========================
-   DATA
-========================= */
-
 async function getEvent(slug) {
-  try {
-    const res = await fetch(
-      `${API_BASE}/api/schedule/${encodeURIComponent(slug)}`,
-      { cache: "no-store" }
-    );
-    if (!res.ok) return null;
-    return res.json();
-  } catch {
-    return null;
-  }
+  const res = await fetch(
+    `${API_BASE}/api/schedule/${encodeURIComponent(slug)}`,
+    { cache: "no-store" }
+  );
+  if (!res.ok) return null;
+  return res.json();
 }
 
-/* =========================
-   PAGE
-========================= */
-
-export default function EventPage({ params }) {
-  const [activeIndex, setActiveIndex] = useState(null);
-  const [open, setOpen] = useState(false);
-
-  const slug = params.slug;
-  const [event, setEvent] = useState(null);
+export default async function EventPage({ params }) {
+  const { slug } = params;
+  const event = await getEvent(slug);
 
   if (!event) {
-    throw getEvent(slug).then(setEvent);
+    return <div className="p-10">Event not found</div>;
   }
 
   const location = event.location;
@@ -73,10 +49,6 @@ export default function EventPage({ params }) {
     (a) => a.mode === "POSTER" && a.imageUrl
   );
 
-  /* =========================
-     RENDER
-  ========================= */
-
   return (
     <main className="max-w-7xl mx-auto px-4 py-10 space-y-10">
       {/* HEADER */}
@@ -88,9 +60,8 @@ export default function EventPage({ params }) {
         </p>
       </section>
 
-      {/* TWO COLUMN LAYOUT */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* LEFT */}
+        {/* LEFT COLUMN */}
         <div className="lg:col-span-1 space-y-6">
           {event.generalInfo && (
             <div>
@@ -126,33 +97,13 @@ export default function EventPage({ params }) {
           )}
         </div>
 
-        {/* RIGHT */}
+        {/* RIGHT COLUMN */}
         <div className="lg:col-span-2 space-y-6">
           <h2 className="text-xl font-semibold">Announcements</h2>
 
-          {/* POSTER GRID */}
+          {/* POSTERS */}
           {posters.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {posters.map((p, idx) => (
-                <button
-                  key={p.id}
-                  onClick={() => {
-                    setActiveIndex(idx);
-                    setOpen(true);
-                  }}
-                  className="border rounded overflow-hidden bg-white"
-                >
-                  <img
-                    src={`${API_BASE}${p.imageUrl}`}
-                    alt={p.title}
-                    className="w-full h-[220px] object-contain"
-                  />
-                  <div className="p-2 text-sm font-medium truncate">
-                    {p.title}
-                  </div>
-                </button>
-              ))}
-            </div>
+            <PosterGallery posters={posters} />
           )}
 
           {/* STANDARD ANNOUNCEMENTS */}
@@ -172,58 +123,11 @@ export default function EventPage({ params }) {
         </div>
       </div>
 
-      {/* POSTER MODAL */}
-      {open && (
-        <PosterModal
-          posters={posters}
-          startIndex={activeIndex}
-          onClose={() => setOpen(false)}
-        />
-      )}
-
       <div>
         <Link href="/schedule" className="underline">
           Back to schedule
         </Link>
       </div>
     </main>
-  );
-}
-
-/* =========================
-   POSTER MODAL
-========================= */
-
-function PosterModal({ posters, startIndex, onClose }) {
-  return (
-    <div className="fixed inset-0 z-50 bg-black/95">
-      <button
-        onClick={onClose}
-        className="absolute top-4 right-4 text-white text-2xl z-50"
-      >
-        ✕
-      </button>
-
-      <Swiper
-        modules={[Zoom, Navigation]}
-        zoom
-        navigation
-        initialSlide={startIndex}
-        slidesPerView={1}
-        className="w-full h-full"
-      >
-        {posters.map((p) => (
-          <SwiperSlide key={p.id}>
-            <div className="swiper-zoom-container flex items-center justify-center h-full">
-              <img
-                src={`${API_BASE}${p.imageUrl}`}
-                alt={p.title}
-                className="max-w-full max-h-full object-contain"
-              />
-            </div>
-          </SwiperSlide>
-        ))}
-      </Swiper>
-    </div>
   );
 }
