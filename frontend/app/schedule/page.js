@@ -50,7 +50,7 @@ export default function SchedulePage() {
               }`}
             >
               <Link
-                href={`/schedule/${e.slug}`}
+                href={`/events/${e.slug}`}
                 className="text-lg font-bold text-ahsra-red hover:underline"
               >
                 {e.name}
