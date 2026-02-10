@@ -36,216 +36,206 @@ export default async function EventPage({ params }) {
       ? `${location.streetAddress}, ${location.city}, ${location.state} ${location.zip}`
       : null;
 
+  const announcements = [...(event.announcements || [])].sort(
+    (a, b) =>
+      (a.sortOrder ?? 0) - (b.sortOrder ?? 0) ||
+      new Date(b.publishAt || b.createdAt) -
+        new Date(a.publishAt || a.createdAt)
+  );
+
   return (
-    <main className="max-w-5xl mx-auto px-4 py-10 space-y-12">
+    <main className="max-w-7xl mx-auto px-4 py-10 space-y-10">
       {/* =====================
-          WORK IN PROGRESS
+          HEADER
          ===================== */}
-      <div className="rounded border border-yellow-300 bg-yellow-50 px-4 py-3 text-sm text-yellow-900">
-        <strong>Work in progress:</strong> This event page is still being built.
-      </div>
-
-      {/* =====================
-          EVENT HEADER
-         ===================== */}
-      <section className="space-y-2">
+      <header className="space-y-2">
         <h1 className="text-3xl font-bold">{event.name}</h1>
-
         <p className="text-gray-600">
           {formatDate(event.startDate)}
           {event.endDate && ` – ${formatDate(event.endDate)}`}
         </p>
-
         {event.season && (
           <p className="text-sm text-gray-700">
             Season: <strong>{event.season.name}</strong>
           </p>
         )}
-      </section>
+      </header>
 
       {/* =====================
-          LOCATION
+          TWO COLUMN LAYOUT
          ===================== */}
-      {location && (
-        <section className="space-y-4">
-          <h2 className="text-xl font-semibold">Location</h2>
-
-          <div className="space-y-1 text-sm">
-            {location.name && (
-              <div className="font-medium">{location.name}</div>
-            )}
-            {fullAddress && <div>{fullAddress}</div>}
-          </div>
-
-          {fullAddress && (
-            <>
-              <div className="w-full h-[300px] rounded overflow-hidden border">
-                <iframe
-                  width="100%"
-                  height="100%"
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  src={`https://www.google.com/maps?q=${encodeURIComponent(
-                    fullAddress
-                  )}&output=embed`}
-                />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* =====================
+            LEFT COLUMN
+           ===================== */}
+        <div className="lg:col-span-2 space-y-8">
+          {/* Schedule */}
+          {event.scheduleItems?.length > 0 && (
+            <section className="space-y-4">
+              <h2 className="text-xl font-semibold">Schedule</h2>
+              <div className="space-y-3">
+                {event.scheduleItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className="border rounded p-4 space-y-1"
+                  >
+                    <div className="font-medium">{item.title}</div>
+                    <div className="text-sm text-gray-600">
+                      {formatDate(item.startTime)}
+                      {item.endTime &&
+                        ` – ${formatDate(item.endTime)}`}
+                    </div>
+                    {item.description && (
+                      <div className="text-sm">
+                        {item.description}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
-
-              <a
-                href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
-                  fullAddress
-                )}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm underline"
-              >
-                Get Directions
-              </a>
-            </>
+            </section>
           )}
-        </section>
-      )}
 
-      {/* =====================
-          EVENT INFO
-         ===================== */}
-      {event.generalInfo && (
-        <section className="space-y-2">
-          <h2 className="text-xl font-semibold">Event Information</h2>
-          <p className="whitespace-pre-line">{event.generalInfo}</p>
-        </section>
-      )}
+          {/* General Info */}
+          {event.generalInfo && (
+            <section className="space-y-2">
+              <h2 className="text-xl font-semibold">
+                General Information
+              </h2>
+              <p className="whitespace-pre-line">
+                {event.generalInfo}
+              </p>
+            </section>
+          )}
 
-      {/* =====================
-          SCHEDULE
-         ===================== */}
-      {event.scheduleItems?.length > 0 && (
-        <section className="space-y-4">
-          <h2 className="text-xl font-semibold">Schedule</h2>
-
-          <div className="space-y-3">
-            {event.scheduleItems.map((item) => (
-              <div key={item.id} className="border rounded p-4 space-y-1">
-                <div className="font-medium">{item.title}</div>
-                <div className="text-sm text-gray-600">
-                  {formatDate(item.startTime)}
-                  {item.endTime && ` – ${formatDate(item.endTime)}`}
-                </div>
-                {item.description && (
-                  <div className="text-sm">{item.description}</div>
+          {/* Location */}
+          {location && (
+            <section className="space-y-4">
+              <h2 className="text-xl font-semibold">Location</h2>
+              <div className="space-y-1 text-sm">
+                {location.name && (
+                  <div className="font-medium">
+                    {location.name}
+                  </div>
                 )}
+                {fullAddress && <div>{fullAddress}</div>}
               </div>
-            ))}
-          </div>
-        </section>
-      )}
 
-      {/* =====================
-          ANNOUNCEMENTS
-         ===================== */}
-      {event.announcements?.length > 0 && (
-        <section className="space-y-6">
-          <h2 className="text-xl font-semibold">Announcements</h2>
+              {fullAddress && (
+                <>
+                  <div className="w-full h-[300px] rounded overflow-hidden border">
+                    <iframe
+                      width="100%"
+                      height="100%"
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                      src={`https://www.google.com/maps?q=${encodeURIComponent(
+                        fullAddress
+                      )}&output=embed`}
+                    />
+                  </div>
 
-          <div className="space-y-4">
-            {event.announcements.map((a) => {
-              const posterSrc =
-                a.imageUrl &&
-                `${process.env.NEXT_PUBLIC_API_URL}${a.imageUrl}`;
+                  <a
+                    href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
+                      fullAddress
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm underline"
+                  >
+                    Get Directions
+                  </a>
+                </>
+              )}
+            </section>
+          )}
+        </div>
 
-              return (
-                <div
-                  key={a.id}
-                  className="border rounded bg-white overflow-hidden"
-                >
-                  {a.mode === "POSTER" && posterSrc ? (
-                    <>
-                      <div className="p-4 border-b font-medium">
+        {/* =====================
+            RIGHT COLUMN
+           ===================== */}
+        <aside className="space-y-6">
+          {/* Quick Facts */}
+          <section className="border rounded p-4 bg-slate-50 space-y-2 sticky top-6">
+            <h3 className="font-semibold text-sm uppercase tracking-wide">
+              Quick Facts
+            </h3>
+            <div className="text-sm space-y-1">
+              <div>
+                <strong>Dates:</strong>{" "}
+                {formatDate(event.startDate)}
+              </div>
+              {location?.city && (
+                <div>
+                  <strong>City:</strong> {location.city}
+                </div>
+              )}
+              {event.status && (
+                <div>
+                  <strong>Status:</strong> {event.status}
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* Announcements */}
+          {announcements.length > 0 && (
+            <section className="space-y-4">
+              <h2 className="text-xl font-semibold">
+                Announcements
+              </h2>
+
+              <div className="space-y-4">
+                {announcements.map((a) => {
+                  const posterSrc =
+                    a.imageUrl &&
+                    `${process.env.NEXT_PUBLIC_API_URL}${a.imageUrl}`;
+
+                  return (
+                    <div
+                      key={a.id}
+                      className="border rounded bg-white overflow-hidden"
+                    >
+                      <div className="p-3 border-b font-medium text-sm">
                         {a.title}
                       </div>
 
-                      {a.imageUrl.endsWith(".pdf") ? (
-                        <div className="p-6 text-center">
-                          <a
-                            href={posterSrc}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-ahsra-blue underline"
-                          >
-                            View Poster (PDF)
-                          </a>
-                        </div>
+                      {a.mode === "POSTER" && posterSrc ? (
+                        <details className="group">
+                          <summary className="cursor-pointer p-3 text-sm text-ahsra-blue underline">
+                            View poster
+                          </summary>
+                          <img
+                            src={posterSrc}
+                            alt={a.title}
+                            className="w-full max-h-[600px] object-contain bg-white"
+                          />
+                        </details>
                       ) : (
-                        <img
-                          src={posterSrc}
-                          alt={a.title}
-                          className="w-full max-h-[700px] object-contain bg-white"
-                        />
-                      )}
-
-                      {a.content && (
-                        <div className="p-6 border-t whitespace-pre-line">
+                        <div className="p-3 text-sm whitespace-pre-line">
                           {a.content}
                         </div>
                       )}
-                    </>
-                  ) : (
-                    <div className="p-4 space-y-2">
-                      <div className="font-medium">{a.title}</div>
-                      <div className="text-sm whitespace-pre-line">
-                        {a.content}
-                      </div>
                     </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </section>
-      )}
-
-      {/* =====================
-          CONTACTS
-         ===================== */}
-      {event.contacts?.length > 0 && (
-        <section className="space-y-4">
-          <h2 className="text-xl font-semibold">Contacts</h2>
-
-          <div className="grid sm:grid-cols-2 gap-4">
-            {event.contacts.map((c) => (
-              <div key={c.id} className="border rounded p-4 space-y-1">
-                <div className="font-medium">{c.name}</div>
-                {c.role && (
-                  <div className="text-sm text-gray-600">{c.role}</div>
-                )}
-                {c.phone && (
-                  <div className="text-sm">
-                    <a href={`tel:${c.phone}`} className="underline">
-                      {c.phone}
-                    </a>
-                  </div>
-                )}
-                {c.email && (
-                  <div className="text-sm">
-                    <a href={`mailto:${c.email}`} className="underline">
-                      {c.email}
-                    </a>
-                  </div>
-                )}
+                  );
+                })}
               </div>
-            ))}
-          </div>
-        </section>
-      )}
+            </section>
+          )}
 
-      {/* =====================
-          FOOTER
-         ===================== */}
-      <div>
+          {/* Sponsors Placeholder */}
+          <section className="border rounded p-4 text-sm text-slate-500">
+            Sponsors coming soon
+          </section>
+        </aside>
+      </div>
+
+      {/* Footer */}
+      <footer>
         <Link href="/schedule" className="underline">
           Back to schedule
         </Link>
-      </div>
+      </footer>
     </main>
   );
 }
