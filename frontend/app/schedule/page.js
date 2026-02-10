@@ -44,6 +44,7 @@ export default function SchedulePage() {
           {events.map((e) => (
             <div
               key={e.id}
+              data-slug={e.slug}
               className={`border rounded-lg bg-white p-5 ${
                 selectedSlug === e.slug ? "ring-2 ring-ahsra-blue" : ""
               }`}
@@ -74,12 +75,14 @@ export default function SchedulePage() {
                     .replace(/[-:]/g, "")
                     .split(".")[0]}`}
                   target="_blank"
+                  rel="noreferrer"
                   className="underline text-ahsra-blue"
                 >
                   Google
                 </a>
+
                 <a
-                  href={`/api/calendar/event/${e.slug}`}
+                  href={`/api/calendar/${e.slug}.ics`}
                   className="underline text-ahsra-blue"
                 >
                   .ics
@@ -95,6 +98,7 @@ export default function SchedulePage() {
             plugins={[dayGridPlugin, interactionPlugin]}
             initialView="dayGridMonth"
             events={calendarEvents}
+            height="auto"
             eventClick={(info) => {
               setSelectedSlug(info.event.id);
               document
