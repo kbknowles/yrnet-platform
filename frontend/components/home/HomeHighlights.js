@@ -12,7 +12,7 @@ export default function HomeHighlights({ rodeos, announcements }) {
   const featured = sorted[0];
 
   const featuredHref = featured?.event?.slug
-    ? `/schedule/${featured.event.slug}`
+    ? `/events/${featured.event.slug}`
     : "/announcements";
 
   return (
@@ -40,7 +40,7 @@ export default function HomeHighlights({ rodeos, announcements }) {
                   </div>
 
                   <Link
-                    href={`/schedule/${rodeo.slug}`}
+                    href={`/events/${rodeo.slug}`}
                     className="text-sm font-medium bg-white text-ahsra-blue px-4 py-2 rounded-md"
                   >
                     View Details

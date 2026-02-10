@@ -1,25 +1,23 @@
-// filepath: backend/routes/events.js
+// backend/routes/events.js
 
 import express from "express";
 import prisma from "../prismaClient.mjs";
 
 const router = express.Router();
 
+console.log("🔥 EVENTS ROUTER LOADED");
+
+
 /**
  * GET /api/events
  * Public, published events only
- * Optional: ?limit=number
  */
 router.get("/", async (req, res) => {
   const limit = req.query.limit ? Number(req.query.limit) : undefined;
 
   const events = await prisma.event.findMany({
-    where: {
-      status: "published",
-    },
-    orderBy: {
-      startDate: "asc",
-    },
+    where: { status: "published" },
+    orderBy: { startDate: "asc" },
     take: limit,
     include: {
       location: true,
@@ -35,8 +33,13 @@ router.get("/", async (req, res) => {
  * Public single event by slug
  */
 router.get("/:slug", async (req, res) => {
-  const event = await prisma.event.findUnique({
-    where: { slug: req.params.slug },
+  const slug = req.params.slug.toLowerCase();
+
+  const event = await prisma.event.findFirst({
+    where: {
+      slug,
+      status: "published",
+    },
     include: {
       location: true,
       season: true,
@@ -50,7 +53,7 @@ router.get("/:slug", async (req, res) => {
     },
   });
 
-  if (!event || event.status !== "published") {
+  if (!event) {
     return res.status(404).json({ error: "Event not found" });
   }
 

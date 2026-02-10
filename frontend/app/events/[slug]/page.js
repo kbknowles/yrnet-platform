@@ -8,7 +8,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 async function getEvent(slug) {
   const res = await fetch(
-    `${API_BASE}/api/schedule/${encodeURIComponent(slug)}`,
+    `${API_BASE}/api/events/${encodeURIComponent(slug)}`,
     { cache: "no-store" }
   );
 
@@ -17,7 +17,9 @@ async function getEvent(slug) {
 }
 
 export default async function EventPage({ params }) {
-  const { slug } = params;
+  // ✅ REQUIRED FOR NEXT 16
+  const { slug } = await params;
+
   const event = await getEvent(slug);
 
   if (!event) {
@@ -62,7 +64,7 @@ export default async function EventPage({ params }) {
       </section>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* LEFT COLUMN */}
+        {/* LEFT */}
         <div className="lg:col-span-1 space-y-6">
           {event.generalInfo && (
             <div>
@@ -98,7 +100,7 @@ export default async function EventPage({ params }) {
           )}
         </div>
 
-        {/* RIGHT COLUMN */}
+        {/* RIGHT */}
         <div className="lg:col-span-2 space-y-6">
           <h2 className="text-xl font-semibold">Announcements</h2>
 
