@@ -6,7 +6,9 @@ import { formatDate } from "../../../lib/formatDate";
 async function getEvent(slug) {
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/schedule/${encodeURIComponent(slug)}`,
+      `${process.env.NEXT_PUBLIC_API_URL}/api/schedule/${encodeURIComponent(
+        slug
+      )}`,
       { cache: "no-store" }
     );
     if (!res.ok) return null;
@@ -37,11 +39,10 @@ export default async function EventPage({ params }) {
   return (
     <main className="max-w-5xl mx-auto px-4 py-10 space-y-12">
       {/* =====================
-          WORK IN PROGRESS NOTICE
+          WORK IN PROGRESS
          ===================== */}
       <div className="rounded border border-yellow-300 bg-yellow-50 px-4 py-3 text-sm text-yellow-900">
         <strong>Work in progress:</strong> This event page is still being built.
-        More details and features will be added.
       </div>
 
       {/* =====================
@@ -143,18 +144,62 @@ export default async function EventPage({ params }) {
           ANNOUNCEMENTS
          ===================== */}
       {event.announcements?.length > 0 && (
-        <section className="space-y-4">
+        <section className="space-y-6">
           <h2 className="text-xl font-semibold">Announcements</h2>
 
-          <div className="space-y-3">
-            {event.announcements.map((a) => (
-              <div key={a.id} className="border rounded p-4">
-                <div className="font-medium">{a.title}</div>
-                <div className="text-sm whitespace-pre-line">
-                  {a.content}
+          <div className="space-y-4">
+            {event.announcements.map((a) => {
+              const posterSrc =
+                a.imageUrl &&
+                `${process.env.NEXT_PUBLIC_API_URL}${a.imageUrl}`;
+
+              return (
+                <div
+                  key={a.id}
+                  className="border rounded bg-white overflow-hidden"
+                >
+                  {a.mode === "POSTER" && posterSrc ? (
+                    <>
+                      <div className="p-4 border-b font-medium">
+                        {a.title}
+                      </div>
+
+                      {a.imageUrl.endsWith(".pdf") ? (
+                        <div className="p-6 text-center">
+                          <a
+                            href={posterSrc}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-ahsra-blue underline"
+                          >
+                            View Poster (PDF)
+                          </a>
+                        </div>
+                      ) : (
+                        <img
+                          src={posterSrc}
+                          alt={a.title}
+                          className="w-full max-h-[700px] object-contain bg-white"
+                        />
+                      )}
+
+                      {a.content && (
+                        <div className="p-6 border-t whitespace-pre-line">
+                          {a.content}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="p-4 space-y-2">
+                      <div className="font-medium">{a.title}</div>
+                      <div className="text-sm whitespace-pre-line">
+                        {a.content}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
       )}

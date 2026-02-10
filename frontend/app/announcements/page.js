@@ -1,3 +1,4 @@
+// filepath: frontend/app/announcements/page.js
 "use client";
 
 import { useEffect, useState } from "react";
@@ -26,76 +27,73 @@ export default function AnnouncementsPage() {
   if (loading) return <p className="p-6">Loading…</p>;
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-10 space-y-8">
+    <div className="max-w-7xl mx-auto px-6 py-10 space-y-8">
       <h1 className="text-2xl font-semibold">Announcements</h1>
 
       {announcements.length === 0 && (
         <p className="text-slate-600">No current announcements.</p>
       )}
 
-      {announcements.map((a) => {
-        const posterSrc = a.imageUrl && `${API_BASE}${a.imageUrl}`;
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {announcements.map((a) => {
+          const posterSrc = a.imageUrl && `${API_BASE}${a.imageUrl}`;
 
-        const href = a.event?.slug
-          ? `/schedule/${a.event.slug}`
-          : "/announcements";
+          // ALL announcements link to event if present
+          const href = a.event?.slug
+            ? `/schedule/${a.event.slug}`
+            : "/schedule";
 
-        return (
-          <article
-            key={a.id}
-            className="bg-white border rounded shadow-sm overflow-hidden"
-          >
-            {/* POSTER */}
-            {a.mode === "POSTER" && posterSrc ? (
-              <>
-                <div className="p-4 border-b font-medium">
-                  {a.title}
-                </div>
+          return (
+            <Link
+              key={a.id}
+              href={href}
+              className="bg-white border rounded shadow-sm overflow-hidden flex flex-col hover:shadow-md transition"
+            >
+              {/* POSTER CARD */}
+              {a.mode === "POSTER" && posterSrc ? (
+                <>
+                  <div className="p-3 border-b font-medium text-sm">
+                    {a.title}
+                  </div>
 
-                <Link href={href}>
                   {a.imageUrl.endsWith(".pdf") ? (
-                    <div className="p-10 flex justify-center bg-slate-50">
-                      <span className="text-sm text-ahsra-blue underline">
-                        View Poster (PDF)
-                      </span>
+                    <div className="flex-1 flex items-center justify-center p-6 text-ahsra-blue underline text-sm">
+                      View Poster (PDF)
                     </div>
                   ) : (
                     <img
                       src={posterSrc}
                       alt={a.title}
-                      className="w-full max-h-[600px] object-contain bg-white"
+                      className="w-full h-[260px] object-contain bg-white"
                     />
                   )}
-                </Link>
 
-                {a.content && (
-                  <div className="p-6 border-t whitespace-pre-line">
+                  {a.content && (
+                    <div className="p-4 border-t text-sm whitespace-pre-line">
+                      {a.content}
+                    </div>
+                  )}
+                </>
+              ) : (
+                /* STANDARD CARD */
+                <div className="p-4 flex flex-col gap-3 h-full">
+                  <h2 className="font-semibold text-base">
+                    {a.title}
+                  </h2>
+
+                  <div className="text-sm whitespace-pre-line text-slate-800 flex-1">
                     {a.content}
                   </div>
-                )}
-              </>
-            ) : (
-              /* STANDARD */
-              <div className="p-6 space-y-3">
-                <h2 className="font-semibold text-lg">{a.title}</h2>
 
-                <div className="whitespace-pre-line text-slate-800">
-                  {a.content}
-                </div>
-
-                {a.event?.slug && (
-                  <Link
-                    href={`/schedule/${a.event.slug}`}
-                    className="text-sm text-ahsra-blue underline"
-                  >
+                  <div className="text-sm text-ahsra-blue underline">
                     View event details →
-                  </Link>
-                )}
-              </div>
-            )}
-          </article>
-        );
-      })}
+                  </div>
+                </div>
+              )}
+            </Link>
+          );
+        })}
+      </div>
     </div>
   );
 }
