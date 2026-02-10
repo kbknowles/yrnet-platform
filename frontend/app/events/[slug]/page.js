@@ -124,7 +124,7 @@ export default async function EventPage({ params }) {
       </div>
 
       <div>
-        <Link href="/schedule" className="underline">
+        <Link href="/events" className="underline">
           Back to schedule
         </Link>
       </div>
