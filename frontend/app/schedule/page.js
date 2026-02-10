@@ -17,6 +17,31 @@ function formatMMDDYYYY(date) {
   return `${mm}/${dd}/${yyyy}`;
 }
 
+function sortSchedule(events) {
+  const now = new Date();
+
+  return [...events].sort((a, b) => {
+    const aStart = new Date(a.startDate);
+    const aEnd = new Date(a.endDate || a.startDate);
+    const bStart = new Date(b.startDate);
+    const bEnd = new Date(b.endDate || b.startDate);
+
+    const aIsCurrent = aStart <= now && aEnd >= now;
+    const bIsCurrent = bStart <= now && bEnd >= now;
+
+    if (aIsCurrent && !bIsCurrent) return -1;
+    if (!aIsCurrent && bIsCurrent) return 1;
+
+    const aIsFuture = aStart > now;
+    const bIsFuture = bStart > now;
+
+    if (aIsFuture && bIsFuture) return aStart - bStart;
+    if (!aIsFuture && !bIsFuture) return bStart - aStart;
+
+    return aIsFuture ? -1 : 1;
+  });
+}
+
 export default function SchedulePage() {
   const [events, setEvents] = useState([]);
   const [selectedSlug, setSelectedSlug] = useState(null);
@@ -24,7 +49,7 @@ export default function SchedulePage() {
   useEffect(() => {
     fetch(`${API_BASE}/api/schedule`, { cache: "no-store" })
       .then((r) => r.json())
-      .then(setEvents);
+      .then((data) => setEvents(sortSchedule(data)));
   }, []);
 
   const calendarEvents = events.map((e) => ({
