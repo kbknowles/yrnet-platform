@@ -7,8 +7,13 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/**
+ * =========================
+ * ENUMS
+ * =========================
+ */
+
 enum OfficerRole {
-  // Adult – Executive
   PRESIDENT
   VICE_PRESIDENT
   SECOND_VICE_PRESIDENT
@@ -16,13 +21,11 @@ enum OfficerRole {
   TREASURER
   POINTS_SECRETARY
 
-  // Adult – Directors
   NATIONAL_DIRECTOR
   STATE_DIRECTOR
   REGION_DIRECTOR
   BOARD_MEMBER
 
-  // Student Leadership
   STUDENT_PRESIDENT
   STUDENT_VICE_PRESIDENT
   STUDENT_SECRETARY
@@ -52,6 +55,13 @@ enum AthleteEvent {
   REINED_COW
 }
 
+enum SponsorTier {
+  TITLE
+  GOLD
+  SILVER
+  BRONZE
+  ATHLETE
+}
 
 /**
  * =========================
@@ -67,10 +77,10 @@ model Season {
   active    Boolean  @default(false)
 
   events        Event[]
-  officers      Officer[] 
+  officers      Officer[]
   announcements Announcement[]
   gallery       GalleryAlbum[]
-  athletes       Athlete[]
+  athletes      Athlete[]
 
   createdAt DateTime @default(now())
 }
@@ -84,19 +94,15 @@ model Season {
 model Location {
   id            Int      @id @default(autoincrement())
   name          String
-
   streetAddress String?
   city          String?
   state         String?
   zip           String?
+  venueInfo     Json?
 
-  venueInfo     Json?     // stalls, hookups, parking, notes
-
-  events        Event[]   // deletion blocked if related events exist
-
-  createdAt     DateTime  @default(now())
+  events    Event[]
+  createdAt DateTime @default(now())
 }
-
 
 /**
  * =========================
@@ -115,7 +121,6 @@ model CallInPolicy {
   notes       String?
 
   events Event[]
-
   createdAt DateTime @default(now())
 }
 
@@ -156,7 +161,7 @@ model Event {
 
 /**
  * =========================
- * EVENT SCHEDULE (TIMELINE)
+ * EVENT SCHEDULE
  * =========================
  */
 
@@ -170,7 +175,6 @@ model EventScheduleItem {
   notes     String?
 
   event Event @relation(fields: [eventId], references: [id])
-
   createdAt DateTime @default(now())
 }
 
@@ -186,8 +190,8 @@ model Officer {
   role      OfficerRole
   type      OfficerType
 
-  email     String?      // internal-only (never public)
-  phone     String?      // stored raw, masked on render
+  email     String?
+  phone     String?
 
   seasonId  Int
   active    Boolean      @default(true)
@@ -196,10 +200,9 @@ model Officer {
   season Season @relation(fields: [seasonId], references: [id])
 }
 
-
 /**
  * =========================
- * EVENT CONTACT ROLES
+ * EVENT CONTACTS
  * =========================
  */
 
@@ -207,30 +210,65 @@ model EventContact {
   id      Int @id @default(autoincrement())
   eventId Int
 
-  contactRole String // entries, membership, obligations
-  officerRole String // maps to Officer.role
+  contactRole String
+  officerRole String
 
   event Event @relation(fields: [eventId], references: [id])
-
   createdAt DateTime @default(now())
 }
 
 /**
  * =========================
- * SPONSORS (PHASE 0 VIEW ONLY)
+ * SPONSORS (PHASE 1 LOCKED)
  * =========================
  */
 
 model Sponsor {
-  id      Int     @id @default(autoincrement())
-  name    String
-  logoUrl String?
-  website String?
-  active  Boolean @default(true)
+  id            Int          @id @default(autoincrement())
+  name          String
+  tier          SponsorTier
 
-  createdAt DateTime @default(now())
+  logoUrl       String
+  bannerUrl     String?
+
+  website       String?
+  description   String?
+
+  contactName   String?
+  contactEmail  String?
+  contactPhone  String?
+
+  startDate     DateTime
+  endDate       DateTime
+
+  active        Boolean      @default(true)
+  internalNotes String?
+
+  athletes      AthleteSponsor[]
+
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
 }
 
+model AthleteSponsor {
+  id        Int      @id @default(autoincrement())
+
+  athlete   Athlete  @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  athleteId Int
+
+  sponsor   Sponsor  @relation(fields: [sponsorId], references: [id], onDelete: Cascade)
+  sponsorId Int
+
+  createdAt DateTime @default(now())
+
+  @@unique([athleteId, sponsorId])
+}
+
+/**
+ * =========================
+ * ANNOUNCEMENTS
+ * =========================
+ */
 
 model Announcement {
   id Int @id @default(autoincrement())
@@ -238,22 +276,16 @@ model Announcement {
   eventId  Int?
   seasonId Int?
 
-  title String
-
-  // STANDARD announcements use content
+  title   String
   content String?
 
-  // STANDARD | POSTER
-  mode String @default("STANDARD")
-
-  // POSTER image
+  mode     String @default("STANDARD")
   imageUrl String?
 
   sortOrder Int @default(0)
+  extras    Json?
 
-  extras Json?
-
-  published Boolean @default(false)
+  published Boolean  @default(false)
   publishAt DateTime?
   expireAt  DateTime?
 
@@ -263,7 +295,6 @@ model Announcement {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
-
 
 /**
  * =========================
@@ -286,45 +317,52 @@ model GalleryAlbum {
 }
 
 model GalleryImage {
-  id       Int    @id @default(autoincrement())
-  albumId Int
+  id        Int @id @default(autoincrement())
+  albumId   Int
 
-  imageUrl String
-  caption  String?
+  imageUrl  String
+  caption   String?
   sortOrder Int @default(0)
 
   album GalleryAlbum @relation(fields: [albumId], references: [id])
-
   createdAt DateTime @default(now())
 }
 
+/**
+ * =========================
+ * CUSTOM PAGES
+ * =========================
+ */
+
 model CustomPage {
-  id             Int      @id @default(autoincrement())
-  title          String
-  slug           String   @unique
-  content        String
-  status         String   // "draft" | "published"
- 
- //Navigation
-  showInMenu     Boolean  @default(false)
-  showInFooter   Boolean  @default(false)
-  sortOrder      Int      @default(0)
-  isPlaceholder  Boolean  @default(false)
+  id            Int      @id @default(autoincrement())
+  title         String
+  slug          String   @unique
+  content       String
+  status        String
 
-  // Phase 2 (layout system)
-  layoutType    String   @default("standard")
-  sections      Json?    // ordered layout sections (see below)
-  heroImage     String?  // optional per-page image
+  showInMenu    Boolean  @default(false)
+  showInFooter  Boolean  @default(false)
+  sortOrder     Int      @default(0)
+  isPlaceholder Boolean  @default(false)
 
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  layoutType String  @default("standard")
+  sections   Json?
+  heroImage  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
+/**
+ * =========================
+ * ATHLETES
+ * =========================
+ */
 
 model Athlete {
   id Int @id @default(autoincrement())
 
-  // Core
   firstName String
   lastName  String
   school    String?
@@ -332,26 +370,23 @@ model Athlete {
   hometown  String?
   bio       String?
 
-  slug      String @unique
-  
-  // Media
-  headshotUrl     String?
+  slug String @unique
+
+  headshotUrl    String?
   actionPhotoUrl String?
 
-  // Rodeo
   seasonId Int
   season   Season? @relation(fields: [seasonId], references: [id])
-  
-  events AthleteEvent[]   // multi-select dropdown
-  standings String?
-  awards    Json?         // [{ title, year, event }]
 
-  // Extras
+  events     AthleteEvent[]
+  standings  String?
+  awards     Json?
+
   futureGoals String?
-  sponsors    Json?       // [{ name, logoUrl, link }]
-  socialLinks Json?       // { instagram, facebook }
+  socialLinks Json?
 
-  // Admin
+  sponsorLinks AthleteSponsor[]
+
   isActive   Boolean @default(true)
   isFeatured Boolean @default(false)
   sortOrder  Int     @default(0)
