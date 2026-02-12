@@ -1,5 +1,6 @@
 import express from "express";
 import prisma from "../prismaClient.mjs";
+import upload from "../middleware/uploadSponsor.mjs";
 
 const router = express.Router();
 
@@ -62,8 +63,6 @@ router.post("/", async (req, res) => {
     const {
       name,
       tier,
-      logoUrl,
-      bannerUrl,
       website,
       description,
       contactName,
@@ -79,8 +78,8 @@ router.post("/", async (req, res) => {
       data: {
         name,
         tier,
-        logoUrl,
-        bannerUrl,
+        logoUrl: "", // required by schema, set empty until upload
+        bannerUrl: null,
         website,
         description,
         contactName,
@@ -112,8 +111,6 @@ router.put("/:id", async (req, res) => {
     const {
       name,
       tier,
-      logoUrl,
-      bannerUrl,
       website,
       description,
       contactName,
@@ -130,8 +127,6 @@ router.put("/:id", async (req, res) => {
       data: {
         name,
         tier,
-        logoUrl,
-        bannerUrl,
         website,
         description,
         contactName,
@@ -173,12 +168,75 @@ router.delete("/:id", async (req, res) => {
 
 /**
  * ===============================
+ * UPLOAD LOGO
+ * ===============================
+ */
+router.post("/:id/upload-logo", upload.single("file"), async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    const fileUrl = `/uploads/sponsors/${req.file.filename}`;
+
+    const sponsor = await prisma.sponsor.update({
+      where: { id: parseInt(id) },
+      data: { logoUrl: fileUrl }
+    });
+
+    res.json(sponsor);
+  } catch (error) {
+    console.error("UPLOAD LOGO ERROR:", error);
+    res.status(500).json({ error: "Upload failed" });
+  }
+});
+
+/**
+ * ===============================
+ * UPLOAD BANNER
+ * ===============================
+ */
+router.post("/:id/upload-banner", upload.single("file"), async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    const fileUrl = `/uploads/sponsors/${req.file.filename}`;
+
+    const sponsor = await prisma.sponsor.update({
+      where: { id: parseInt(id) },
+      data: { bannerUrl: fileUrl }
+    });
+
+    res.json(sponsor);
+  } catch (error) {
+    console.error("UPLOAD BANNER ERROR:", error);
+    res.status(500).json({ error: "Upload failed" });
+  }
+});
+
+/**
+ * ===============================
  * ATTACH SPONSOR TO ATHLETE
+ * MAX 4 ENFORCEMENT
  * ===============================
  */
 router.post("/:id/attach-athlete/:athleteId", async (req, res) => {
   try {
     const { id, athleteId } = req.params;
+
+    const count = await prisma.athleteSponsor.count({
+      where: { athleteId: parseInt(athleteId) }
+    });
+
+    if (count >= 4) {
+      return res.status(400).json({ error: "Athlete already has 4 sponsors" });
+    }
 
     const link = await prisma.athleteSponsor.create({
       data: {
