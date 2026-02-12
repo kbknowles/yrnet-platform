@@ -1,6 +1,6 @@
 import express from "express";
 import prisma from "../prismaClient.mjs";
-import upload from "../middleware/uploadSponsor.mjs";
+import upload from "../middleware/uploadSponsor.js";
 
 const router = express.Router();
 
