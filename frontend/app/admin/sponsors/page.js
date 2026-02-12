@@ -1,21 +1,30 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import SponsorForm from "./SponsorForm";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL || "";
 
 export default function SponsorsAdminPage() {
   const [sponsors, setSponsors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(null);
+  const [error, setError] = useState(null);
 
   async function fetchSponsors() {
     try {
+      setLoading(true);
+      setError(null);
+
       const res = await fetch(`${API_BASE}/api/sponsors`);
+      if (!res.ok) throw new Error("Failed to fetch sponsors");
+
       const data = await res.json();
-      setSponsors(data);
+      setSponsors(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Fetch error", err);
+      setError("Unable to load sponsors.");
     } finally {
       setLoading(false);
     }
@@ -24,6 +33,15 @@ export default function SponsorsAdminPage() {
   useEffect(() => {
     fetchSponsors();
   }, []);
+
+  function formatDate(date) {
+    if (!date) return "—";
+    try {
+      return new Date(date).toLocaleDateString();
+    } catch {
+      return "—";
+    }
+  }
 
   if (loading) return <div className="p-6">Loading...</div>;
 
@@ -39,6 +57,12 @@ export default function SponsorsAdminPage() {
         </button>
       </div>
 
+      {error && (
+        <div className="text-red-600 border p-3 rounded">
+          {error}
+        </div>
+      )}
+
       {editing && (
         <SponsorForm
           sponsor={editing}
@@ -50,39 +74,52 @@ export default function SponsorsAdminPage() {
         />
       )}
 
-      <div className="border rounded divide-y">
-        {sponsors.map((s) => (
-          <div key={s.id} className="p-4 flex justify-between items-center">
-            <div>
-              <div className="font-semibold">{s.name}</div>
-              <div className="text-sm text-gray-600">
-                {s.tier} | {new Date(s.startDate).toLocaleDateString()} -{" "}
-                {new Date(s.endDate).toLocaleDateString()}
+      {sponsors.length === 0 && !error && (
+        <div className="border p-4 rounded text-gray-600">
+          No sponsors found.
+        </div>
+      )}
+
+      {sponsors.length > 0 && (
+        <div className="border rounded divide-y">
+          {sponsors.map((s) => (
+            <div
+              key={s.id}
+              className="p-4 flex justify-between items-center"
+            >
+              <div>
+                <div className="font-semibold">{s.name}</div>
+                <div className="text-sm text-gray-600">
+                  {s.tier} | {formatDate(s.startDate)} - {formatDate(s.endDate)}
+                </div>
+              </div>
+
+              <div className="space-x-2">
+                <button
+                  onClick={() => setEditing(s)}
+                  className="px-3 py-1 border rounded"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={async () => {
+                    if (!confirm("Delete this sponsor?")) return;
+
+                    await fetch(`${API_BASE}/api/sponsors/${s.id}`, {
+                      method: "DELETE",
+                    });
+
+                    fetchSponsors();
+                  }}
+                  className="px-3 py-1 border rounded text-red-600"
+                >
+                  Delete
+                </button>
               </div>
             </div>
-
-            <div className="space-x-2">
-              <button
-                onClick={() => setEditing(s)}
-                className="px-3 py-1 border rounded"
-              >
-                Edit
-              </button>
-              <button
-                onClick={async () => {
-                  await fetch(`${API_BASE}/api/sponsors/${s.id}`, {
-                    method: "DELETE",
-                  });
-                  fetchSponsors();
-                }}
-                className="px-3 py-1 border rounded text-red-600"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
