@@ -1,9 +1,11 @@
+// filepath: frontend/app/schedule/page.js
 "use client";
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import Calendar from "react-calendar";
-import "react-calendar/dist/Calendar.css";
+import FullCalendar from "@fullcalendar/react";
+import dayGridPlugin from "@fullcalendar/daygrid";
+import interactionPlugin from "@fullcalendar/interaction";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -43,7 +45,6 @@ function sortSchedule(events) {
 export default function SchedulePage() {
   const [events, setEvents] = useState([]);
   const [selectedSlug, setSelectedSlug] = useState(null);
-  const [selectedDate, setSelectedDate] = useState(new Date());
 
   useEffect(() => {
     fetch(`${API_BASE}/api/schedule`, { cache: "no-store" })
@@ -51,22 +52,12 @@ export default function SchedulePage() {
       .then((data) => setEvents(sortSchedule(data)));
   }, []);
 
-  const handleDateClick = (date) => {
-    setSelectedDate(date);
-
-    const clicked = events.find((e) => {
-      const start = new Date(e.startDate);
-      const end = new Date(e.endDate || e.startDate);
-      return date >= start && date <= end;
-    });
-
-    if (clicked) {
-      setSelectedSlug(clicked.slug);
-      document
-        .querySelector(`[data-slug="${clicked.slug}"]`)
-        ?.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-  };
+  const calendarEvents = events.map((e) => ({
+    id: e.slug,
+    title: e.name,
+    start: e.startDate,
+    end: e.endDate || e.startDate,
+  }));
 
   return (
     <main className="max-w-7xl mx-auto px-4 py-12">
@@ -128,31 +119,18 @@ export default function SchedulePage() {
 
         {/* RIGHT — CALENDAR */}
         <div className="bg-white border rounded-lg p-4">
-          <Calendar
-            onChange={handleDateClick}
-            value={selectedDate}
-            tileClassName={({ date }) => {
-              const hasEvent = events.some((e) => {
-                const start = new Date(e.startDate);
-                const end = new Date(e.endDate || e.startDate);
-                return date >= start && date <= end;
-              });
-              return hasEvent ? "highlighted-day" : null;
+          <FullCalendar
+            plugins={[dayGridPlugin, interactionPlugin]}
+            initialView="dayGridMonth"
+            events={calendarEvents}
+            height="auto"
+            eventClick={(info) => {
+              setSelectedSlug(info.event.id);
+              document
+                .querySelector(`[data-slug="${info.event.id}"]`)
+                ?.scrollIntoView({ behavior: "smooth", block: "center" });
             }}
           />
-
-          <style jsx global>{`
-            .react-calendar__tile.highlighted-day {
-              background: #1e3a8a;
-              color: white !important;
-              border-radius: 8px;
-              font-weight: 600;
-            }
-            .react-calendar__tile.highlighted-day:enabled:hover {
-              background: #b91c1c;
-              color: white !important;
-            }
-          `}</style>
         </div>
       </div>
     </main>
