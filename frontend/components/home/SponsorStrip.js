@@ -41,7 +41,7 @@ export default function SponsorStrip({ sponsors = [] }) {
         {visibleSponsors.map((s) => (
           <div
             key={s.id}
-            className="h-28 flex items-center justify-center rounded bg-gray-900"
+            className="h-28 flex items-center justify-center rounded border-2 border-gray-900 bg-white"
           >
             {s.logoUrl ? (
               <a
@@ -53,7 +53,7 @@ export default function SponsorStrip({ sponsors = [] }) {
                 <img
                   src={fullImagePath(s.logoUrl)}
                   alt={s.name}
-                  className="max-h-28 max-w-full object-contain"
+                  className="max-h-20 max-w-full object-contain"
                 />
               </a>
             ) : (
@@ -63,7 +63,7 @@ export default function SponsorStrip({ sponsors = [] }) {
                 rel="noopener noreferrer"
                 className="flex items-center justify-center w-full h-full px-4 text-center"
               >
-                <span className="text-lg md:text-xl font-semibold tracking-wide text-white">
+                <span className="text-lg md:text-xl font-semibold tracking-wide text-ahsra-blue">
                   {s.name}
                 </span>
               </a>
