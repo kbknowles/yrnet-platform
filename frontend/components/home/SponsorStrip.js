@@ -27,23 +27,6 @@ export default function SponsorStrip({ sponsors = [] }) {
     return `${API_BASE}${path}`;
   }
 
-  function tierBorder(tier) {
-    switch (tier) {
-      case "TITLE":
-        return "border-yellow-500";
-      case "GOLD":
-        return "border-yellow-400";
-      case "SILVER":
-        return "border-gray-400";
-      case "BRONZE":
-        return "border-ahsra-blue";
-      case "ATHLETE":
-        return "border-gray-300";
-      default:
-        return "border-gray-200";
-    }
-  }
-
   if (!sponsors || sponsors.length === 0) return null;
 
   const visibleSponsors = sponsors.slice(index, index + visibleCount);
@@ -58,9 +41,7 @@ export default function SponsorStrip({ sponsors = [] }) {
         {visibleSponsors.map((s) => (
           <div
             key={s.id}
-            className={`h-28 flex items-center justify-center border-2 rounded bg-white ${tierBorder(
-              s.tier
-            )}`}
+            className="h-28 flex items-center justify-center rounded bg-gray-900"
           >
             {s.logoUrl ? (
               <a
@@ -72,7 +53,7 @@ export default function SponsorStrip({ sponsors = [] }) {
                 <img
                   src={fullImagePath(s.logoUrl)}
                   alt={s.name}
-                  className="max-h-16 max-w-full object-contain"
+                  className="max-h-28 max-w-full object-contain"
                 />
               </a>
             ) : (
@@ -82,7 +63,7 @@ export default function SponsorStrip({ sponsors = [] }) {
                 rel="noopener noreferrer"
                 className="flex items-center justify-center w-full h-full px-4 text-center"
               >
-                <span className="text-lg md:text-xl font-semibold tracking-wide text-ahsra-blue">
+                <span className="text-lg md:text-xl font-semibold tracking-wide text-white">
                   {s.name}
                 </span>
               </a>
