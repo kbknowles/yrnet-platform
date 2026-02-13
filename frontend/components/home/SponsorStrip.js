@@ -7,7 +7,6 @@ const API_BASE =
 
 export default function SponsorStrip({ sponsors = [] }) {
   const [index, setIndex] = useState(0);
-
   const visibleCount = 4;
 
   useEffect(() => {
@@ -28,6 +27,23 @@ export default function SponsorStrip({ sponsors = [] }) {
     return `${API_BASE}${path}`;
   }
 
+  function tierBorder(tier) {
+    switch (tier) {
+      case "TITLE":
+        return "border-yellow-500";
+      case "GOLD":
+        return "border-yellow-400";
+      case "SILVER":
+        return "border-gray-400";
+      case "BRONZE":
+        return "border-ahsra-blue";
+      case "ATHLETE":
+        return "border-gray-300";
+      default:
+        return "border-gray-200";
+    }
+  }
+
   if (!sponsors || sponsors.length === 0) return null;
 
   const visibleSponsors = sponsors.slice(index, index + visibleCount);
@@ -42,14 +58,16 @@ export default function SponsorStrip({ sponsors = [] }) {
         {visibleSponsors.map((s) => (
           <div
             key={s.id}
-            className="h-24 flex items-center justify-center border rounded bg-gray-50"
+            className={`h-28 flex items-center justify-center border-2 rounded bg-white ${tierBorder(
+              s.tier
+            )}`}
           >
             {s.logoUrl ? (
               <a
                 href={s.website || "#"}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center w-full h-full"
+                className="flex items-center justify-center w-full h-full px-4"
               >
                 <img
                   src={fullImagePath(s.logoUrl)}
@@ -58,9 +76,16 @@ export default function SponsorStrip({ sponsors = [] }) {
                 />
               </a>
             ) : (
-              <span className="text-sm font-medium">
-                {s.name}
-              </span>
+              <a
+                href={s.website || "#"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center w-full h-full px-4 text-center"
+              >
+                <span className="text-lg md:text-xl font-semibold tracking-wide text-ahsra-blue">
+                  {s.name}
+                </span>
+              </a>
             )}
           </div>
         ))}
