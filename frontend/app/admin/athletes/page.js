@@ -1,8 +1,13 @@
-// filepath: frontend/app/admin/athletes/page.js
-
 import Link from "next/link";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+
+function resolveImage(url) {
+  if (!url) return null;
+  if (url.startsWith("http")) return url;
+  if (url.startsWith("/uploads")) return `${API_BASE}${url}`;
+  return url;
+}
 
 async function getAthletes() {
   const res = await fetch(`${API_BASE}/api/admin/athletes`, {
@@ -25,15 +30,12 @@ export default async function AthletesAdminPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {athletes.map((a) => (
-          <div
-            key={a.slug}
-            className="border rounded-lg bg-white p-4 flex gap-5"
-          >
-            {/* HEADSHOT THUMBNAIL */}
+          <div key={a.slug} className="border rounded-lg bg-white p-4 flex gap-5">
+
             <div className="w-24 h-24 rounded overflow-hidden bg-gray-100 flex items-center justify-center shrink-0">
               {a.headshotUrl ? (
                 <img
-                  src={a.headshotUrl}
+                  src={resolveImage(a.headshotUrl)}
                   alt={`${a.firstName} ${a.lastName}`}
                   className="w-full h-full object-contain"
                 />
@@ -44,7 +46,6 @@ export default async function AthletesAdminPage() {
               )}
             </div>
 
-            {/* INFO */}
             <div className="flex flex-col justify-between flex-1">
               <div className="space-y-1">
                 <h2 className="text-lg font-semibold">

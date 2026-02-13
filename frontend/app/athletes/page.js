@@ -1,8 +1,13 @@
-// filepath: frontend/app/athletes/page.js
-
 import Link from "next/link";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+
+function resolveImage(url) {
+  if (!url) return null;
+  if (url.startsWith("http")) return url;
+  if (url.startsWith("/uploads")) return `${API_BASE}${url}`;
+  return url;
+}
 
 async function getAthletes() {
   const res = await fetch(`${API_BASE}/api/athletes`, {
@@ -34,7 +39,6 @@ export default async function AthletesPage() {
 
   return (
     <main className="max-w-7xl mx-auto px-4 py-10 space-y-10">
-      {/* Header */}
       <section className="max-w-3xl">
         <h1 className="text-3xl font-bold">Athletes</h1>
         <p className="mt-3 text-gray-700">
@@ -43,7 +47,6 @@ export default async function AthletesPage() {
         </p>
       </section>
 
-      {/* Grid */}
       {activeAthletes.length === 0 ? (
         <p>No athletes available.</p>
       ) : (
@@ -54,21 +57,18 @@ export default async function AthletesPage() {
               href={`/athletes/${a.slug}`}
               className="border bg-white p-3 hover:shadow transition space-y-3"
             >
-              {/* Image – zero constraints, zero crop */}
               {a.headshotUrl && (
                 <img
-                  src={a.headshotUrl}
+                  src={resolveImage(a.headshotUrl)}
                   alt={`${a.firstName} ${a.lastName}`}
                   className="w-full h-auto object-contain bg-gray-100 rounded"
                 />
               )}
 
-              {/* Name */}
               <h3 className="font-semibold text-base leading-tight">
                 {a.firstName} {a.lastName}
               </h3>
 
-              {/* Meta */}
               <div className="text-sm text-gray-700 space-y-1">
                 {a.grade && <div>Grade {a.grade}</div>}
                 {a.events?.length > 0 && (
@@ -82,12 +82,10 @@ export default async function AthletesPage() {
         </div>
       )}
 
-      {/* Participation Note */}
       <section className="max-w-4xl pt-6 border-t">
         <p className="text-sm text-gray-600">
-          Athlete profiles are an optional service designed to support college
-          recruiting and sponsorship visibility. Not all AHSRA athletes
-          maintain an athlete profile.
+          Athlete profiles are optional and designed to support college
+          recruiting and sponsorship visibility.
         </p>
       </section>
     </main>
