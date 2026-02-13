@@ -123,25 +123,35 @@ router.put(
 
       const updateData = {};
 
-      /* ---- Parse JSON array fields ---- */
-      ["events", "sponsors", "socialLinks"].forEach((field) => {
-        if (req.body[field]) {
-          try {
-            updateData[field] = JSON.parse(req.body[field]);
-          } catch {
-            updateData[field] = [];
-          }
-        }
-      });
+      // ---- JSON fields ----
+      if (req.body.socialLinks) {
+        updateData.socialLinks = JSON.parse(req.body.socialLinks);
+      }
 
-      /* ---- Parse boolean fields ---- */
-      ["isActive", "isFeatured"].forEach((field) => {
-        if (req.body[field] !== undefined) {
-          updateData[field] = req.body[field] === "true";
-        }
-      });
+      if (req.body.awards) {
+        updateData.awards = JSON.parse(req.body.awards);
+      }
 
-      /* ---- Scalar fields ---- */
+      // ---- Enum array ----
+      if (req.body.events) {
+        updateData.events = JSON.parse(req.body.events);
+      }
+
+      // ---- Boolean fields ----
+      if (req.body.isActive !== undefined) {
+        updateData.isActive = req.body.isActive === "true";
+      }
+
+      if (req.body.isFeatured !== undefined) {
+        updateData.isFeatured = req.body.isFeatured === "true";
+      }
+
+      // ---- Integer ----
+      if (req.body.sortOrder !== undefined) {
+        updateData.sortOrder = parseInt(req.body.sortOrder, 10);
+      }
+
+      // ---- Scalar fields ----
       [
         "firstName",
         "lastName",
@@ -150,20 +160,22 @@ router.put(
         "hometown",
         "bio",
         "futureGoals",
-        "sortOrder",
+        "standings",
       ].forEach((field) => {
         if (req.body[field] !== undefined) {
           updateData[field] = req.body[field];
         }
       });
 
-      /* ---- Image overwrites ---- */
+      // ---- Image overwrites ----
       if (req.files?.headshot?.[0]) {
-        updateData.headshotUrl = `/uploads/images/${req.files.headshot[0].filename}`;
+        updateData.headshotUrl =
+          `/uploads/images/${req.files.headshot[0].filename}`;
       }
 
       if (req.files?.actionPhoto?.[0]) {
-        updateData.actionPhotoUrl = `/uploads/images/${req.files.actionPhoto[0].filename}`;
+        updateData.actionPhotoUrl =
+          `/uploads/images/${req.files.actionPhoto[0].filename}`;
       }
 
       const updatedAthlete = await prisma.athlete.update({
