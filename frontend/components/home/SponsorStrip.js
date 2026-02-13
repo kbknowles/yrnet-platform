@@ -41,7 +41,7 @@ export default function SponsorStrip({ sponsors = [] }) {
         {visibleSponsors.map((s) => (
           <div
             key={s.id}
-            className="h-28 flex items-center justify-center rounded border-2 border-gray-900 bg-white"
+            className="h-28 flex items-center justify-center rounded border-2 border-gray-500 bg-white"
           >
             {s.logoUrl ? (
               <a
