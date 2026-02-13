@@ -66,13 +66,7 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ error: "No active season found" });
     }
 
-    const {
-      firstName,
-      lastName,
-      slug: _ignoreSlug,
-      seasonId: _ignoreSeasonId,
-      ...rest
-    } = req.body || {};
+    const { firstName, lastName, ...rest } = req.body || {};
 
     if (!firstName || !lastName) {
       return res
@@ -119,17 +113,51 @@ router.put(
     try {
       const { slug } = req.params;
 
-      const athlete = await prisma.athlete.findUnique({
+      const existing = await prisma.athlete.findUnique({
         where: { slug },
       });
 
-      if (!athlete) {
+      if (!existing) {
         return res.status(404).json({ error: "Athlete not found" });
       }
 
       const updateData = {};
 
-      // Handle images
+      /* ---- Parse JSON array fields ---- */
+      ["events", "sponsors", "socialLinks"].forEach((field) => {
+        if (req.body[field]) {
+          try {
+            updateData[field] = JSON.parse(req.body[field]);
+          } catch {
+            updateData[field] = [];
+          }
+        }
+      });
+
+      /* ---- Parse boolean fields ---- */
+      ["isActive", "isFeatured"].forEach((field) => {
+        if (req.body[field] !== undefined) {
+          updateData[field] = req.body[field] === "true";
+        }
+      });
+
+      /* ---- Scalar fields ---- */
+      [
+        "firstName",
+        "lastName",
+        "school",
+        "grade",
+        "hometown",
+        "bio",
+        "futureGoals",
+        "sortOrder",
+      ].forEach((field) => {
+        if (req.body[field] !== undefined) {
+          updateData[field] = req.body[field];
+        }
+      });
+
+      /* ---- Image overwrites ---- */
       if (req.files?.headshot?.[0]) {
         updateData.headshotUrl = `/uploads/images/${req.files.headshot[0].filename}`;
       }
@@ -137,19 +165,6 @@ router.put(
       if (req.files?.actionPhoto?.[0]) {
         updateData.actionPhotoUrl = `/uploads/images/${req.files.actionPhoto[0].filename}`;
       }
-
-      // Strip non-updatable fields
-      const {
-        id,
-        slug: _ignoreSlug,
-        seasonId,
-        season,
-        createdAt,
-        updatedAt,
-        ...safeData
-      } = req.body || {};
-
-      Object.assign(updateData, safeData);
 
       const updatedAthlete = await prisma.athlete.update({
         where: { slug },
