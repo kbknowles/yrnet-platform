@@ -12,16 +12,16 @@ const storage = multer.diskStorage({
   destination: (_, __, cb) => cb(null, IMAGE_DIR),
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
-    const athleteId = req.params.id;
+    const slug = req.params.slug;
 
-    if (!athleteId) {
-      return cb(new Error("Athlete ID is required for image upload"));
+    if (!slug) {
+      return cb(new Error("Athlete slug is required for image upload"));
     }
 
     if (file.fieldname === "headshot") {
-      cb(null, `athlete-${athleteId}-headshot${ext}`);
+      cb(null, `athlete-${slug}-headshot${ext}`);
     } else if (file.fieldname === "actionPhoto") {
-      cb(null, `athlete-${athleteId}-action${ext}`);
+      cb(null, `athlete-${slug}-action${ext}`);
     } else {
       cb(new Error("Invalid image field name"));
     }

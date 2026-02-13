@@ -1,5 +1,6 @@
 import express from "express";
 import prisma from "../../prismaClient.mjs";
+import uploadImage from "../../middleware/uploadImage.js";
 
 const router = express.Router();
 
@@ -108,32 +109,60 @@ router.post("/", async (req, res) => {
 /* ----------------------------
    UPDATE BY SLUG (ADMIN)
 ----------------------------- */
-router.put("/:slug", async (req, res) => {
-  try {
-    const { slug } = req.params;
+router.put(
+  "/:slug",
+  uploadImage.fields([
+    { name: "headshot", maxCount: 1 },
+    { name: "actionPhoto", maxCount: 1 },
+  ]),
+  async (req, res) => {
+    try {
+      const { slug } = req.params;
 
-    // 🔒 Strip all non-updatable fields
-    const {
-      id,
-      slug: _ignoreSlug,
-      seasonId,
-      season,
-      createdAt,
-      updatedAt,
-      ...safeData
-    } = req.body || {};
+      const athlete = await prisma.athlete.findUnique({
+        where: { slug },
+      });
 
-    const athlete = await prisma.athlete.update({
-      where: { slug },
-      data: safeData,
-    });
+      if (!athlete) {
+        return res.status(404).json({ error: "Athlete not found" });
+      }
 
-    res.json(athlete);
-  } catch (err) {
-    console.error("UPDATE ATHLETE ERROR:", err);
-    res.status(500).json({ error: "Failed to update athlete" });
+      const updateData = {};
+
+      // Handle images
+      if (req.files?.headshot?.[0]) {
+        updateData.headshotUrl = `/uploads/images/${req.files.headshot[0].filename}`;
+      }
+
+      if (req.files?.actionPhoto?.[0]) {
+        updateData.actionPhotoUrl = `/uploads/images/${req.files.actionPhoto[0].filename}`;
+      }
+
+      // Strip non-updatable fields
+      const {
+        id,
+        slug: _ignoreSlug,
+        seasonId,
+        season,
+        createdAt,
+        updatedAt,
+        ...safeData
+      } = req.body || {};
+
+      Object.assign(updateData, safeData);
+
+      const updatedAthlete = await prisma.athlete.update({
+        where: { slug },
+        data: updateData,
+      });
+
+      res.json(updatedAthlete);
+    } catch (err) {
+      console.error("UPDATE ATHLETE ERROR:", err);
+      res.status(500).json({ error: "Failed to update athlete" });
+    }
   }
-});
+);
 
 /* ----------------------------
    DELETE BY SLUG (ADMIN)

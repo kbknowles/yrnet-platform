@@ -1,5 +1,3 @@
-// filepath: frontend/app/admin/athletes/AthleteForm.js
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -28,8 +26,6 @@ const EMPTY_FORM = {
   hometown: "",
   bio: "",
   events: [],
-  headshotUrl: "",
-  actionPhotoUrl: "",
   futureGoals: "",
   sponsors: [],
   socialLinks: [],
@@ -40,6 +36,8 @@ const EMPTY_FORM = {
 
 export default function AthleteForm({ slug, mode = "create" }) {
   const [form, setForm] = useState(EMPTY_FORM);
+  const [headshotFile, setHeadshotFile] = useState(null);
+  const [actionFile, setActionFile] = useState(null);
   const [loading, setLoading] = useState(mode === "edit");
   const [saving, setSaving] = useState(false);
 
@@ -47,15 +45,10 @@ export default function AthleteForm({ slug, mode = "create" }) {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
-  /* ----------------------------
-     LOAD ATHLETE (EDIT MODE)
-  ----------------------------- */
   useEffect(() => {
     if (mode !== "edit" || !slug) return;
 
     async function loadAthlete() {
-      setLoading(true);
-
       const res = await fetch(
         `${API_BASE}/api/admin/athletes/${slug}`,
         { cache: "no-store" }
@@ -63,7 +56,6 @@ export default function AthleteForm({ slug, mode = "create" }) {
 
       if (!res.ok) {
         alert("Failed to load athlete");
-        setLoading(false);
         return;
       }
 
@@ -82,54 +74,40 @@ export default function AthleteForm({ slug, mode = "create" }) {
     loadAthlete();
   }, [mode, slug]);
 
-  /* ----------------------------
-     IMAGE UPLOAD
-  ----------------------------- */
-  async function uploadImage(file, field) {
-    if (!file) return;
-
-    if (!["image/jpeg", "image/png"].includes(file.type)) {
-      alert("Only JPEG and PNG images allowed");
-      return;
-    }
-
-    const data = new FormData();
-    data.append("file", file);
-
-    const res = await fetch(`${API_BASE}/api/admin/uploads/image`, {
-      method: "POST",
-      body: data,
-    });
-
-    if (!res.ok) {
-      alert("Image upload failed");
-      return;
-    }
-
-    const { url } = await res.json();
-    update(field, url);
-  }
-
-  /* ----------------------------
-     SAVE
-  ----------------------------- */
   async function handleSubmit(e) {
     e.preventDefault();
     setSaving(true);
+
+    const formData = new FormData();
+
+    Object.entries(form).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        formData.append(key, JSON.stringify(value));
+      } else {
+        formData.append(key, value ?? "");
+      }
+    });
+
+    if (headshotFile) {
+      formData.append("headshot", headshotFile);
+    }
+
+    if (actionFile) {
+      formData.append("actionPhoto", actionFile);
+    }
 
     const res = await fetch(
       `${API_BASE}/api/admin/athletes${mode === "edit" ? `/${slug}` : ""}`,
       {
         method: mode === "edit" ? "PUT" : "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: formData,
       }
     );
 
     if (!res.ok) {
       const err = await res.text();
-      console.error("Save failed:", err);
-      alert("Failed to save athlete. See console.");
+      console.error(err);
+      alert("Save failed");
       setSaving(false);
       return;
     }
@@ -137,13 +115,11 @@ export default function AthleteForm({ slug, mode = "create" }) {
     window.location.href = "/admin/athletes";
   }
 
-  if (loading) {
-    return <p className="p-6">Loading athlete…</p>;
-  }
+  if (loading) return <p className="p-6">Loading…</p>;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-10 p-6 max-w-6xl mx-auto">
-      {/* BASIC */}
+
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <input required placeholder="First Name"
           value={form.firstName}
@@ -167,7 +143,6 @@ export default function AthleteForm({ slug, mode = "create" }) {
         />
       </section>
 
-      {/* STATUS */}
       <section>
         <label className="flex items-center gap-2 font-semibold">
           <input
@@ -177,31 +152,16 @@ export default function AthleteForm({ slug, mode = "create" }) {
           />
           Athlete is Active
         </label>
-        <p className="text-sm text-gray-500 mt-1">
-          Inactive athletes will not appear on public pages.
-        </p>
       </section>
 
-      {/* IMAGES */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div>
           <label className="font-semibold block mb-2">Headshot</label>
           <input
             type="file"
             accept="image/jpeg,image/png"
-            onChange={(e) =>
-              uploadImage(e.target.files?.[0], "headshotUrl")
-            }
+            onChange={(e) => setHeadshotFile(e.target.files?.[0])}
           />
-          <div className="mt-3 w-40 aspect-square border rounded overflow-hidden bg-gray-100 flex items-center justify-center">
-            {form.headshotUrl && (
-              <img
-                src={form.headshotUrl}
-                className="max-w-full max-h-full object-contain"
-                alt="Headshot preview"
-              />
-            )}
-          </div>
         </div>
 
         <div>
@@ -209,23 +169,11 @@ export default function AthleteForm({ slug, mode = "create" }) {
           <input
             type="file"
             accept="image/jpeg,image/png"
-            onChange={(e) =>
-              uploadImage(e.target.files?.[0], "actionPhotoUrl")
-            }
+            onChange={(e) => setActionFile(e.target.files?.[0])}
           />
-          <div className="mt-3 w-full max-w-md aspect-[16/9] border rounded overflow-hidden bg-gray-100 flex items-center justify-center">
-            {form.actionPhotoUrl && (
-              <img
-                src={form.actionPhotoUrl}
-                className="max-w-full max-h-full object-contain"
-                alt="Action preview"
-              />
-            )}
-          </div>
         </div>
       </section>
 
-      {/* BIO */}
       <section>
         <label className="font-semibold block mb-2">Athlete Bio</label>
         <textarea
@@ -235,7 +183,6 @@ export default function AthleteForm({ slug, mode = "create" }) {
         />
       </section>
 
-      {/* EVENTS */}
       <section>
         <label className="font-semibold block mb-2">Events</label>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
