@@ -50,7 +50,15 @@ export default function SponsorsAdminPage() {
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Sponsors</h1>
         <button
-          onClick={() => setEditing({})}
+          onClick={() =>
+            setEditing({
+              name: "",
+              tier: "BRONZE",
+              startDate: "",
+              endDate: "",
+              active: true,
+            })
+          }
           className="bg-black text-white px-4 py-2 rounded"
         >
           Add Sponsor
@@ -67,8 +75,9 @@ export default function SponsorsAdminPage() {
         <SponsorForm
           sponsor={editing}
           onClose={() => setEditing(null)}
-          onSaved={() => {
-            setEditing(null);
+          onSaved={(savedSponsor) => {
+            // IMPORTANT: stay in edit mode so uploads work
+            setEditing(savedSponsor);
             fetchSponsors();
           }}
         />
