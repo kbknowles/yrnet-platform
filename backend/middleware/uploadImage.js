@@ -2,7 +2,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 
-const IMAGE_DIR = "uploads/images";
+const IMAGE_DIR = "/uploads/images";
 
 if (!fs.existsSync(IMAGE_DIR)) {
   fs.mkdirSync(IMAGE_DIR, { recursive: true });
@@ -10,9 +10,21 @@ if (!fs.existsSync(IMAGE_DIR)) {
 
 const storage = multer.diskStorage({
   destination: (_, __, cb) => cb(null, IMAGE_DIR),
-  filename: (_, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, `${Date.now()}${ext}`);
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    const athleteId = req.params.id;
+
+    if (!athleteId) {
+      return cb(new Error("Athlete ID is required for image upload"));
+    }
+
+    if (file.fieldname === "headshot") {
+      cb(null, `athlete-${athleteId}-headshot${ext}`);
+    } else if (file.fieldname === "actionPhoto") {
+      cb(null, `athlete-${athleteId}-action${ext}`);
+    } else {
+      cb(new Error("Invalid image field name"));
+    }
   },
 });
 

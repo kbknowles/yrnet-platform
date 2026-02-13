@@ -2,29 +2,29 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 
-const uploadPath = "uploads/sponsors";
+const uploadPath = "/uploads/sponsors";
 
-// Ensure directory exists
 if (!fs.existsSync(uploadPath)) {
   fs.mkdirSync(uploadPath, { recursive: true });
 }
 
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
+  destination: (_, __, cb) => {
     cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    const cleanName = file.originalname
-      .replace(/\s+/g, "-")
-      .replace(/[^a-zA-Z0-9\-\.]/g, "")
-      .toLowerCase();
+    const ext = path.extname(file.originalname).toLowerCase();
+    const sponsorId = req.params.id;
 
-    cb(null, Date.now() + "-" + cleanName);
+    if (!sponsorId) {
+      return cb(new Error("Sponsor ID is required for image upload"));
+    }
+
+    cb(null, `sponsor-${sponsorId}${ext}`);
   },
 });
 
-const fileFilter = (req, file, cb) => {
+const fileFilter = (_, file, cb) => {
   if (file.mimetype.startsWith("image/")) {
     cb(null, true);
   } else {
@@ -35,7 +35,7 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  limits: { fileSize: 5 * 1024 * 1024 },
 });
 
 export default upload;
