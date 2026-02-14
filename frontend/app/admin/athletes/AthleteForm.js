@@ -19,6 +19,7 @@ const EVENT_OPTIONS = [
 ];
 
 const EMPTY_FORM = {
+  id: null,
   firstName: "",
   lastName: "",
   school: "",
@@ -31,6 +32,8 @@ const EMPTY_FORM = {
   isActive: true,
   isFeatured: false,
   sortOrder: 0,
+  headshotUrl: "",
+  actionPhotoUrl: "",
 };
 
 function resolveImage(url) {
@@ -66,7 +69,6 @@ export default function AthleteForm({ slug, mode = "create" }) {
         );
 
         if (!res.ok) throw new Error();
-
         const data = await res.json();
 
         setForm({
@@ -78,9 +80,7 @@ export default function AthleteForm({ slug, mode = "create" }) {
 
         setLinkedSponsors(data.athleteSponsors || []);
 
-        const sponsorRes = await fetch(
-          `${API_BASE}/api/sponsors/active`
-        );
+        const sponsorRes = await fetch(`${API_BASE}/api/sponsors/active`);
         const sponsorData = await sponsorRes.json();
         setActiveSponsors(sponsorData);
 
@@ -94,30 +94,66 @@ export default function AthleteForm({ slug, mode = "create" }) {
   }, [mode, slug]);
 
   async function attachSponsor() {
-    if (!selectedSponsor || linkedSponsors.length >= 4) return;
+    if (!selectedSponsor) return;
 
-    await fetch(
-      `${API_BASE}/api/sponsors/${selectedSponsor}/attach-athlete/${form.id}`,
-      { method: "POST" }
-    );
+    if (!form.id) {
+      alert("Save the athlete before attaching sponsors.");
+      return;
+    }
 
-    const updated = await fetch(
-      `${API_BASE}/api/admin/athletes/${slug}`
-    );
-    const updatedData = await updated.json();
-    setLinkedSponsors(updatedData.athleteSponsors || []);
-    setSelectedSponsor("");
+    if (linkedSponsors.length >= 4) {
+      alert("Maximum of 4 sponsors allowed.");
+      return;
+    }
+
+    const sponsorId = Number(selectedSponsor);
+
+    if (linkedSponsors.some((s) => s.sponsorId === sponsorId)) {
+      setSelectedSponsor("");
+      return;
+    }
+
+    try {
+      const res = await fetch(
+        `${API_BASE}/api/sponsors/${sponsorId}/attach-athlete/${form.id}`,
+        { method: "POST" }
+      );
+
+      if (!res.ok) throw new Error();
+
+      const sponsor = activeSponsors.find(
+        (s) => s.id === sponsorId
+      );
+
+      if (sponsor) {
+        setLinkedSponsors((prev) => [
+          ...prev,
+          {
+            sponsorId: sponsor.id,
+            sponsor: sponsor,
+          },
+        ]);
+      }
+
+      setSelectedSponsor("");
+    } catch {
+      alert("Failed to attach sponsor.");
+    }
   }
 
   async function removeSponsor(sponsorId) {
-    await fetch(
-      `${API_BASE}/api/sponsors/${sponsorId}/remove-athlete/${form.id}`,
-      { method: "DELETE" }
-    );
+    try {
+      await fetch(
+        `${API_BASE}/api/sponsors/${sponsorId}/remove-athlete/${form.id}`,
+        { method: "DELETE" }
+      );
 
-    setLinkedSponsors((prev) =>
-      prev.filter((s) => s.sponsorId !== sponsorId)
-    );
+      setLinkedSponsors((prev) =>
+        prev.filter((s) => s.sponsorId !== sponsorId)
+      );
+    } catch {
+      alert("Failed to remove sponsor.");
+    }
   }
 
   async function handleSubmit(e) {
@@ -160,7 +196,7 @@ export default function AthleteForm({ slug, mode = "create" }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-10 p-6 max-w-6xl mx-auto">
 
-      {/* Core Fields (unchanged) */}
+      {/* Core Fields */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <input required placeholder="First Name"
           value={form.firstName}
@@ -177,6 +213,39 @@ export default function AthleteForm({ slug, mode = "create" }) {
         <input placeholder="Hometown"
           value={form.hometown}
           onChange={(e) => update("hometown", e.target.value)} />
+      </section>
+
+      {/* Upload Section */}
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div>
+          <label className="font-semibold block mb-2">Headshot</label>
+          {form.headshotUrl && (
+            <img
+              src={resolveImage(form.headshotUrl)}
+              className="max-h-40 mb-3 object-contain border rounded"
+            />
+          )}
+          <input
+            type="file"
+            accept="image/jpeg,image/png"
+            onChange={(e) => setHeadshotFile(e.target.files?.[0])}
+          />
+        </div>
+
+        <div>
+          <label className="font-semibold block mb-2">Action Photo</label>
+          {form.actionPhotoUrl && (
+            <img
+              src={resolveImage(form.actionPhotoUrl)}
+              className="max-h-40 mb-3 object-contain border rounded"
+            />
+          )}
+          <input
+            type="file"
+            accept="image/jpeg,image/png"
+            onChange={(e) => setActionFile(e.target.files?.[0])}
+          />
+        </div>
       </section>
 
       {/* Sponsor Section */}
