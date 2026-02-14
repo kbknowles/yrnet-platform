@@ -1,56 +1,85 @@
--- CreateEnum
-CREATE TYPE "public"."SponsorTier" AS ENUM ('TITLE', 'GOLD', 'SILVER', 'BRONZE', 'ATHLETE');
+-- =============================
+-- ENUMS
+-- =============================
 
--- AlterEnum
-BEGIN;
-CREATE TYPE "public"."OfficerRole_new" AS ENUM ('PRESIDENT', 'VICE_PRESIDENT', 'SECOND_VICE_PRESIDENT', 'SECRETARY', 'TREASURER', 'POINTS_SECRETARY', 'NATIONAL_DIRECTOR', 'STATE_DIRECTOR', 'REGION_DIRECTOR', 'BOARD_MEMBER', 'STUDENT_PRESIDENT', 'STUDENT_VICE_PRESIDENT', 'STUDENT_SECRETARY', 'QUEEN', 'JH_PRINCESS');
-ALTER TABLE "public"."Officer" ALTER COLUMN "role" TYPE "public"."OfficerRole_new" USING ("role"::text::"public"."OfficerRole_new");
-ALTER TYPE "public"."OfficerRole" RENAME TO "OfficerRole_old";
-ALTER TYPE "public"."OfficerRole_new" RENAME TO "OfficerRole";
-DROP TYPE "OfficerRole_old";
-COMMIT;
+DO $$ BEGIN
+    CREATE TYPE "SponsorshipLevel" AS ENUM ('PREMIER', 'FEATURED', 'STANDARD', 'SUPPORTER');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
--- DropForeignKey
-ALTER TABLE "public"."Sponsorship" DROP CONSTRAINT "Sponsorship_sponsorId_fkey";
+DO $$ BEGIN
+    CREATE TYPE "PlacementZone" AS ENUM ('HEADER', 'STRIP', 'SIDEBAR', 'FOOTER', 'INLINE');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
--- AlterTable
-ALTER TABLE "public"."Sponsor" ADD COLUMN     "endDate" TIMESTAMP(3) NOT NULL,
-ADD COLUMN     "startDate" TIMESTAMP(3) NOT NULL,
-ADD COLUMN     "tier" "public"."SponsorTier" NOT NULL;
+DO $$ BEGIN
+    CREATE TYPE "ContentType" AS ENUM ('ATHLETE', 'EVENT', 'LOCATION', 'GALLERY', 'ANNOUNCEMENT', 'SEASON');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
--- AlterTable
-ALTER TABLE "public"."Announcement" ADD COLUMN     "type" TEXT,
-ALTER COLUMN "content" SET NOT NULL,
-ALTER COLUMN "mode" DROP NOT NULL;
+-- =============================
+-- REMOVE OLD ATHLETE SPONSOR SYSTEM
+-- =============================
 
--- DropTable
-DROP TABLE "public"."Sponsorship";
+ALTER TABLE IF EXISTS "AthleteSponsor"
+DROP CONSTRAINT IF EXISTS "AthleteSponsor_athleteId_fkey";
 
--- DropEnum
-DROP TYPE "public"."SponsorshipLevel";
+ALTER TABLE IF EXISTS "AthleteSponsor"
+DROP CONSTRAINT IF EXISTS "AthleteSponsor_sponsorId_fkey";
 
--- DropEnum
-DROP TYPE "public"."PlacementZone";
+DROP TABLE IF EXISTS "AthleteSponsor";
 
--- DropEnum
-DROP TYPE "public"."ContentType";
+-- =============================
+-- CLEAN UP SPONSOR TABLE
+-- =============================
 
--- CreateTable
-CREATE TABLE "public"."AthleteSponsor" (
-    "id" SERIAL NOT NULL,
-    "athleteId" INTEGER NOT NULL,
+ALTER TABLE "Sponsor"
+DROP COLUMN IF EXISTS "endDate",
+DROP COLUMN IF EXISTS "startDate",
+DROP COLUMN IF EXISTS "tier";
+
+DROP TYPE IF EXISTS "SponsorTier";
+
+-- =============================
+-- ANNOUNCEMENT ADJUSTMENTS
+-- =============================
+
+ALTER TABLE "Announcement"
+DROP COLUMN IF EXISTS "type";
+
+ALTER TABLE "Announcement"
+ALTER COLUMN "content" DROP NOT NULL;
+
+ALTER TABLE "Announcement"
+ALTER COLUMN "mode" SET NOT NULL;
+
+-- =============================
+-- CREATE NEW SPONSORSHIP TABLE
+-- =============================
+
+CREATE TABLE IF NOT EXISTS "Sponsorship" (
+    "id" SERIAL PRIMARY KEY,
     "sponsorId" INTEGER NOT NULL,
+    "level" "SponsorshipLevel" NOT NULL,
+    "startDate" TIMESTAMP(3) NOT NULL,
+    "endDate" TIMESTAMP(3) NOT NULL,
+    "contentType" "ContentType",
+    "contentId" INTEGER,
+    "priority" INTEGER NOT NULL DEFAULT 0,
+    "active" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "AthleteSponsor_pkey" PRIMARY KEY ("id")
+    "updatedAt" TIMESTAMP(3) NOT NULL
 );
 
--- CreateIndex
-CREATE UNIQUE INDEX "AthleteSponsor_athleteId_sponsorId_key" ON "public"."AthleteSponsor"("athleteId" ASC, "sponsorId" ASC);
+CREATE INDEX IF NOT EXISTS "Sponsorship_contentType_contentId_idx"
+ON "Sponsorship"("contentType", "contentId");
 
--- AddForeignKey
-ALTER TABLE "public"."AthleteSponsor" ADD CONSTRAINT "AthleteSponsor_athleteId_fkey" FOREIGN KEY ("athleteId") REFERENCES "public"."Athlete"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "public"."AthleteSponsor" ADD CONSTRAINT "AthleteSponsor_sponsorId_fkey" FOREIGN KEY ("sponsorId") REFERENCES "public"."Sponsor"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
+ALTER TABLE "Sponsorship"
+ADD CONSTRAINT "Sponsorship_sponsorId_fkey"
+FOREIGN KEY ("sponsorId")
+REFERENCES "Sponsor"("id")
+ON DELETE CASCADE
+ON UPDATE CASCADE;
