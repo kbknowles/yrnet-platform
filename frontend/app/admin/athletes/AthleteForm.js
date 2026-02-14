@@ -33,12 +33,23 @@ const EMPTY_FORM = {
   sortOrder: 0,
 };
 
+function resolveImage(url) {
+  if (!url) return null;
+  if (url.startsWith("http")) return url;
+  if (url.startsWith("/uploads")) return `${API_BASE}${url}`;
+  return url;
+}
+
 export default function AthleteForm({ slug, mode = "create" }) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [headshotFile, setHeadshotFile] = useState(null);
   const [actionFile, setActionFile] = useState(null);
   const [loading, setLoading] = useState(mode === "edit");
   const [saving, setSaving] = useState(false);
+
+  const [activeSponsors, setActiveSponsors] = useState([]);
+  const [linkedSponsors, setLinkedSponsors] = useState([]);
+  const [selectedSponsor, setSelectedSponsor] = useState("");
 
   function update(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -47,7 +58,7 @@ export default function AthleteForm({ slug, mode = "create" }) {
   useEffect(() => {
     if (mode !== "edit" || !slug) return;
 
-    async function loadAthlete() {
+    async function loadData() {
       try {
         const res = await fetch(
           `${API_BASE}/api/admin/athletes/${slug}`,
@@ -65,14 +76,49 @@ export default function AthleteForm({ slug, mode = "create" }) {
           isActive: data.isActive ?? true,
         });
 
+        setLinkedSponsors(data.athleteSponsors || []);
+
+        const sponsorRes = await fetch(
+          `${API_BASE}/api/sponsors/active`
+        );
+        const sponsorData = await sponsorRes.json();
+        setActiveSponsors(sponsorData);
+
         setLoading(false);
       } catch {
         alert("Failed to load athlete");
       }
     }
 
-    loadAthlete();
+    loadData();
   }, [mode, slug]);
+
+  async function attachSponsor() {
+    if (!selectedSponsor || linkedSponsors.length >= 4) return;
+
+    await fetch(
+      `${API_BASE}/api/sponsors/${selectedSponsor}/attach-athlete/${form.id}`,
+      { method: "POST" }
+    );
+
+    const updated = await fetch(
+      `${API_BASE}/api/admin/athletes/${slug}`
+    );
+    const updatedData = await updated.json();
+    setLinkedSponsors(updatedData.athleteSponsors || []);
+    setSelectedSponsor("");
+  }
+
+  async function removeSponsor(sponsorId) {
+    await fetch(
+      `${API_BASE}/api/sponsors/${sponsorId}/remove-athlete/${form.id}`,
+      { method: "DELETE" }
+    );
+
+    setLinkedSponsors((prev) =>
+      prev.filter((s) => s.sponsorId !== sponsorId)
+    );
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -89,13 +135,8 @@ export default function AthleteForm({ slug, mode = "create" }) {
         }
       });
 
-      if (headshotFile) {
-        formData.append("headshot", headshotFile);
-      }
-
-      if (actionFile) {
-        formData.append("actionPhoto", actionFile);
-      }
+      if (headshotFile) formData.append("headshot", headshotFile);
+      if (actionFile) formData.append("actionPhoto", actionFile);
 
       const res = await fetch(
         `${API_BASE}/api/admin/athletes${mode === "edit" ? `/${slug}` : ""}`,
@@ -108,8 +149,7 @@ export default function AthleteForm({ slug, mode = "create" }) {
       if (!res.ok) throw new Error();
 
       window.location.href = "/admin/athletes";
-    } catch (err) {
-      console.error(err);
+    } catch {
       alert("Save failed");
       setSaving(false);
     }
@@ -120,76 +160,92 @@ export default function AthleteForm({ slug, mode = "create" }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-10 p-6 max-w-6xl mx-auto">
 
+      {/* Core Fields (unchanged) */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <input
-          required
-          placeholder="First Name"
+        <input required placeholder="First Name"
           value={form.firstName}
-          onChange={(e) => update("firstName", e.target.value)}
-        />
-        <input
-          required
-          placeholder="Last Name"
+          onChange={(e) => update("firstName", e.target.value)} />
+        <input required placeholder="Last Name"
           value={form.lastName}
-          onChange={(e) => update("lastName", e.target.value)}
-        />
-        <input
-          placeholder="School"
+          onChange={(e) => update("lastName", e.target.value)} />
+        <input placeholder="School"
           value={form.school}
-          onChange={(e) => update("school", e.target.value)}
-        />
-        <input
-          placeholder="Grade"
+          onChange={(e) => update("school", e.target.value)} />
+        <input placeholder="Grade"
           value={form.grade}
-          onChange={(e) => update("grade", e.target.value)}
-        />
-        <input
-          placeholder="Hometown"
+          onChange={(e) => update("grade", e.target.value)} />
+        <input placeholder="Hometown"
           value={form.hometown}
-          onChange={(e) => update("hometown", e.target.value)}
-        />
+          onChange={(e) => update("hometown", e.target.value)} />
       </section>
 
-      <section>
-        <label className="flex items-center gap-2 font-semibold">
-          <input
-            type="checkbox"
-            checked={form.isActive}
-            onChange={(e) => update("isActive", e.target.checked)}
-          />
-          Athlete is Active
-        </label>
-      </section>
+      {/* Sponsor Section */}
+      {mode === "edit" && (
+        <section className="border-t pt-8">
+          <h2 className="text-xl font-semibold mb-4">
+            Athlete Sponsors (Max 4)
+          </h2>
 
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div>
-          <label className="font-semibold block mb-2">Headshot</label>
-          <input
-            type="file"
-            accept="image/jpeg,image/png"
-            onChange={(e) => setHeadshotFile(e.target.files?.[0])}
-          />
-        </div>
+          {linkedSponsors.length < 4 && (
+            <div className="flex gap-4 mb-6">
+              <select
+                value={selectedSponsor}
+                onChange={(e) => setSelectedSponsor(e.target.value)}
+                className="border p-2 rounded"
+              >
+                <option value="">Select Sponsor</option>
+                {activeSponsors.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
 
-        <div>
-          <label className="font-semibold block mb-2">Action Photo</label>
-          <input
-            type="file"
-            accept="image/jpeg,image/png"
-            onChange={(e) => setActionFile(e.target.files?.[0])}
-          />
-        </div>
-      </section>
+              <button
+                type="button"
+                onClick={attachSponsor}
+                className="bg-black text-white px-4 py-2"
+              >
+                Attach
+              </button>
+            </div>
+          )}
 
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {linkedSponsors.map((link) => (
+              <div key={link.sponsor.id}
+                className="border p-3 rounded text-center space-y-2">
+                {link.sponsor.logoUrl && (
+                  <img
+                    src={resolveImage(link.sponsor.logoUrl)}
+                    className="max-h-16 mx-auto object-contain"
+                  />
+                )}
+                <div className="text-sm font-medium">
+                  {link.sponsor.name}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeSponsor(link.sponsorId)}
+                  className="text-xs text-red-600"
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Bio */}
       <section>
         <label className="font-semibold block mb-2">Athlete Bio</label>
-        <textarea
-          className="w-full min-h-[200px]"
+        <textarea className="w-full min-h-[200px]"
           value={form.bio}
-          onChange={(e) => update("bio", e.target.value)}
-        />
+          onChange={(e) => update("bio", e.target.value)} />
       </section>
 
+      {/* Events */}
       <section>
         <label className="font-semibold block mb-2">Events</label>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
@@ -213,11 +269,8 @@ export default function AthleteForm({ slug, mode = "create" }) {
         </div>
       </section>
 
-      <button
-        type="submit"
-        disabled={saving}
-        className="bg-black text-white px-6 py-2"
-      >
+      <button type="submit" disabled={saving}
+        className="bg-black text-white px-6 py-2">
         {saving ? "Saving…" : "Save Athlete"}
       </button>
     </form>

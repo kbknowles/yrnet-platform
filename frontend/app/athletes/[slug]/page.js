@@ -27,8 +27,13 @@ export default async function AthleteDetailPage(props) {
     notFound();
   }
 
+  const sponsors =
+    athlete.athleteSponsors?.map((link) => link.sponsor) || [];
+
   return (
-    <main className="max-w-5xl mx-auto px-4 py-10 space-y-10">
+    <main className="max-w-5xl mx-auto px-4 py-10 space-y-12">
+
+      {/* Header Section */}
       <section className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {athlete.headshotUrl && (
           <div className="w-full aspect-square border rounded bg-gray-100 flex items-center justify-center overflow-hidden">
@@ -61,6 +66,43 @@ export default async function AthleteDetailPage(props) {
         </div>
       </section>
 
+      {/* Sponsors Section */}
+      {sponsors.length > 0 && (
+        <section>
+          <h2 className="text-xl font-semibold mb-4">
+            Athlete Sponsors
+          </h2>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {sponsors.slice(0, 4).map((s) => (
+              <a
+                key={s.id}
+                href={s.website || "#"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="border border-gray-900 bg-white rounded p-4 flex items-center justify-center"
+              >
+                {s.logoUrl ? (
+                  <Image
+                    src={resolveImage(s.logoUrl)}
+                    alt={s.name}
+                    width={200}
+                    height={100}
+                    unoptimized
+                    className="max-h-16 object-contain"
+                  />
+                ) : (
+                  <span className="text-ahsra-blue font-semibold text-center">
+                    {s.name}
+                  </span>
+                )}
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Bio */}
       {athlete.bio && (
         <section>
           <h2 className="text-xl font-semibold mb-2">Athlete Bio</h2>
@@ -68,6 +110,7 @@ export default async function AthleteDetailPage(props) {
         </section>
       )}
 
+      {/* Future Goals */}
       {athlete.futureGoals && (
         <section>
           <h2 className="text-xl font-semibold mb-2">Future Goals</h2>
@@ -75,6 +118,7 @@ export default async function AthleteDetailPage(props) {
         </section>
       )}
 
+      {/* Action Photo */}
       {athlete.actionPhotoUrl && (
         <section>
           <h2 className="text-xl font-semibold mb-3">In Action</h2>
