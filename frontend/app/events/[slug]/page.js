@@ -6,6 +6,13 @@ import MediaSwiper from "../../../components/MediaSwiper";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
+function resolveImage(url) {
+  if (!url) return null;
+  if (url.startsWith("http")) return url;
+  if (url.startsWith("/uploads")) return `${API_BASE}${url}`;
+  return url;
+}
+
 async function getEvent(slug) {
   if (!slug) return null;
 
@@ -16,6 +23,44 @@ async function getEvent(slug) {
 
   if (!res.ok) return null;
   return res.json();
+}
+
+function SponsorBlock({ title, sponsors }) {
+  if (!sponsors || sponsors.length === 0) return null;
+
+  return (
+    <section className="space-y-4">
+      <h2 className="text-lg font-semibold text-center">{title}</h2>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        {sponsors.map(({ sponsor }) => (
+          <div
+            key={sponsor.id}
+            className="h-28 flex items-center justify-center border border-gray-900 rounded bg-white"
+          >
+            <a
+              href={sponsor.website || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center w-full h-full px-4"
+            >
+              {sponsor.logoUrl ? (
+                <img
+                  src={resolveImage(sponsor.logoUrl)}
+                  alt={sponsor.name}
+                  className="max-h-20 max-w-full object-contain"
+                />
+              ) : (
+                <span className="text-ahsra-blue text-lg font-semibold tracking-wide text-center">
+                  {sponsor.name}
+                </span>
+              )}
+            </a>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
 }
 
 export default async function EventPage({ params }) {
@@ -49,20 +94,37 @@ export default async function EventPage({ params }) {
     (a) => a.mode !== "POSTER"
   );
 
+  const headerSponsors =
+    event.eventSponsors?.filter((s) => s.placement === "HEADER") || [];
+
+  const locationSponsors =
+    event.eventSponsors?.filter((s) => s.placement === "LOCATION") || [];
+
+  const footerSponsors =
+    event.eventSponsors?.filter((s) => s.placement === "FOOTER") || [];
+
   return (
     <main className="max-w-7xl mx-auto px-4 py-10 space-y-10">
       {/* HEADER */}
-      <section>
-        <h1 className="text-3xl font-bold">{event.name}</h1>
-        <p className="text-gray-600">
-          {formatDate(event.startDate)}
-          {event.endDate && ` – ${formatDate(event.endDate)}`}
-        </p>
+      <section className="space-y-4">
+        <div>
+          <h1 className="text-3xl font-bold">{event.name}</h1>
+          <p className="text-gray-600">
+            {formatDate(event.startDate)}
+            {event.endDate && ` – ${formatDate(event.endDate)}`}
+          </p>
+        </div>
+
+        {/* HEADER SPONSORS */}
+        <SponsorBlock
+          title="Event Sponsors"
+          sponsors={headerSponsors}
+        />
       </section>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* LEFT */}
-        <div className="lg:col-span-1 space-y-6">
+        <div className="lg:col-span-1 space-y-8">
           {event.generalInfo && (
             <div>
               <h2 className="font-semibold mb-2">General Info</h2>
@@ -73,16 +135,18 @@ export default async function EventPage({ params }) {
           )}
 
           {location && (
-            <div>
-              <h2 className="font-semibold mb-2">Location</h2>
-              <p className="text-sm">
-                {location.name}
-                <br />
-                {fullAddress}
-              </p>
+            <div className="space-y-4">
+              <div>
+                <h2 className="font-semibold mb-2">Location</h2>
+                <p className="text-sm">
+                  {location.name}
+                  <br />
+                  {fullAddress}
+                </p>
+              </div>
 
               {fullAddress && (
-                <div className="mt-3 h-[220px] border rounded overflow-hidden">
+                <div className="h-[220px] border rounded overflow-hidden">
                   <iframe
                     width="100%"
                     height="100%"
@@ -93,6 +157,12 @@ export default async function EventPage({ params }) {
                   />
                 </div>
               )}
+
+              {/* LOCATION SPONSORS */}
+              <SponsorBlock
+                title="Location Partners"
+                sponsors={locationSponsors}
+              />
             </div>
           )}
         </div>
@@ -128,6 +198,12 @@ export default async function EventPage({ params }) {
           )}
         </div>
       </div>
+
+      {/* FOOTER SPONSOR (TITLE LEVEL AREA) */}
+      <SponsorBlock
+        title="Season Title Sponsor"
+        sponsors={footerSponsors}
+      />
 
       <Link href="/schedule" className="underline">
         Back to schedule
