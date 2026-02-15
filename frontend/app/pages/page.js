@@ -1,6 +1,7 @@
 // filepath: frontend/app/pages/page.js
 
 import Link from "next/link";
+import SponsorZone from "../../components/sponsorship/SponsorZone";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -24,10 +25,20 @@ export default async function PagesIndex() {
   const pages = await getPages();
 
   return (
-    <main className="max-w-5xl mx-auto px-4 py-12 space-y-8">
-      <h1 className="text-3xl font-bold text-ahsra-blue">
-        Pages
-      </h1>
+    <main className="max-w-5xl mx-auto px-4 py-12 space-y-10">
+      <section className="space-y-4">
+        <h1 className="text-3xl font-bold text-ahsra-blue">
+          Pages
+        </h1>
+
+        {/* Header Sponsor Zone */}
+        <SponsorZone
+          contentType={null}
+          contentId={null}
+          zone="HEADER"
+          slots={1}
+        />
+      </section>
 
       {pages.length === 0 ? (
         <p className="text-gray-600">No pages available.</p>
@@ -45,6 +56,14 @@ export default async function PagesIndex() {
           ))}
         </ul>
       )}
+
+      {/* Footer Sponsor Zone */}
+      <SponsorZone
+        contentType={null}
+        contentId={null}
+        zone="FOOTER"
+        slots={1}
+      />
     </main>
   );
 }

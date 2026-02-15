@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import SponsorZone from "../../components/sponsorship/SponsorZone";
 
 export default async function GalleryIndexPage() {
   const API_BASE = process.env.NEXT_PUBLIC_API_URL;
@@ -18,8 +19,17 @@ export default async function GalleryIndexPage() {
   const albums = await res.json();
 
   return (
-    <main className="max-w-6xl mx-auto px-4 py-10">
-      <h1 className="text-2xl font-bold mb-8">Photo Gallery</h1>
+    <main className="max-w-6xl mx-auto px-4 py-10 space-y-10">
+      <section className="space-y-4">
+        <h1 className="text-2xl font-bold">Photo Gallery</h1>
+
+        {/* Header Sponsor Zone */}
+        <SponsorZone
+          contentType="GALLERY"
+          zone="HEADER"
+          slots={1}
+        />
+      </section>
 
       <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
         {albums.map((album) => {
@@ -29,7 +39,7 @@ export default async function GalleryIndexPage() {
             <Link
               key={album.id}
               href={`/gallery/${album.slug}`}
-              className="block bg-white border rounded-lg shadow-sm overflow-hidden"
+              className="block bg-white border rounded-lg shadow-sm overflow-hidden hover:shadow-md transition"
             >
               <div className="relative h-48 bg-gray-100">
                 {cover && (
@@ -52,6 +62,13 @@ export default async function GalleryIndexPage() {
           );
         })}
       </div>
+
+      {/* Footer Sponsor Zone */}
+      <SponsorZone
+        contentType="GALLERY"
+        zone="FOOTER"
+        slots={1}
+      />
     </main>
   );
 }

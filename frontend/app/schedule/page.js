@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
+import SponsorZone from "../../components/sponsorship/SponsorZone";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -57,11 +58,22 @@ export default function SchedulePage() {
     title: e.name,
     start: e.startDate,
     end: e.endDate || e.startDate,
+    allDay: true,
   }));
 
   return (
-    <main className="max-w-7xl mx-auto px-4 py-12">
-      <h1 className="text-3xl font-bold mb-8">Rodeo Schedule</h1>
+    <main className="max-w-7xl mx-auto px-4 py-12 space-y-10">
+      <section className="space-y-4">
+        <h1 className="text-3xl font-bold">Rodeo Schedule</h1>
+
+        {/* Header Sponsor Zone */}
+        <SponsorZone
+          contentType={null}
+          contentId={null}
+          zone="HEADER"
+          slots={1}
+        />
+      </section>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* LEFT — LIST */}
@@ -118,21 +130,39 @@ export default function SchedulePage() {
         </div>
 
         {/* RIGHT — CALENDAR */}
-        <div className="bg-white border rounded-lg p-4">
-          <FullCalendar
-            plugins={[dayGridPlugin, interactionPlugin]}
-            initialView="dayGridMonth"
-            events={calendarEvents}
-            height="auto"
-            eventClick={(info) => {
-              setSelectedSlug(info.event.id);
-              document
-                .querySelector(`[data-slug="${info.event.id}"]`)
-                ?.scrollIntoView({ behavior: "smooth", block: "center" });
-            }}
+        <div className="space-y-6">
+          <div className="bg-white border rounded-lg p-4">
+            <FullCalendar
+              plugins={[dayGridPlugin, interactionPlugin]}
+              initialView="dayGridMonth"
+              events={calendarEvents}
+              height="auto"
+              eventClick={(info) => {
+                setSelectedSlug(info.event.id);
+                document
+                  .querySelector(`[data-slug="${info.event.id}"]`)
+                  ?.scrollIntoView({ behavior: "smooth", block: "center" });
+              }}
+            />
+          </div>
+
+          {/* Sidebar Sponsor Zone */}
+          <SponsorZone
+            contentType={null}
+            contentId={null}
+            zone="SIDEBAR"
+            slots={1}
           />
         </div>
       </div>
+
+      {/* Footer Sponsor Zone */}
+      <SponsorZone
+        contentType={null}
+        contentId={null}
+        zone="FOOTER"
+        slots={1}
+      />
     </main>
   );
 }

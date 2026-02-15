@@ -1,4 +1,6 @@
 import Link from "next/link";
+import SponsorZone from "../../components/sponsorship/SponsorZone";
+
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -47,37 +49,52 @@ export default async function AthletesPage() {
         </p>
       </section>
 
+      {/* Page-Level Sponsor Zone */}
+      <SponsorZone
+        contentType="ATHLETE"
+        contentId={null}
+        slots={4}
+      />
+
       {activeAthletes.length === 0 ? (
         <p>No athletes available.</p>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 items-start">
-          {activeAthletes.map((a) => (
-            <Link
-              key={a.slug}
-              href={`/athletes/${a.slug}`}
-              className="border bg-white p-3 hover:shadow transition space-y-3"
-            >
-              {a.headshotUrl && (
-                <img
-                  src={resolveImage(a.headshotUrl)}
-                  alt={`${a.firstName} ${a.lastName}`}
-                  className="w-full h-auto object-contain bg-gray-100 rounded"
-                />
-              )}
-
-              <h3 className="font-semibold text-base leading-tight">
-                {a.firstName} {a.lastName}
-              </h3>
-
-              <div className="text-sm text-gray-700 space-y-1">
-                {a.grade && <div>Grade {a.grade}</div>}
-                {a.events?.length > 0 && (
-                  <div className="text-xs text-gray-600 leading-snug">
-                    {a.events.map(formatEvent).join(", ")}
-                  </div>
+          {activeAthletes.map((a, index) => (
+            <div key={a.slug} className="space-y-3">
+              <Link
+                href={`/athletes/${a.slug}`}
+                className="border bg-white p-3 hover:shadow transition space-y-3 block"
+              >
+                {a.headshotUrl && (
+                  <img
+                    src={resolveImage(a.headshotUrl)}
+                    alt={`${a.firstName} ${a.lastName}`}
+                    className="w-full h-auto object-contain bg-gray-100 rounded"
+                  />
                 )}
-              </div>
-            </Link>
+
+                <h3 className="font-semibold text-base leading-tight">
+                  {a.firstName} {a.lastName}
+                </h3>
+
+                <div className="text-sm text-gray-700 space-y-1">
+                  {a.grade && <div>Grade {a.grade}</div>}
+                  {a.events?.length > 0 && (
+                    <div className="text-xs text-gray-600 leading-snug">
+                      {a.events.map(formatEvent).join(", ")}
+                    </div>
+                  )}
+                </div>
+              </Link>
+
+              {/* Athlete-Level Sponsor Zone (Direct + Backfill) */}
+              <SponsorZone
+                contentType="ATHLETE"
+                contentId={a.id}
+                slots={1}
+              />
+            </div>
           ))}
         </div>
       )}

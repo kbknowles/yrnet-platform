@@ -1,3 +1,5 @@
+// backend/routes/index.js
+
 import express from "express";
 
 /* =========================
@@ -13,11 +15,11 @@ import announcementsAdminRouter from "./admin/announcements.js";
 import announcementUploadRouter from "./admin/announcementUpload.js";
 import adminOfficersRouter from "./admin/officers.js";
 import sponsorsRouter from "./admin/sponsors.js";
+import adminSponsorshipsRouter from "./admin/sponsorships.js";
 import adminGalleryRoutes from "./admin/gallery.js";
 import adminPagesRoutes from "./admin/pages.js";
 import uploadRoutes from "./admin/uploads.js";
 import adminAthletesRouter from "./admin/athletes.js";
-
 
 /* =========================
    PUBLIC ROUTES
@@ -27,14 +29,14 @@ import eventsPublicRouter from "./events.js";
 import schedulePublicRouter from "./schedule.js";
 import announcementsPublicRouter from "./announcements.js";
 import sponsorsRoutes from "./sponsors.js";
+import sponsorshipRoutes from "./sponsorships.js";
 import seasonsRoutes from "./seasons.js";
 import galleryRoutes from "./gallery.js";
 import homeRoutes from "./home.js";
 import officersPublicRouter from "./officers.js";
 import pagesRoutes from "./pages.js";
-import athletesPublicRouter from "./athletes.js";// backend/routes/index.js
+import athletesPublicRouter from "./athletes.js";
 import calendarRoutes from "./calendar.js";
-
 
 const router = express.Router();
 
@@ -48,6 +50,7 @@ router.use("/admin/announcements", announcementsAdminRouter);
 router.use("/admin/announcements/upload", announcementUploadRouter);
 router.use("/admin/officers", adminOfficersRouter);
 router.use("/admin/sponsors", sponsorsRouter);
+router.use("/admin/sponsorships", adminSponsorshipsRouter);
 router.use("/admin/gallery", adminGalleryRoutes);
 router.use("/admin/pages", adminPagesRoutes);
 router.use("/admin/uploads", uploadRoutes);
@@ -58,6 +61,7 @@ router.use("/events", eventsPublicRouter);
 router.use("/schedule", schedulePublicRouter);
 router.use("/announcements", announcementsPublicRouter);
 router.use("/sponsors", sponsorsRoutes);
+router.use("/sponsorships", sponsorshipRoutes);
 router.use("/seasons", seasonsRoutes);
 router.use("/gallery", galleryRoutes);
 router.use("/home", homeRoutes);

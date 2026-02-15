@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { formatDate } from "../../../lib/formatDate";
 import MediaSwiper from "../../../components/MediaSwiper";
+import SponsorZone from "../../../components/sponsorship/SponsorZone";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -23,44 +24,6 @@ async function getEvent(slug) {
 
   if (!res.ok) return null;
   return res.json();
-}
-
-function SponsorBlock({ title, sponsors }) {
-  if (!sponsors || sponsors.length === 0) return null;
-
-  return (
-    <section className="space-y-4">
-      <h2 className="text-lg font-semibold text-center">{title}</h2>
-
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-        {sponsors.map(({ sponsor }) => (
-          <div
-            key={sponsor.id}
-            className="h-28 flex items-center justify-center border border-gray-900 rounded bg-white"
-          >
-            <a
-              href={sponsor.website || "#"}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center w-full h-full px-4"
-            >
-              {sponsor.logoUrl ? (
-                <img
-                  src={resolveImage(sponsor.logoUrl)}
-                  alt={sponsor.name}
-                  className="max-h-20 max-w-full object-contain"
-                />
-              ) : (
-                <span className="text-ahsra-blue text-lg font-semibold tracking-wide text-center">
-                  {sponsor.name}
-                </span>
-              )}
-            </a>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
 }
 
 export default async function EventPage({ params }) {
@@ -94,15 +57,6 @@ export default async function EventPage({ params }) {
     (a) => a.mode !== "POSTER"
   );
 
-  const headerSponsors =
-    event.eventSponsors?.filter((s) => s.placement === "HEADER") || [];
-
-  const locationSponsors =
-    event.eventSponsors?.filter((s) => s.placement === "LOCATION") || [];
-
-  const footerSponsors =
-    event.eventSponsors?.filter((s) => s.placement === "FOOTER") || [];
-
   return (
     <main className="max-w-7xl mx-auto px-4 py-10 space-y-10">
       {/* HEADER */}
@@ -115,10 +69,12 @@ export default async function EventPage({ params }) {
           </p>
         </div>
 
-        {/* HEADER SPONSORS */}
-        <SponsorBlock
-          title="Event Sponsors"
-          sponsors={headerSponsors}
+        {/* HEADER SPONSOR ZONE */}
+        <SponsorZone
+          contentType="EVENT"
+          contentId={event.id}
+          zone="HEADER"
+          slots={2}
         />
       </section>
 
@@ -158,10 +114,12 @@ export default async function EventPage({ params }) {
                 </div>
               )}
 
-              {/* LOCATION SPONSORS */}
-              <SponsorBlock
-                title="Location Partners"
-                sponsors={locationSponsors}
+              {/* LOCATION SPONSOR ZONE */}
+              <SponsorZone
+                contentType="LOCATION"
+                contentId={location.id}
+                zone="SIDEBAR"
+                slots={2}
               />
             </div>
           )}
@@ -199,10 +157,12 @@ export default async function EventPage({ params }) {
         </div>
       </div>
 
-      {/* FOOTER SPONSOR (TITLE LEVEL AREA) */}
-      <SponsorBlock
-        title="Season Title Sponsor"
-        sponsors={footerSponsors}
+      {/* FOOTER / TITLE LEVEL AREA */}
+      <SponsorZone
+        contentType="EVENT"
+        contentId={event.id}
+        zone="FOOTER"
+        slots={1}
       />
 
       <Link href="/schedule" className="underline">

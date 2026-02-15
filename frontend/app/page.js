@@ -34,11 +34,11 @@ export default async function HomePage() {
     }
   }
 
-  const [homeData, announcements, sponsors, galleryAlbums] =
+  const [homeData, announcements, sponsorships, galleryAlbums] =
     await Promise.all([
       safeFetch(`${API_BASE}/api/home`),
       safeFetch(`${API_BASE}/api/announcements?published=true`),
-      safeFetch(`${API_BASE}/api/sponsors?active=true`),
+      safeFetch(`${API_BASE}/api/sponsorships?level=PREMIER`), // HOME STRIP
       softFetch(`${API_BASE}/api/gallery`, []),
     ]);
 
@@ -57,7 +57,8 @@ export default async function HomePage() {
 
       <EventGallery albums={galleryAlbums} />
 
-      <SponsorStrip sponsors={sponsors} />
+      {/* Sponsor Strip = Premier / Season-Level */}
+      <SponsorStrip sponsorships={sponsorships} />
 
       <HomeCTA />
     </>

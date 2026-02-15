@@ -1,12 +1,12 @@
 // filepath: frontend/app/gallery/[slug]/page.js
 
 import Image from "next/image";
+import SponsorZone from "../../../components/sponsorship/SponsorZone";
 
 export default async function GalleryAlbumPage({ params }) {
   const API_BASE = process.env.NEXT_PUBLIC_API_URL;
   const isDev = process.env.NODE_ENV !== "production";
 
-  // Next.js App Router: params is async
   const { slug } = await params;
 
   const res = await fetch(
@@ -21,8 +21,18 @@ export default async function GalleryAlbumPage({ params }) {
   const album = await res.json();
 
   return (
-    <main className="max-w-6xl mx-auto px-4 py-10">
-      <h1 className="text-2xl font-bold mb-6">{album.title}</h1>
+    <main className="max-w-6xl mx-auto px-4 py-10 space-y-10">
+      <section className="space-y-4">
+        <h1 className="text-2xl font-bold">{album.title}</h1>
+
+        {/* Header Sponsor Zone */}
+        <SponsorZone
+          contentType="GALLERY"
+          contentId={album.id}
+          zone="HEADER"
+          slots={1}
+        />
+      </section>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {album.images.map((img) => (
@@ -40,6 +50,14 @@ export default async function GalleryAlbumPage({ params }) {
           </div>
         ))}
       </div>
+
+      {/* Footer Sponsor Zone */}
+      <SponsorZone
+        contentType="GALLERY"
+        contentId={album.id}
+        zone="FOOTER"
+        slots={1}
+      />
     </main>
   );
 }
