@@ -4,7 +4,6 @@ import HomeHero from "../components/home/HomeHero";
 import HomeMission from "../components/home/HomeMission";
 import HomeHighlights from "../components/home/HomeHighlights";
 import EventGallery from "../components/home/EventGallery";
-import SponsorStrip from "../components/home/SponsorStrip";
 import HomeCTA from "../components/home/HomeCTA";
 
 export default async function HomePage() {
@@ -38,7 +37,6 @@ export default async function HomePage() {
     await Promise.all([
       safeFetch(`${API_BASE}/api/home`),
       safeFetch(`${API_BASE}/api/announcements?published=true`),
-      safeFetch(`${API_BASE}/api/sponsorships?level=PREMIER`), // HOME STRIP
       softFetch(`${API_BASE}/api/gallery`, []),
     ]);
 
@@ -57,8 +55,14 @@ export default async function HomePage() {
 
       <EventGallery albums={galleryAlbums} />
 
-      {/* Sponsor Strip = Premier / Season-Level */}
-      <SponsorStrip sponsorships={sponsorships} />
+<SponsorZone
+  contentType="SEASON"
+  contentId={null}
+  levels={["PREMIER", "FEATURED"]}
+  slots={4}
+/>
+
+
 
       <HomeCTA />
     </>
