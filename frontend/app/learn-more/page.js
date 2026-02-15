@@ -21,7 +21,7 @@ export default function LearnMorePage() {
           contentType={null}
           contentId={null}
           zone="HEADER"
-          slots={1}
+          slots={4}
         />
       </section>
 
@@ -41,7 +41,7 @@ export default function LearnMorePage() {
             contentType={null}
             contentId={null}
             zone="INLINE"
-            slots={1}
+            slots={4}
           />
         </section>
 
@@ -62,7 +62,7 @@ export default function LearnMorePage() {
         contentType={null}
         contentId={null}
         zone="FOOTER"
-        slots={1}
+        slots={4}
       />
 
       <div className="pt-8 text-sm text-gray-500">

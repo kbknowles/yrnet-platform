@@ -127,12 +127,12 @@ export default function SponsorZone({
   if (!sponsors || sponsors.length === 0) return null;
 
   return (
-    <section className="space-y-4">
+    <section className="space-y-2">
       <h3 className="text-lg font-semibold text-center">
         Support Our Sponsors
       </h3>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 py-12 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 py-2 gap-4">
         {sponsors.map((s, index) =>
           s ? (
             <SponsorCard key={index} sponsor={s} />

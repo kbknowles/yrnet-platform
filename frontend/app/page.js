@@ -35,7 +35,7 @@ export default async function HomePage() {
     }
   }
 
-  const [homeData, announcements, sponsorships, galleryAlbums] =
+  const [homeData, announcements, galleryAlbums] =
     await Promise.all([
       safeFetch(`${API_BASE}/api/home`),
       safeFetch(`${API_BASE}/api/announcements?published=true`),
@@ -57,13 +57,12 @@ export default async function HomePage() {
 
       <EventGallery albums={galleryAlbums} />
 
-<SponsorZone
-  contentType="SEASON"
-  contentId={null}
-  levels={["PREMIER", "FEATURED"]}
-  slots={4}
-/>
-
+      <SponsorZone
+        contentType="SEASON"
+        contentId={null}
+        levels={["PREMIER", "FEATURED"]}
+        slots={4}
+      />
 
       <HomeCTA />
     </>
