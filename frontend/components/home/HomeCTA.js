@@ -2,7 +2,7 @@
 
 export default function HomeCTA() {
   return (
-        <div class="py-2">
+        <div classname="py-2">
 
     <section className="bg-ahsra-red text-white py-12 text-center">
       <h2 className="text-2xl font-bold">Ready to Ride?</h2>
