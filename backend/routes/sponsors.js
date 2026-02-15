@@ -7,18 +7,18 @@ const router = express.Router();
 /**
  * ===============================
  * GET ALL SPONSORS (ADMIN)
+ * Sponsor = vendor contact info only
  * ===============================
  */
 router.get("/", async (req, res) => {
   try {
     const sponsors = await prisma.sponsor.findMany({
-      orderBy: [
-        { tier: "asc" },
-        { createdAt: "desc" }
-      ],
+      orderBy: {
+        createdAt: "desc",
+      },
       include: {
-        athletes: true
-      }
+        sponsorships: true,
+      },
     });
 
     res.json(sponsors);
@@ -30,66 +30,61 @@ router.get("/", async (req, res) => {
 
 /**
  * ===============================
- * GET ACTIVE SPONSORS (PUBLIC)
+ * GET SPONSOR BY ID
  * ===============================
  */
-router.get("/active", async (req, res) => {
+router.get("/:id", async (req, res) => {
   try {
-    const now = new Date();
+    const { id } = req.params;
 
-    const sponsors = await prisma.sponsor.findMany({
-      where: {
-        active: true,
-        startDate: { lte: now },
-        endDate: { gte: now }
+    const sponsor = await prisma.sponsor.findUnique({
+      where: { id: parseInt(id) },
+      include: {
+        sponsorships: true,
       },
-      orderBy: { tier: "asc" }
     });
 
-    res.json(sponsors);
+    if (!sponsor) {
+      return res.status(404).json({ error: "Sponsor not found" });
+    }
+
+    res.json(sponsor);
   } catch (error) {
-    console.error("GET ACTIVE SPONSORS ERROR:", error);
-    res.status(500).json({ error: "Failed to fetch active sponsors" });
+    console.error("GET SPONSOR ERROR:", error);
+    res.status(500).json({ error: "Failed to fetch sponsor" });
   }
 });
 
 /**
  * ===============================
  * CREATE SPONSOR
+ * (NO dates, NO tiers, NO active flag)
  * ===============================
  */
 router.post("/", async (req, res) => {
   try {
     const {
       name,
-      tier,
       website,
       description,
       contactName,
       contactEmail,
       contactPhone,
-      startDate,
-      endDate,
-      active,
-      internalNotes
+      internalNotes,
     } = req.body;
 
     const sponsor = await prisma.sponsor.create({
       data: {
         name,
-        tier,
-        logoUrl: "", // required by schema, set empty until upload
+        logoUrl: "", // required
         bannerUrl: null,
-        website,
-        description,
-        contactName,
-        contactEmail,
-        contactPhone,
-        startDate: new Date(startDate),
-        endDate: new Date(endDate),
-        active,
-        internalNotes
-      }
+        website: website || null,
+        description: description || null,
+        contactName: contactName || null,
+        contactEmail: contactEmail || null,
+        contactPhone: contactPhone || null,
+        internalNotes: internalNotes || null,
+      },
     });
 
     res.json(sponsor);
@@ -110,33 +105,25 @@ router.put("/:id", async (req, res) => {
 
     const {
       name,
-      tier,
       website,
       description,
       contactName,
       contactEmail,
       contactPhone,
-      startDate,
-      endDate,
-      active,
-      internalNotes
+      internalNotes,
     } = req.body;
 
     const sponsor = await prisma.sponsor.update({
       where: { id: parseInt(id) },
       data: {
         name,
-        tier,
-        website,
-        description,
-        contactName,
-        contactEmail,
-        contactPhone,
-        startDate: new Date(startDate),
-        endDate: new Date(endDate),
-        active,
-        internalNotes
-      }
+        website: website || null,
+        description: description || null,
+        contactName: contactName || null,
+        contactEmail: contactEmail || null,
+        contactPhone: contactPhone || null,
+        internalNotes: internalNotes || null,
+      },
     });
 
     res.json(sponsor);
@@ -156,7 +143,7 @@ router.delete("/:id", async (req, res) => {
     const { id } = req.params;
 
     await prisma.sponsor.delete({
-      where: { id: parseInt(id) }
+      where: { id: parseInt(id) },
     });
 
     res.json({ success: true });
@@ -183,7 +170,7 @@ router.post("/:id/upload-logo", upload.single("file"), async (req, res) => {
 
     const sponsor = await prisma.sponsor.update({
       where: { id: parseInt(id) },
-      data: { logoUrl: fileUrl }
+      data: { logoUrl: fileUrl },
     });
 
     res.json(sponsor);
@@ -210,70 +197,13 @@ router.post("/:id/upload-banner", upload.single("file"), async (req, res) => {
 
     const sponsor = await prisma.sponsor.update({
       where: { id: parseInt(id) },
-      data: { bannerUrl: fileUrl }
+      data: { bannerUrl: fileUrl },
     });
 
     res.json(sponsor);
   } catch (error) {
     console.error("UPLOAD BANNER ERROR:", error);
     res.status(500).json({ error: "Upload failed" });
-  }
-});
-
-/**
- * ===============================
- * ATTACH SPONSOR TO ATHLETE
- * MAX 4 ENFORCEMENT
- * ===============================
- */
-router.post("/:id/attach-athlete/:athleteId", async (req, res) => {
-  try {
-    const { id, athleteId } = req.params;
-
-    const count = await prisma.athleteSponsor.count({
-      where: { athleteId: parseInt(athleteId) }
-    });
-
-    if (count >= 4) {
-      return res.status(400).json({ error: "Athlete already has 4 sponsors" });
-    }
-
-    const link = await prisma.athleteSponsor.create({
-      data: {
-        sponsorId: parseInt(id),
-        athleteId: parseInt(athleteId)
-      }
-    });
-
-    res.json(link);
-  } catch (error) {
-    console.error("ATTACH SPONSOR ERROR:", error);
-    res.status(500).json({ error: "Failed to attach sponsor to athlete" });
-  }
-});
-
-/**
- * ===============================
- * REMOVE SPONSOR FROM ATHLETE
- * ===============================
- */
-router.delete("/:id/remove-athlete/:athleteId", async (req, res) => {
-  try {
-    const { id, athleteId } = req.params;
-
-    await prisma.athleteSponsor.delete({
-      where: {
-        athleteId_sponsorId: {
-          sponsorId: parseInt(id),
-          athleteId: parseInt(athleteId)
-        }
-      }
-    });
-
-    res.json({ success: true });
-  } catch (error) {
-    console.error("REMOVE SPONSOR ERROR:", error);
-    res.status(500).json({ error: "Failed to remove sponsor from athlete" });
   }
 });
 

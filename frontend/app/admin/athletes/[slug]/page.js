@@ -5,14 +5,12 @@ import AthleteForm from "../AthleteForm";
 
 export default function EditAthletePage() {
   const params = useParams();
-  const slug = params?.slug;
+  const slug = Array.isArray(params?.slug)
+    ? params.slug[0]
+    : params?.slug;
 
   if (!slug) {
-    return (
-      <div className="p-6">
-        Loading...
-      </div>
-    );
+    return <div className="p-6">Loading...</div>;
   }
 
   return <AthleteForm slug={slug} mode="edit" />;

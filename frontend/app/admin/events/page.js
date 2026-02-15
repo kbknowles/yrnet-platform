@@ -5,17 +5,20 @@ import { formatDate } from "../../../lib/formatDate";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 async function getEvent(slug) {
-  const res = await fetch(
-    `${API_BASE}/api/events/${encodeURIComponent(slug)}`,
-    { cache: "no-store" }
-  );
+  try {
+    const res = await fetch(
+      `${API_BASE}/api/events/${encodeURIComponent(slug)}`,
+      { cache: "no-store" }
+    );
 
-  if (!res.ok) return null;
-  return res.json();
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
 }
 
 export default async function EventPage({ params }) {
-  // ✅ REQUIRED IN NEXT 16
   const { slug } = await params;
 
   if (!slug) notFound();
@@ -60,8 +63,12 @@ export default async function EventPage({ params }) {
               <h2 className="font-semibold mb-2">Location</h2>
               <p className="text-sm">
                 {location.name}
-                <br />
-                {fullAddress}
+                {fullAddress && (
+                  <>
+                    <br />
+                    {fullAddress}
+                  </>
+                )}
               </p>
 
               {fullAddress && (

@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 
+export default function EventSchedulePage() {
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+  const params = useParams();
+  const eventId = params?.id;
 
-
-export default function EventSchedulePage({ params }) {
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
-  const eventId = params.id;
   const [items, setItems] = useState([]);
   const [form, setForm] = useState({
     title: "",
@@ -16,26 +17,50 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
   });
 
   async function loadItems() {
-    const res = await fetch(
-      `${API_BASE}/api/admin/event-schedule/${eventId}`
-    );
-    setItems(await res.json());
+    if (!eventId) return;
+
+    try {
+      const res = await fetch(
+        `${API_BASE}/api/admin/event-schedule-items?eventId=${eventId}`,
+        { cache: "no-store" }
+      );
+
+      if (!res.ok) return;
+
+      const data = await res.json();
+      setItems(Array.isArray(data) ? data : []);
+    } catch {
+      setItems([]);
+    }
   }
 
   useEffect(() => {
-    loadItems();
-  }, []);
+    if (eventId) loadItems();
+  }, [eventId]);
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (!eventId) return;
 
-    await fetch(`${API_BASE}/api/admin/event-schedule`, {
+    await fetch(`${API_BASE}/api/admin/event-schedule-items`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, eventId }),
+      body: JSON.stringify({
+        eventId: Number(eventId),
+        label: form.title,
+        date: form.startTime,
+        startTime: form.startTime,
+        notes: form.notes,
+      }),
     });
 
-    setForm({ title: "", startTime: "", endTime: "", notes: "" });
+    setForm({
+      title: "",
+      startTime: "",
+      endTime: "",
+      notes: "",
+    });
+
     loadItems();
   }
 
@@ -53,6 +78,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
           }
           required
         />
+
         <input
           type="datetime-local"
           className="border rounded p-2"
@@ -62,14 +88,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
           }
           required
         />
-        <input
-          type="datetime-local"
-          className="border rounded p-2"
-          value={form.endTime}
-          onChange={(e) =>
-            setForm({ ...form, endTime: e.target.value })
-          }
-        />
+
         <textarea
           className="border rounded p-2"
           placeholder="Notes"
@@ -78,6 +97,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
             setForm({ ...form, notes: e.target.value })
           }
         />
+
         <button className="bg-ahsra-blue text-white rounded px-4 py-2">
           Add Schedule Item
         </button>
@@ -86,10 +106,15 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
       <section className="space-y-2">
         {items.map((i) => (
           <div key={i.id} className="border rounded p-3 bg-white">
-            <div className="font-medium">{i.title}</div>
+            <div className="font-medium">{i.label}</div>
             <div className="text-sm text-gray-600">
-              {new Date(i.startTime).toLocaleString()}
+              {new Date(i.date).toLocaleString()}
             </div>
+            {i.notes && (
+              <div className="text-xs text-gray-500 mt-1">
+                {i.notes}
+              </div>
+            )}
           </div>
         ))}
       </section>

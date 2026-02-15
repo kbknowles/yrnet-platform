@@ -1,3 +1,5 @@
+// filepath: frontend/app/admin/athletes/page.js
+
 import Link from "next/link";
 
 const API_BASE =
@@ -106,9 +108,9 @@ export default async function AthletesAdminPage() {
                   </p>
 
                   <p className="text-sm">
-                    <strong>Sponsors:</strong>{" "}
+                    <strong>Sponsorships:</strong>{" "}
                     <span className="font-medium">
-                      {a._count?.athleteSponsors ?? 0}
+                      {a._count?.sponsorships ?? 0}
                     </span>
                   </p>
                 </div>

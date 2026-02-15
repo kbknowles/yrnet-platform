@@ -7,7 +7,6 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 const EMPTY = {
   title: "",
   content: "",
-  type: "general",
   mode: "STANDARD",
   imageUrl: "",
   sortOrder: 0,
@@ -35,9 +34,9 @@ export default function AdminAnnouncementsPage() {
       fetch(`${API_BASE}/api/admin/events`).then((r) => r.json()),
       fetch(`${API_BASE}/api/admin/seasons`).then((r) => r.json()),
     ]);
-    setAnnouncements(a);
-    setEvents(e);
-    setSeasons(s);
+    setAnnouncements(a || []);
+    setEvents(e || []);
+    setSeasons(s || []);
     setLoading(false);
   }
 
@@ -49,8 +48,8 @@ export default function AdminAnnouncementsPage() {
   async function save() {
     const payload = {
       ...active,
-      eventId: active.eventId || null,
-      seasonId: active.seasonId || null,
+      eventId: active.eventId ? Number(active.eventId) : null,
+      seasonId: active.seasonId ? Number(active.seasonId) : null,
       sortOrder: Number(active.sortOrder) || 0,
       content: active.content || "",
       published: Boolean(active.published),
@@ -79,6 +78,7 @@ export default function AdminAnnouncementsPage() {
 
   /* ---------------- DELETE ---------------- */
   async function remove(id) {
+    if (!id) return;
     if (!confirm("Delete this announcement?")) return;
 
     await fetch(`${API_BASE}/api/admin/announcements/${id}`, {
@@ -91,10 +91,11 @@ export default function AdminAnnouncementsPage() {
 
   /* ---------------- POSTER UPLOAD ---------------- */
   async function uploadPoster(file) {
+    if (!file) return;
+
     setUploading(true);
     let announcement = active;
 
-    // Auto-create draft if needed
     if (!announcement.id) {
       const res = await fetch(`${API_BASE}/api/admin/announcements`, {
         method: "POST",
@@ -211,7 +212,7 @@ export default function AdminAnnouncementsPage() {
               }
             />
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <select
                 className="border p-2 rounded"
                 value={active.mode}
@@ -221,19 +222,6 @@ export default function AdminAnnouncementsPage() {
               >
                 <option value="STANDARD">Standard</option>
                 <option value="POSTER">Poster</option>
-              </select>
-
-              <select
-                className="border p-2 rounded"
-                value={active.type}
-                onChange={(e) =>
-                  setActive({ ...active, type: e.target.value })
-                }
-              >
-                <option value="general">General</option>
-                <option value="entry">Entry</option>
-                <option value="stall">Stall</option>
-                <option value="reminder">Reminder</option>
               </select>
 
               <input
@@ -247,7 +235,6 @@ export default function AdminAnnouncementsPage() {
               />
             </div>
 
-            {/* CONTENT */}
             <textarea
               className="w-full border p-2 rounded"
               rows={4}
@@ -262,7 +249,6 @@ export default function AdminAnnouncementsPage() {
               }
             />
 
-            {/* POSTER UPLOAD */}
             {active.mode === "POSTER" && (
               <>
                 {active.imageUrl && (
@@ -274,12 +260,11 @@ export default function AdminAnnouncementsPage() {
                   type="file"
                   accept=".png,.jpg,.jpeg,.pdf"
                   disabled={uploading}
-                  onChange={(e) => uploadPoster(e.target.files[0])}
+                  onChange={(e) => uploadPoster(e.target.files?.[0])}
                 />
               </>
             )}
 
-            {/* EVENT / SEASON */}
             <div className="grid grid-cols-2 gap-4">
               <select
                 className="border p-2 rounded"
@@ -312,7 +297,6 @@ export default function AdminAnnouncementsPage() {
               </select>
             </div>
 
-            {/* PUBLISH */}
             <div className="grid grid-cols-3 gap-4 items-center">
               <label className="flex items-center gap-2">
                 <input
@@ -344,7 +328,6 @@ export default function AdminAnnouncementsPage() {
               />
             </div>
 
-            {/* EXTRAS */}
             <textarea
               className="w-full border p-2 rounded font-mono text-xs"
               rows={3}

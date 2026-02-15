@@ -17,12 +17,39 @@ export default function AdminGalleryPage() {
 
   async function loadAlbums() {
     setLoading(true);
-    const res = await fetch(`${API_BASE}/api/admin/gallery`, {
-      cache: "no-store",
-    });
-    const data = await res.json();
-    setAlbums(data);
-    setLoading(false);
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/gallery`, {
+        cache: "no-store",
+      });
+
+      if (!res.ok) {
+        setAlbums([]);
+        setLoading(false);
+        return;
+      }
+
+      const data = await res.json();
+      setAlbums(Array.isArray(data) ? data : []);
+    } catch {
+      setAlbums([]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function refreshActiveAlbum(id) {
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/gallery`, {
+        cache: "no-store",
+      });
+
+      if (!res.ok) return;
+
+      const data = await res.json();
+      const updated = data.find((a) => a.id === id);
+      if (updated) setActiveAlbum(updated);
+      setAlbums(Array.isArray(data) ? data : []);
+    } catch {}
   }
 
   useEffect(() => {
@@ -43,10 +70,7 @@ export default function AdminGalleryPage() {
       body: JSON.stringify(payload),
     });
 
-    if (!res.ok) {
-      console.error("Failed to create album");
-      return;
-    }
+    if (!res.ok) return;
 
     setTitle("");
     setSeasonId("");
@@ -60,6 +84,10 @@ export default function AdminGalleryPage() {
       method: "DELETE",
     });
 
+    if (activeAlbum?.id === id) {
+      setActiveAlbum(null);
+    }
+
     loadAlbums();
   }
 
@@ -70,7 +98,7 @@ export default function AdminGalleryPage() {
     formData.append("image", uploadFile);
     formData.append("caption", caption);
 
-    await fetch(
+    const res = await fetch(
       `${API_BASE}/api/admin/gallery/${activeAlbum.id}/images`,
       {
         method: "POST",
@@ -78,17 +106,21 @@ export default function AdminGalleryPage() {
       }
     );
 
+    if (!res.ok) return;
+
     setUploadFile(null);
     setCaption("");
-    loadAlbums();
+    refreshActiveAlbum(activeAlbum.id);
   }
 
   async function deleteImage(imageId) {
+    if (!activeAlbum) return;
+
     await fetch(`${API_BASE}/api/admin/gallery/images/${imageId}`, {
       method: "DELETE",
     });
 
-    loadAlbums();
+    refreshActiveAlbum(activeAlbum.id);
   }
 
   if (loading) {
@@ -109,7 +141,6 @@ export default function AdminGalleryPage() {
             </tr>
           </thead>
           <tbody>
-            {/* ADD ROW */}
             <tr className="bg-blue-50">
               <td className="p-2 border">
                 <input
@@ -161,10 +192,9 @@ export default function AdminGalleryPage() {
         </table>
       </div>
 
-      {/* PHOTO MODAL */}
       {activeAlbum && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-          <div className="bg-white w-full max-w-3xl rounded shadow-lg p-6">
+          <div className="bg-white w-full max-w-3xl rounded shadow-lg p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold">
                 Photos — {activeAlbum.title}
@@ -181,7 +211,7 @@ export default function AdminGalleryPage() {
               <div className="grid md:grid-cols-3 gap-3">
                 <input
                   type="file"
-                  onChange={(e) => setUploadFile(e.target.files[0])}
+                  onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
                 />
                 <input
                   className="border rounded p-2"
@@ -205,7 +235,11 @@ export default function AdminGalleryPage() {
                   className="border rounded overflow-hidden bg-gray-100"
                 >
                   <img
-                    src={`${API_BASE}${img.imageUrl}`}
+                    src={
+                      img.imageUrl?.startsWith("http")
+                        ? img.imageUrl
+                        : `${API_BASE}${img.imageUrl}`
+                    }
                     alt={img.caption || ""}
                     className="h-32 w-full object-cover"
                   />

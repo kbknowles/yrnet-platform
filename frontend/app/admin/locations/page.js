@@ -25,9 +25,25 @@ export default function AdminLocationsPage() {
   const [active, setActive] = useState(null);
 
   async function load() {
-    const res = await fetch(`${API_BASE}/api/admin/locations`);
-    setLocations(await res.json());
-    setLoading(false);
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/locations`, {
+        cache: "no-store",
+      });
+
+      if (!res.ok) {
+        setLocations([]);
+        setLoading(false);
+        return;
+      }
+
+      const data = await res.json();
+      setLocations(Array.isArray(data) ? data : []);
+    } catch {
+      setLocations([]);
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -70,7 +86,15 @@ export default function AdminLocationsPage() {
 
   async function remove(id) {
     if (!confirm("Delete location?")) return;
-    await fetch(`${API_BASE}/api/admin/locations/${id}`, { method: "DELETE" });
+
+    await fetch(`${API_BASE}/api/admin/locations/${id}`, {
+      method: "DELETE",
+    });
+
+    if (active?.id === id) {
+      setActive(null);
+    }
+
     load();
   }
 
@@ -81,7 +105,9 @@ export default function AdminLocationsPage() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-xl font-semibold">Locations</h1>
         <button
-          onClick={() => setActive(structuredClone(EMPTY_LOCATION))}
+          onClick={() =>
+            setActive(JSON.parse(JSON.stringify(EMPTY_LOCATION)))
+          }
           className="bg-ahsra-blue text-white px-4 py-2 rounded"
         >
           + New Location
@@ -116,11 +142,11 @@ export default function AdminLocationsPage() {
                         city: l.city || "",
                         state: l.state || "AL",
                         zip: l.zip || "",
-                        venueInfo: l.venueInfo || {
-                          stalls: "",
-                          hookups: "",
-                          parking: "",
-                          notes: "",
+                        venueInfo: {
+                          stalls: l.venueInfo?.stalls || "",
+                          hookups: l.venueInfo?.hookups || "",
+                          parking: l.venueInfo?.parking || "",
+                          notes: l.venueInfo?.notes || "",
                         },
                       })
                     }
@@ -143,7 +169,7 @@ export default function AdminLocationsPage() {
 
       {active && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white w-full max-w-xl rounded shadow-lg p-6 space-y-4">
+          <div className="bg-white w-full max-w-xl rounded shadow-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto">
             <h2 className="text-lg font-semibold">
               {active.id ? "Edit Location" : "New Location"}
             </h2>
@@ -201,7 +227,7 @@ export default function AdminLocationsPage() {
                   key={f}
                   className="w-full border rounded p-2"
                   placeholder={f}
-                  value={active.venueInfo[f]}
+                  value={active.venueInfo?.[f] || ""}
                   onChange={(e) =>
                     setActive({
                       ...active,
@@ -218,7 +244,7 @@ export default function AdminLocationsPage() {
                 className="w-full border rounded p-2"
                 rows={3}
                 placeholder="Notes"
-                value={active.venueInfo.notes}
+                value={active.venueInfo?.notes || ""}
                 onChange={(e) =>
                   setActive({
                     ...active,
