@@ -6,7 +6,9 @@ import prisma from "../../prismaClient.mjs";
 const router = express.Router();
 
 /**
- * GET /api/admin/sponsorships
+ * ==============================
+ * GET ALL SPONSORSHIPS (ADMIN)
+ * ==============================
  */
 router.get("/", async (req, res) => {
   try {
@@ -23,12 +25,16 @@ router.get("/", async (req, res) => {
 });
 
 /**
- * GET /api/admin/sponsorships/:id
+ * ==============================
+ * GET SINGLE SPONSORSHIP
+ * ==============================
  */
 router.get("/:id", async (req, res) => {
   try {
+    const id = Number(req.params.id);
+
     const sponsorship = await prisma.sponsorship.findUnique({
-      where: { id: Number(req.params.id) },
+      where: { id },
       include: { sponsor: true },
     });
 
@@ -44,7 +50,9 @@ router.get("/:id", async (req, res) => {
 });
 
 /**
- * POST /api/admin/sponsorships
+ * ==============================
+ * CREATE SPONSORSHIP
+ * ==============================
  */
 router.post("/", async (req, res) => {
   try {
@@ -58,6 +66,12 @@ router.post("/", async (req, res) => {
       priority,
       active,
     } = req.body;
+
+    if (!sponsorId || !level || !startDate || !endDate) {
+      return res.status(400).json({
+        error: "Missing required fields",
+      });
+    }
 
     const sponsorship = await prisma.sponsorship.create({
       data: {
@@ -80,11 +94,16 @@ router.post("/", async (req, res) => {
 });
 
 /**
- * PUT /api/admin/sponsorships/:id
+ * ==============================
+ * UPDATE SPONSORSHIP
+ * ==============================
  */
 router.put("/:id", async (req, res) => {
   try {
+    const id = Number(req.params.id);
+
     const {
+      sponsorId,
       level,
       startDate,
       endDate,
@@ -95,11 +114,12 @@ router.put("/:id", async (req, res) => {
     } = req.body;
 
     const sponsorship = await prisma.sponsorship.update({
-      where: { id: Number(req.params.id) },
+      where: { id },
       data: {
+        sponsorId: sponsorId ? Number(sponsorId) : undefined,
         level,
-        startDate: new Date(startDate),
-        endDate: new Date(endDate),
+        startDate: startDate ? new Date(startDate) : undefined,
+        endDate: endDate ? new Date(endDate) : undefined,
         contentType: contentType || null,
         contentId: contentId ? Number(contentId) : null,
         priority: priority ?? 0,
@@ -115,12 +135,16 @@ router.put("/:id", async (req, res) => {
 });
 
 /**
- * DELETE /api/admin/sponsorships/:id
+ * ==============================
+ * DELETE SPONSORSHIP
+ * ==============================
  */
 router.delete("/:id", async (req, res) => {
   try {
+    const id = Number(req.params.id);
+
     await prisma.sponsorship.delete({
-      where: { id: Number(req.params.id) },
+      where: { id },
     });
 
     res.json({ success: true });
