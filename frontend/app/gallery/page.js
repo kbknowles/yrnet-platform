@@ -23,13 +23,7 @@ export default async function GalleryIndexPage() {
       <section className="space-y-4">
         <h1 className="text-2xl font-bold">Photo Gallery</h1>
 
-        {/* Header Sponsor Zone */}
-        <SponsorZone
-          contentType="GALLERY"
-          zone="HEADER"
-          slots={1}
-        />
-      </section>
+       </section>
 
       <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
         {albums.map((album) => {
@@ -67,7 +61,7 @@ export default async function GalleryIndexPage() {
       <SponsorZone
         contentType="GALLERY"
         zone="FOOTER"
-        slots={1}
+        slots={4}
       />
     </main>
   );

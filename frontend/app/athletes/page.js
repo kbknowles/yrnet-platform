@@ -49,12 +49,7 @@ export default async function AthletesPage() {
         </p>
       </section>
 
-      {/* Page-Level Sponsor Zone */}
-      <SponsorZone
-        contentType="ATHLETE"
-        contentId={null}
-        slots={4}
-      />
+ 
 
       {activeAthletes.length === 0 ? (
         <p>No athletes available.</p>
@@ -88,12 +83,6 @@ export default async function AthletesPage() {
                 </div>
               </Link>
 
-              {/* Athlete-Level Sponsor Zone (Direct + Backfill) */}
-              <SponsorZone
-                contentType="ATHLETE"
-                contentId={a.id}
-                slots={1}
-              />
             </div>
           ))}
         </div>
@@ -105,6 +94,13 @@ export default async function AthletesPage() {
           recruiting and sponsorship visibility.
         </p>
       </section>
+  
+     {/* Page-Level Sponsor Zone */}
+      <SponsorZone
+        contentType="ATHLETE"
+        contentId={null}
+        slots={4}
+      />
     </main>
   );
 }
