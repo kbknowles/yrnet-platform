@@ -34,7 +34,7 @@ export default function MediaSwiper({ items, thumbHeight = "h-[220px]" }) {
               setIndex(i);
               setOpen(true);
             }}
-            className="border rounded bg-white overflow-hidden"
+            className="border rounded overflow-hidden"
           >
             <img
               src={resolveSrc(item.imageUrl)}

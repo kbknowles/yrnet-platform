@@ -124,7 +124,7 @@ export default async function EventPage({ params }) {
               {standardAnnouncements.map((a) => (
                 <div
                   key={a.id}
-                  className="border rounded p-4 bg-white"
+                  className="border rounded p-4"
                 >
                   {a.title && (
                     <div className="font-medium mb-1">
@@ -143,6 +143,11 @@ export default async function EventPage({ params }) {
         </div>
       </div>
 
+
+      <Link href="/schedule" className="underline">
+        Back to schedule
+      </Link>
+
       {/* FOOTER / TITLE LEVEL AREA */}
       <SponsorZone
         contentType="EVENT"
@@ -151,9 +156,6 @@ export default async function EventPage({ params }) {
         slots={4}
       />
 
-      <Link href="/schedule" className="underline">
-        Back to schedule
-      </Link>
     </main>
   );
 }

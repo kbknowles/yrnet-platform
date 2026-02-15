@@ -5,14 +5,20 @@ import { useState } from "react";
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "";
 
+/**
+ * Sponsor = Vendor Record Only
+ * No tier, no dates, no active flag
+ * Sponsorship logic handled separately
+ */
 export default function SponsorForm({ onCreated }) {
   const [form, setForm] = useState({
     name: "",
     website: "",
-    tier: "BRONZE",
-    startDate: "",
-    endDate: "",
-    active: true,
+    description: "",
+    contactName: "",
+    contactEmail: "",
+    contactPhone: "",
+    internalNotes: "",
   });
 
   const [logoFile, setLogoFile] = useState(null);
@@ -20,7 +26,7 @@ export default function SponsorForm({ onCreated }) {
   async function handleSubmit(e) {
     e.preventDefault();
 
-    // 1️⃣ Create sponsor first
+    // 1️⃣ Create sponsor (vendor only)
     const res = await fetch(`${API_BASE}/api/sponsors`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -29,7 +35,7 @@ export default function SponsorForm({ onCreated }) {
 
     const created = await res.json();
 
-    // 2️⃣ Upload logo if selected
+    // 2️⃣ Upload logo if selected (requires sponsor ID)
     if (logoFile && created?.id) {
       const formData = new FormData();
       formData.append("file", logoFile);
@@ -47,11 +53,13 @@ export default function SponsorForm({ onCreated }) {
     setForm({
       name: "",
       website: "",
-      tier: "BRONZE",
-      startDate: "",
-      endDate: "",
-      active: true,
+      description: "",
+      contactName: "",
+      contactEmail: "",
+      contactPhone: "",
+      internalNotes: "",
     });
+
     setLogoFile(null);
 
     onCreated?.(created);
@@ -60,6 +68,7 @@ export default function SponsorForm({ onCreated }) {
   return (
     <form onSubmit={handleSubmit} className="grid gap-4 max-w-xl">
 
+      {/* Sponsor Name */}
       <input
         className="border rounded p-2"
         placeholder="Sponsor Name"
@@ -70,40 +79,7 @@ export default function SponsorForm({ onCreated }) {
         required
       />
 
-      <select
-        className="border rounded p-2"
-        value={form.tier}
-        onChange={(e) =>
-          setForm({ ...form, tier: e.target.value })
-        }
-      >
-        <option value="TITLE">TITLE</option>
-        <option value="GOLD">GOLD</option>
-        <option value="SILVER">SILVER</option>
-        <option value="BRONZE">BRONZE</option>
-        <option value="ATHLETE">ATHLETE</option>
-      </select>
-
-      <input
-        type="date"
-        className="border rounded p-2"
-        value={form.startDate}
-        onChange={(e) =>
-          setForm({ ...form, startDate: e.target.value })
-        }
-        required
-      />
-
-      <input
-        type="date"
-        className="border rounded p-2"
-        value={form.endDate}
-        onChange={(e) =>
-          setForm({ ...form, endDate: e.target.value })
-        }
-        required
-      />
-
+      {/* Website */}
       <input
         className="border rounded p-2"
         placeholder="Website"
@@ -113,6 +89,55 @@ export default function SponsorForm({ onCreated }) {
         }
       />
 
+      {/* Description */}
+      <textarea
+        className="border rounded p-2"
+        placeholder="Short Description"
+        value={form.description}
+        onChange={(e) =>
+          setForm({ ...form, description: e.target.value })
+        }
+      />
+
+      {/* Contact Info */}
+      <input
+        className="border rounded p-2"
+        placeholder="Contact Name"
+        value={form.contactName}
+        onChange={(e) =>
+          setForm({ ...form, contactName: e.target.value })
+        }
+      />
+
+      <input
+        className="border rounded p-2"
+        placeholder="Contact Email"
+        value={form.contactEmail}
+        onChange={(e) =>
+          setForm({ ...form, contactEmail: e.target.value })
+        }
+      />
+
+      <input
+        className="border rounded p-2"
+        placeholder="Contact Phone"
+        value={form.contactPhone}
+        onChange={(e) =>
+          setForm({ ...form, contactPhone: e.target.value })
+        }
+      />
+
+      {/* Internal Notes (Admin Only) */}
+      <textarea
+        className="border rounded p-2"
+        placeholder="Internal Notes"
+        value={form.internalNotes}
+        onChange={(e) =>
+          setForm({ ...form, internalNotes: e.target.value })
+        }
+      />
+
+      {/* Logo Upload */}
       <div>
         <label className="block text-sm mb-1">
           Logo (800x800 PNG recommended)
@@ -123,17 +148,6 @@ export default function SponsorForm({ onCreated }) {
           onChange={(e) => setLogoFile(e.target.files[0])}
         />
       </div>
-
-      <label className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          checked={form.active}
-          onChange={(e) =>
-            setForm({ ...form, active: e.target.checked })
-          }
-        />
-        Active
-      </label>
 
       <button className="bg-ahsra-blue text-white rounded px-4 py-2">
         Add Sponsor

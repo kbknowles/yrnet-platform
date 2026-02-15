@@ -1,64 +1,109 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
-const TIERS = ["TITLE", "GOLD", "SILVER", "BRONZE", "ATHLETE"];
+/**
+ * Sponsor = Vendor Record Only
+ * NO tier
+ * NO dates
+ * NO active flag
+ * Sponsorship placement handled separately
+ */
+export default function SponsorForm({
+  sponsor = {},
+  onClose,
+  onSaved,
+}) {
+  const isEdit = Boolean(sponsor?.id);
 
-export default function SponsorForm({ sponsor, onClose, onSaved }) {
-  const isEdit = Boolean(sponsor.id);
+  const [sponsorId, setSponsorId] = useState(sponsor?.id || null);
 
   const [form, setForm] = useState({
-    name: sponsor.name || "",
-    tier: sponsor.tier || "BRONZE",
-    website: sponsor.website || "",
-    description: sponsor.description || "",
-    contactName: sponsor.contactName || "",
-    contactEmail: sponsor.contactEmail || "",
-    contactPhone: sponsor.contactPhone || "",
-    startDate: sponsor.startDate
-      ? sponsor.startDate.split("T")[0]
-      : "",
-    endDate: sponsor.endDate
-      ? sponsor.endDate.split("T")[0]
-      : "",
-    active: sponsor.active ?? true,
-    internalNotes: sponsor.internalNotes || "",
+    name: "",
+    website: "",
+    description: "",
+    contactName: "",
+    contactEmail: "",
+    contactPhone: "",
+    internalNotes: "",
   });
 
-  const [logoPreview, setLogoPreview] = useState(sponsor.logoUrl || "");
-  const [bannerPreview, setBannerPreview] = useState(sponsor.bannerUrl || "");
+  const [logoPreview, setLogoPreview] = useState("");
+  const [bannerPreview, setBannerPreview] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+
+  // Load sponsor into form when editing
+  useEffect(() => {
+    if (!sponsor) return;
+
+    setForm({
+      name: sponsor.name || "",
+      website: sponsor.website || "",
+      description: sponsor.description || "",
+      contactName: sponsor.contactName || "",
+      contactEmail: sponsor.contactEmail || "",
+      contactPhone: sponsor.contactPhone || "",
+      internalNotes: sponsor.internalNotes || "",
+    });
+
+    setLogoPreview(sponsor.logoUrl || "");
+    setBannerPreview(sponsor.bannerUrl || "");
+    setSponsorId(sponsor.id || null);
+  }, [sponsor]);
 
   function handleChange(e) {
-    const { name, value, type, checked } = e.target;
-    setForm({
-      ...form,
-      [name]: type === "checkbox" ? checked : value,
-    });
+    const { name, value } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
+    setError(null);
+    setSaving(true);
 
-    const method = isEdit ? "PUT" : "POST";
-    const url = isEdit
-      ? `${API_BASE}/api/sponsors/${sponsor.id}`
-      : `${API_BASE}/api/sponsors`;
+    try {
+      const method = sponsorId ? "PUT" : "POST";
+      const url = sponsorId
+        ? `${API_BASE}/api/sponsors/${sponsorId}`
+        : `${API_BASE}/api/sponsors`;
 
-    const res = await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
 
-    const data = await res.json();
+      if (!res.ok) {
+        throw new Error("Save failed");
+      }
 
-    onSaved(data);
+      const data = await res.json();
+
+      // ensure we store ID if newly created
+      if (!sponsorId && data?.id) {
+        setSponsorId(data.id);
+      }
+
+      onSaved?.(data);
+      onClose?.();
+    } catch (err) {
+      console.error("Sponsor save error:", err);
+      setError("Unable to save sponsor.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function uploadFile(file, type) {
-    if (!sponsor.id) {
+    if (!file) return;
+
+    if (!sponsorId) {
       alert("Save sponsor before uploading images.");
       return;
     }
@@ -68,30 +113,24 @@ export default function SponsorForm({ sponsor, onClose, onSaved }) {
 
     const endpoint =
       type === "logo"
-        ? `${API_BASE}/api/sponsors/${sponsor.id}/upload-logo`
-        : `${API_BASE}/api/sponsors/${sponsor.id}/upload-banner`;
+        ? `${API_BASE}/api/sponsors/${sponsorId}/upload-logo`
+        : `${API_BASE}/api/sponsors/${sponsorId}/upload-banner`;
 
-    const res = await fetch(endpoint, {
-      method: "POST",
-      body: formData,
-    });
+    try {
+      const res = await fetch(endpoint, {
+        method: "POST",
+        body: formData,
+      });
 
-    const data = await res.json();
+      if (!res.ok) throw new Error("Upload failed");
 
-    if (type === "logo") setLogoPreview(data.logoUrl);
-    if (type === "banner") setBannerPreview(data.bannerUrl);
-  }
+      const data = await res.json();
 
-  function bannerRequirement(tier) {
-    switch (tier) {
-      case "TITLE":
-        return "Required: 1200 × 300";
-      case "GOLD":
-        return "Required: 1000 × 250";
-      case "SILVER":
-        return "Required: 800 × 200";
-      default:
-        return "Banner not required for this tier.";
+      if (type === "logo") setLogoPreview(data.logoUrl);
+      if (type === "banner") setBannerPreview(data.bannerUrl);
+    } catch (err) {
+      console.error("Upload error:", err);
+      alert("Upload failed.");
     }
   }
 
@@ -101,9 +140,15 @@ export default function SponsorForm({ sponsor, onClose, onSaved }) {
         {isEdit ? "Edit Sponsor" : "Add Sponsor"}
       </h2>
 
+      {error && (
+        <div className="mb-4 p-3 border rounded text-red-600 bg-white">
+          {error}
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-6">
 
-        {/* Sponsor Name */}
+        {/* Name */}
         <input
           name="name"
           value={form.name}
@@ -113,32 +158,9 @@ export default function SponsorForm({ sponsor, onClose, onSaved }) {
           required
         />
 
-        {/* Tier */}
-        <div>
-          <label className="block mb-1 font-medium">Tier</label>
-          <select
-            name="tier"
-            value={form.tier}
-            onChange={handleChange}
-            className="w-full border p-2 rounded"
-          >
-            {TIERS.map((tier) => (
-              <option key={tier} value={tier}>
-                {tier}
-              </option>
-            ))}
-          </select>
-          <p className="text-sm text-gray-600 mt-1">
-            {bannerRequirement(form.tier)}
-          </p>
-        </div>
-
-        {/* Logo Upload */}
+        {/* Logo */}
         <div>
           <label className="block font-medium mb-1">Logo</label>
-          <p className="text-sm text-gray-600 mb-2">
-            Required. 800 × 800 PNG. Transparent background recommended.
-          </p>
 
           {logoPreview && (
             <img
@@ -151,17 +173,13 @@ export default function SponsorForm({ sponsor, onClose, onSaved }) {
           <input
             type="file"
             accept="image/*"
-            onChange={(e) => uploadFile(e.target.files[0], "logo")}
-            className="w-full"
+            onChange={(e) => uploadFile(e.target.files?.[0], "logo")}
           />
         </div>
 
-        {/* Banner Upload */}
+        {/* Banner */}
         <div>
           <label className="block font-medium mb-1">Banner</label>
-          <p className="text-sm text-gray-600 mb-2">
-            {bannerRequirement(form.tier)}
-          </p>
 
           {bannerPreview && (
             <img
@@ -174,8 +192,7 @@ export default function SponsorForm({ sponsor, onClose, onSaved }) {
           <input
             type="file"
             accept="image/*"
-            onChange={(e) => uploadFile(e.target.files[0], "banner")}
-            className="w-full"
+            onChange={(e) => uploadFile(e.target.files?.[0], "banner")}
           />
         </div>
 
@@ -197,7 +214,7 @@ export default function SponsorForm({ sponsor, onClose, onSaved }) {
           className="w-full border p-2 rounded"
         />
 
-        {/* Contact Info */}
+        {/* Contact */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <input
             name="contactName"
@@ -222,37 +239,6 @@ export default function SponsorForm({ sponsor, onClose, onSaved }) {
           />
         </div>
 
-        {/* Dates */}
-        <div className="grid grid-cols-2 gap-4">
-          <input
-            type="date"
-            name="startDate"
-            value={form.startDate}
-            onChange={handleChange}
-            className="border p-2 rounded"
-            required
-          />
-          <input
-            type="date"
-            name="endDate"
-            value={form.endDate}
-            onChange={handleChange}
-            className="border p-2 rounded"
-            required
-          />
-        </div>
-
-        {/* Active */}
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            name="active"
-            checked={form.active}
-            onChange={handleChange}
-          />
-          Active
-        </label>
-
         {/* Internal Notes */}
         <textarea
           name="internalNotes"
@@ -266,10 +252,12 @@ export default function SponsorForm({ sponsor, onClose, onSaved }) {
         <div className="flex gap-3">
           <button
             type="submit"
+            disabled={saving}
             className="bg-black text-white px-4 py-2 rounded"
           >
-            Save
+            {saving ? "Saving..." : "Save"}
           </button>
+
           <button
             type="button"
             onClick={onClose}

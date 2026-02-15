@@ -26,7 +26,7 @@ export default function PosterGallery({ posters }) {
               setIndex(i);
               setOpen(true);
             }}
-            className="border rounded bg-white overflow-hidden"
+            className="border rounded overflow-hidden"
           >
             <img
               src={`${API_BASE}${p.imageUrl}`}

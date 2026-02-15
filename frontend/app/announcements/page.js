@@ -46,12 +46,12 @@ export default function AnnouncementsPage() {
             eventHref ? (
               <Link
                 href={eventHref}
-                className="bg-white border rounded shadow-sm overflow-hidden flex flex-col hover:shadow-md transition"
+                className=" border rounded shadow-sm overflow-hidden flex flex-col hover:shadow-md transition"
               >
                 {children}
               </Link>
             ) : (
-              <div className="bg-white border rounded shadow-sm overflow-hidden flex flex-col">
+              <div className=" border rounded shadow-sm overflow-hidden flex flex-col">
                 {children}
               </div>
             );
@@ -66,7 +66,7 @@ export default function AnnouncementsPage() {
                 <img
                   src={imageSrc}
                   alt={a.title}
-                  className="w-full h-[240px] object-contain bg-white"
+                  className="w-full h-[240px] object-contain"
                 />
               )}
 

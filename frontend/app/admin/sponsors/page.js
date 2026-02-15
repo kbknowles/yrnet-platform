@@ -6,6 +6,11 @@ import SponsorForm from "./SponsorForm";
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "";
 
+/**
+ * Sponsors Admin Page
+ * Sponsor = Vendor Contact Record Only
+ * Sponsorship levels/dates handled in Sponsorship module
+ */
 export default function SponsorsAdminPage() {
   const [sponsors, setSponsors] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -34,29 +39,24 @@ export default function SponsorsAdminPage() {
     fetchSponsors();
   }, []);
 
-  function formatDate(date) {
-    if (!date) return "—";
-    try {
-      return new Date(date).toLocaleDateString();
-    } catch {
-      return "—";
-    }
-  }
-
   if (loading) return <div className="p-6">Loading...</div>;
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
+
+      {/* Header */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Sponsors</h1>
         <button
           onClick={() =>
             setEditing({
               name: "",
-              tier: "BRONZE",
-              startDate: "",
-              endDate: "",
-              active: true,
+              website: "",
+              description: "",
+              contactName: "",
+              contactEmail: "",
+              contactPhone: "",
+              internalNotes: "",
             })
           }
           className="bg-black text-white px-4 py-2 rounded"
@@ -71,24 +71,27 @@ export default function SponsorsAdminPage() {
         </div>
       )}
 
+      {/* Sponsor Form (Create / Edit) */}
       {editing && (
         <SponsorForm
           sponsor={editing}
           onClose={() => setEditing(null)}
           onSaved={(savedSponsor) => {
-            // IMPORTANT: stay in edit mode so uploads work
+            // Stay in edit mode after save so logo upload works
             setEditing(savedSponsor);
             fetchSponsors();
           }}
         />
       )}
 
+      {/* Empty State */}
       {sponsors.length === 0 && !error && (
         <div className="border p-4 rounded text-gray-600">
           No sponsors found.
         </div>
       )}
 
+      {/* Sponsor List */}
       {sponsors.length > 0 && (
         <div className="border rounded divide-y">
           {sponsors.map((s) => (
@@ -98,8 +101,10 @@ export default function SponsorsAdminPage() {
             >
               <div>
                 <div className="font-semibold">{s.name}</div>
+
+                {/* Vendor-level info only */}
                 <div className="text-sm text-gray-600">
-                  {s.tier} | {formatDate(s.startDate)} - {formatDate(s.endDate)}
+                  {s.website || "No website provided"}
                 </div>
               </div>
 
@@ -110,6 +115,7 @@ export default function SponsorsAdminPage() {
                 >
                   Edit
                 </button>
+
                 <button
                   onClick={async () => {
                     if (!confirm("Delete this sponsor?")) return;
