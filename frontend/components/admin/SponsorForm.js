@@ -2,14 +2,8 @@
 
 import { useState } from "react";
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL || "";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
-/**
- * Sponsor = Vendor Record Only
- * No tier, no dates, no active flag
- * Sponsorship logic handled separately
- */
 export default function SponsorForm({ onCreated }) {
   const [form, setForm] = useState({
     name: "",
@@ -21,137 +15,210 @@ export default function SponsorForm({ onCreated }) {
     internalNotes: "",
   });
 
+  const [sponsorId, setSponsorId] = useState(null);
+
   const [logoFile, setLogoFile] = useState(null);
+  const [bannerFile, setBannerFile] = useState(null);
+
+  const [logoUrl, setLogoUrl] = useState("");
+  const [bannerUrl, setBannerUrl] = useState("");
+
+  const [saving, setSaving] = useState(false);
+
+  function update(field, value) {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
+    setSaving(true);
 
-    // 1️⃣ Create sponsor (vendor only)
-    const res = await fetch(`${API_BASE}/api/sponsors`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
+    try {
+      const res = await fetch(`${API_BASE}/api/sponsors`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
 
-    const created = await res.json();
+      if (!res.ok) throw new Error("Create failed");
 
-    // 2️⃣ Upload logo if selected (requires sponsor ID)
-    if (logoFile && created?.id) {
-      const formData = new FormData();
-      formData.append("file", logoFile);
+      const created = await res.json();
+      setSponsorId(created.id);
 
-      await fetch(
-        `${API_BASE}/api/sponsors/${created.id}/upload-logo`,
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
+      if (logoFile) await uploadFile(created.id, logoFile, "logo");
+      if (bannerFile) await uploadFile(created.id, bannerFile, "banner");
+
+      onCreated?.(created);
+    } catch (err) {
+      console.error("Sponsor create error:", err);
+    } finally {
+      setSaving(false);
     }
+  }
 
-    // Reset form
-    setForm({
-      name: "",
-      website: "",
-      description: "",
-      contactName: "",
-      contactEmail: "",
-      contactPhone: "",
-      internalNotes: "",
+  async function uploadFile(id, file, type) {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const endpoint =
+      type === "logo"
+        ? `${API_BASE}/api/sponsors/${id}/upload-logo`
+        : `${API_BASE}/api/sponsors/${id}/upload-banner`;
+
+    const res = await fetch(endpoint, {
+      method: "POST",
+      body: formData,
     });
 
-    setLogoFile(null);
+    if (!res.ok) return;
 
-    onCreated?.(created);
+    const updated = await res.json();
+
+    if (type === "logo") setLogoUrl(updated.logoUrl);
+    if (type === "banner") setBannerUrl(updated.bannerUrl);
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-4 max-w-xl">
+    <div className="bg-white border rounded-lg p-6 shadow-sm max-w-5xl">
+      <h2 className="text-lg font-semibold mb-4">Add Sponsor</h2>
 
-      {/* Sponsor Name */}
-      <input
-        className="border rounded p-2"
-        placeholder="Sponsor Name"
-        value={form.name}
-        onChange={(e) =>
-          setForm({ ...form, name: e.target.value })
-        }
-        required
-      />
+      <form onSubmit={handleSubmit} className="space-y-5">
 
-      {/* Website */}
-      <input
-        className="border rounded p-2"
-        placeholder="Website"
-        value={form.website}
-        onChange={(e) =>
-          setForm({ ...form, website: e.target.value })
-        }
-      />
+        {/* Basic Info */}
+        <div className="grid md:grid-cols-2 gap-4">
+          <input
+            className="border rounded p-2 text-sm"
+            placeholder="Sponsor Name"
+            value={form.name}
+            onChange={(e) => update("name", e.target.value)}
+            required
+          />
+          <input
+            className="border rounded p-2 text-sm"
+            placeholder="Website"
+            value={form.website}
+            onChange={(e) => update("website", e.target.value)}
+          />
+        </div>
 
-      {/* Description */}
-      <textarea
-        className="border rounded p-2"
-        placeholder="Short Description"
-        value={form.description}
-        onChange={(e) =>
-          setForm({ ...form, description: e.target.value })
-        }
-      />
+        <div className="grid md:grid-cols-3 gap-4">
+          <input
+            className="border rounded p-2 text-sm"
+            placeholder="Contact Name"
+            value={form.contactName}
+            onChange={(e) => update("contactName", e.target.value)}
+          />
+          <input
+            className="border rounded p-2 text-sm"
+            placeholder="Contact Email"
+            value={form.contactEmail}
+            onChange={(e) => update("contactEmail", e.target.value)}
+          />
+          <input
+            className="border rounded p-2 text-sm"
+            placeholder="Contact Phone"
+            value={form.contactPhone}
+            onChange={(e) => update("contactPhone", e.target.value)}
+          />
+        </div>
 
-      {/* Contact Info */}
-      <input
-        className="border rounded p-2"
-        placeholder="Contact Name"
-        value={form.contactName}
-        onChange={(e) =>
-          setForm({ ...form, contactName: e.target.value })
-        }
-      />
-
-      <input
-        className="border rounded p-2"
-        placeholder="Contact Email"
-        value={form.contactEmail}
-        onChange={(e) =>
-          setForm({ ...form, contactEmail: e.target.value })
-        }
-      />
-
-      <input
-        className="border rounded p-2"
-        placeholder="Contact Phone"
-        value={form.contactPhone}
-        onChange={(e) =>
-          setForm({ ...form, contactPhone: e.target.value })
-        }
-      />
-
-      {/* Internal Notes (Admin Only) */}
-      <textarea
-        className="border rounded p-2"
-        placeholder="Internal Notes"
-        value={form.internalNotes}
-        onChange={(e) =>
-          setForm({ ...form, internalNotes: e.target.value })
-        }
-      />
-
-      {/* Logo Upload */}
-      <div>
-        <label className="block text-sm mb-1">
-          Logo (800x800 PNG recommended)
-        </label>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => setLogoFile(e.target.files[0])}
+        <textarea
+          className="border rounded p-2 text-sm w-full"
+          rows={2}
+          placeholder="Short Description"
+          value={form.description}
+          onChange={(e) => update("description", e.target.value)}
         />
-      </div>
 
-      <button className="bg-ahsra-blue text-white rounded px-4 py-2">
-        Add Sponsor
-      </button>
-    </form>
+        <textarea
+          className="border rounded p-2 text-sm w-full"
+          rows={2}
+          placeholder="Internal Notes"
+          value={form.internalNotes}
+          onChange={(e) => update("internalNotes", e.target.value)}
+        />
+
+        {/* Images Section — Bottom Row */}
+        <div className="border-t pt-6">
+          <div className="grid md:grid-cols-2 gap-6">
+
+            {/* LOGO */}
+            <div className="space-y-3">
+              <div className="text-sm font-semibold">Logo</div>
+
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setLogoFile(e.target.files?.[0])}
+                className="text-sm"
+              />
+
+              {logoFile && (
+                <img
+                  src={URL.createObjectURL(logoFile)}
+                  alt="Logo Preview"
+                  className="h-20 object-contain border rounded bg-white p-2"
+                />
+              )}
+
+              {logoUrl && (
+                <>
+                  <div className="text-xs text-gray-600 break-all">
+                    {API_BASE}{logoUrl}
+                  </div>
+                  <img
+                    src={`${API_BASE}${logoUrl}`}
+                    alt="Saved Logo"
+                    className="h-20 object-contain border rounded bg-white p-2"
+                  />
+                </>
+              )}
+            </div>
+
+            {/* BANNER */}
+            <div className="space-y-3">
+              <div className="text-sm font-semibold">Banner</div>
+
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setBannerFile(e.target.files?.[0])}
+                className="text-sm"
+              />
+
+              {bannerFile && (
+                <img
+                  src={URL.createObjectURL(bannerFile)}
+                  alt="Banner Preview"
+                  className="h-20 object-contain border rounded bg-white p-2"
+                />
+              )}
+
+              {bannerUrl && (
+                <>
+                  <div className="text-xs text-gray-600 break-all">
+                    {API_BASE}{bannerUrl}
+                  </div>
+                  <img
+                    src={`${API_BASE}${bannerUrl}`}
+                    alt="Saved Banner"
+                    className="h-20 object-contain border rounded bg-white p-2"
+                  />
+                </>
+              )}
+            </div>
+
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          disabled={saving}
+          className="bg-ahsra-blue text-white px-5 py-2 rounded text-sm"
+        >
+          {saving ? "Saving..." : "Create Sponsor"}
+        </button>
+      </form>
+    </div>
   );
 }

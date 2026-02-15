@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import SponsorForm from "./SponsorForm";
+import SponsorForm from "../../../components/admin/SponsorForm";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "";

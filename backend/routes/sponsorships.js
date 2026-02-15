@@ -4,18 +4,28 @@ import prisma from "../prismaClient.mjs";
 const router = express.Router();
 
 /**
+ * ===============================
  * GET /api/sponsorships
- * Returns all active sponsorships
+ * Optional filters:
+ *   ?levels=PREMIER,FEATURED
+ * ===============================
  */
 router.get("/", async (req, res) => {
   try {
     const now = new Date();
+    const { levels } = req.query;
+
+    const levelFilter =
+      levels && typeof levels === "string"
+        ? { level: { in: levels.split(",") } }
+        : {};
 
     const sponsorships = await prisma.sponsorship.findMany({
       where: {
         active: true,
         startDate: { lte: now },
         endDate: { gte: now },
+        ...levelFilter,
       },
       include: { sponsor: true },
       orderBy: [
@@ -32,31 +42,43 @@ router.get("/", async (req, res) => {
 });
 
 /**
+ * ===============================
  * GET /api/sponsorships/resolve
- * 
+ *
  * Query:
- *  contentType=ATHLETE|EVENT|LOCATION|GALLERY|ANNOUNCEMENT|SEASON
- *  contentId=number
+ *   contentType=SEASON|ATHLETE|EVENT|...
+ *   contentId=number|null
+ *   levels=PREMIER,FEATURED
+ * ===============================
  */
 router.get("/resolve", async (req, res) => {
   try {
-    const { contentType, contentId } = req.query;
     const now = new Date();
+    const { contentType, contentId, levels } = req.query;
 
     const numericContentId =
       contentId && !isNaN(Number(contentId))
         ? Number(contentId)
-        : undefined;
+        : null;
 
+    const levelFilter =
+      levels && typeof levels === "string"
+        ? { level: { in: levels.split(",") } }
+        : {};
+
+    /**
+     * DIRECT MATCH
+     */
     const direct = await prisma.sponsorship.findMany({
       where: {
         active: true,
         startDate: { lte: now },
         endDate: { gte: now },
         ...(contentType ? { contentType } : {}),
-        ...(numericContentId !== undefined
+        ...(numericContentId !== null
           ? { contentId: numericContentId }
           : {}),
+        ...levelFilter,
       },
       include: { sponsor: true },
       orderBy: [
@@ -65,6 +87,9 @@ router.get("/resolve", async (req, res) => {
       ],
     });
 
+    /**
+     * BACKFILL (GLOBAL / SEASON LEVEL)
+     */
     const backfill = await prisma.sponsorship.findMany({
       where: {
         active: true,
@@ -72,11 +97,12 @@ router.get("/resolve", async (req, res) => {
         endDate: { gte: now },
         contentType: null,
         contentId: null,
+        ...levelFilter,
       },
       include: { sponsor: true },
       orderBy: [
-        { level: "asc" },
         { priority: "desc" },
+        { level: "asc" },
       ],
     });
 

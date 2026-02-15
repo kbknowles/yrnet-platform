@@ -29,7 +29,6 @@ import eventsPublicRouter from "./events.js";
 import schedulePublicRouter from "./schedule.js";
 import announcementsPublicRouter from "./announcements.js";
 import sponsorsRoutes from "./sponsors.js";
-import sponsorshipRoutes from "./sponsorships.js";
 import seasonsRoutes from "./seasons.js";
 import galleryRoutes from "./gallery.js";
 import homeRoutes from "./home.js";
@@ -37,6 +36,8 @@ import officersPublicRouter from "./officers.js";
 import pagesRoutes from "./pages.js";
 import athletesPublicRouter from "./athletes.js";
 import calendarRoutes from "./calendar.js";
+import sponsorshipRoutes from "./sponsorships.js";
+
 
 const router = express.Router();
 
@@ -61,7 +62,6 @@ router.use("/events", eventsPublicRouter);
 router.use("/schedule", schedulePublicRouter);
 router.use("/announcements", announcementsPublicRouter);
 router.use("/sponsors", sponsorsRoutes);
-router.use("/sponsorships", sponsorshipRoutes);
 router.use("/seasons", seasonsRoutes);
 router.use("/gallery", galleryRoutes);
 router.use("/home", homeRoutes);
@@ -69,5 +69,6 @@ router.use("/officers", officersPublicRouter);
 router.use("/pages", pagesRoutes);
 router.use("/athletes", athletesPublicRouter);
 router.use("/calendar", calendarRoutes);
+router.use("/sponsorships", sponsorshipRoutes);
 
 export default router;
