@@ -6,6 +6,8 @@ import HomeHighlights from "../components/home/HomeHighlights";
 import EventGallery from "../components/home/EventGallery";
 import HomeCTA from "../components/home/HomeCTA";
 
+import SponsorZone from "../components/sponsorship/SponsorZone";
+
 export default async function HomePage() {
   const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -61,7 +63,6 @@ export default async function HomePage() {
   levels={["PREMIER", "FEATURED"]}
   slots={4}
 />
-
 
 
       <HomeCTA />

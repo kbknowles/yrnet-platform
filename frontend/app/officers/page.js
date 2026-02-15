@@ -92,10 +92,10 @@ export default function OfficersPage() {
 
       {/* Footer Sponsor Zone */}
       <SponsorZone
-        contentType={null}
+        contentType={"SEASON"}
         contentId={null}
         zone="FOOTER"
-        slots={1}
+        slots={4}
       />
     </div>
   );

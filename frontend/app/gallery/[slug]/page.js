@@ -30,7 +30,7 @@ export default async function GalleryAlbumPage({ params }) {
           contentType="GALLERY"
           contentId={album.id}
           zone="HEADER"
-          slots={1}
+          slots={4}
         />
       </section>
 
@@ -51,13 +51,7 @@ export default async function GalleryAlbumPage({ params }) {
         ))}
       </div>
 
-      {/* Footer Sponsor Zone */}
-      <SponsorZone
-        contentType="GALLERY"
-        contentId={album.id}
-        zone="FOOTER"
-        slots={1}
-      />
+
     </main>
   );
 }

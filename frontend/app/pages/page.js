@@ -62,7 +62,7 @@ export default async function PagesIndex() {
         contentType={null}
         contentId={null}
         zone="FOOTER"
-        slots={1}
+        slots={4}
       />
     </main>
   );

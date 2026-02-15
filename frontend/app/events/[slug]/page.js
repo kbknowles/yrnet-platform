@@ -69,13 +69,6 @@ export default async function EventPage({ params }) {
           </p>
         </div>
 
-        {/* HEADER SPONSOR ZONE */}
-        <SponsorZone
-          contentType="EVENT"
-          contentId={event.id}
-          zone="HEADER"
-          slots={2}
-        />
       </section>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -114,13 +107,6 @@ export default async function EventPage({ params }) {
                 </div>
               )}
 
-              {/* LOCATION SPONSOR ZONE */}
-              <SponsorZone
-                contentType="LOCATION"
-                contentId={location.id}
-                zone="SIDEBAR"
-                slots={2}
-              />
             </div>
           )}
         </div>
@@ -162,7 +148,7 @@ export default async function EventPage({ params }) {
         contentType="EVENT"
         contentId={event.id}
         zone="FOOTER"
-        slots={1}
+        slots={4}
       />
 
       <Link href="/schedule" className="underline">

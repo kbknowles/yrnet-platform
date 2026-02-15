@@ -132,7 +132,7 @@ export default function SponsorZone({
         Support Our Sponsors
       </h3>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 py-12 gap-4">
         {sponsors.map((s, index) =>
           s ? (
             <SponsorCard key={index} sponsor={s} />

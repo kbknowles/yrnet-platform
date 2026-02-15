@@ -82,14 +82,7 @@ export default function AnnouncementsPage() {
                 </div>
               )}
 
-              {/* Announcement-Level Sponsor Zone */}
-              <div className="p-4 border-t">
-                <SponsorZone
-                  contentType="ANNOUNCEMENT"
-                  contentId={a.id}
-                  slots={2}
-                />
-              </div>
+ 
             </Wrapper>
           );
         })}
