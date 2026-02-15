@@ -13,12 +13,8 @@ const router = express.Router();
 router.get("/", async (req, res) => {
   try {
     const sponsors = await prisma.sponsor.findMany({
-      orderBy: {
-        createdAt: "desc",
-      },
-      include: {
-        sponsorships: true,
-      },
+      orderBy: { createdAt: "desc" },
+      include: { sponsorships: true },
     });
 
     res.json(sponsors);
@@ -35,13 +31,15 @@ router.get("/", async (req, res) => {
  */
 router.get("/:id", async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = parseInt(req.params.id);
+
+    if (isNaN(id)) {
+      return res.status(400).json({ error: "Invalid sponsor ID" });
+    }
 
     const sponsor = await prisma.sponsor.findUnique({
-      where: { id: parseInt(id) },
-      include: {
-        sponsorships: true,
-      },
+      where: { id },
+      include: { sponsorships: true },
     });
 
     if (!sponsor) {
@@ -76,7 +74,7 @@ router.post("/", async (req, res) => {
     const sponsor = await prisma.sponsor.create({
       data: {
         name,
-        logoUrl: "", // required
+        logoUrl: "",
         bannerUrl: null,
         website: website || null,
         description: description || null,
@@ -101,7 +99,11 @@ router.post("/", async (req, res) => {
  */
 router.put("/:id", async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = parseInt(req.params.id);
+
+    if (isNaN(id)) {
+      return res.status(400).json({ error: "Invalid sponsor ID" });
+    }
 
     const {
       name,
@@ -114,7 +116,7 @@ router.put("/:id", async (req, res) => {
     } = req.body;
 
     const sponsor = await prisma.sponsor.update({
-      where: { id: parseInt(id) },
+      where: { id },
       data: {
         name,
         website: website || null,
@@ -140,10 +142,14 @@ router.put("/:id", async (req, res) => {
  */
 router.delete("/:id", async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = parseInt(req.params.id);
+
+    if (isNaN(id)) {
+      return res.status(400).json({ error: "Invalid sponsor ID" });
+    }
 
     await prisma.sponsor.delete({
-      where: { id: parseInt(id) },
+      where: { id },
     });
 
     res.json({ success: true });
@@ -160,7 +166,11 @@ router.delete("/:id", async (req, res) => {
  */
 router.post("/:id/upload-logo", upload.single("file"), async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = parseInt(req.params.id);
+
+    if (isNaN(id)) {
+      return res.status(400).json({ error: "Invalid sponsor ID" });
+    }
 
     if (!req.file) {
       return res.status(400).json({ error: "No file uploaded" });
@@ -169,7 +179,7 @@ router.post("/:id/upload-logo", upload.single("file"), async (req, res) => {
     const fileUrl = `/uploads/sponsors/${req.file.filename}`;
 
     const sponsor = await prisma.sponsor.update({
-      where: { id: parseInt(id) },
+      where: { id },
       data: { logoUrl: fileUrl },
     });
 
@@ -187,7 +197,11 @@ router.post("/:id/upload-logo", upload.single("file"), async (req, res) => {
  */
 router.post("/:id/upload-banner", upload.single("file"), async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = parseInt(req.params.id);
+
+    if (isNaN(id)) {
+      return res.status(400).json({ error: "Invalid sponsor ID" });
+    }
 
     if (!req.file) {
       return res.status(400).json({ error: "No file uploaded" });
@@ -196,7 +210,7 @@ router.post("/:id/upload-banner", upload.single("file"), async (req, res) => {
     const fileUrl = `/uploads/sponsors/${req.file.filename}`;
 
     const sponsor = await prisma.sponsor.update({
-      where: { id: parseInt(id) },
+      where: { id },
       data: { bannerUrl: fileUrl },
     });
 
