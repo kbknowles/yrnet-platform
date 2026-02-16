@@ -104,12 +104,9 @@ export default async function AthletesPage() {
       <SponsorZone
         contentType="ATHLETE"
         contentId={null}
-        slots={4}
-      />
+        slots={4}      />
          </section>
-      
-  
- 
+
     </main>
   );
 }

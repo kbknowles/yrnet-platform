@@ -57,20 +57,22 @@ export default async function HomePage() {
 
       <EventGallery albums={galleryAlbums} />
 
-          <section>
-              <h2 className="text-xl font-semibold mb-4">
-                Thank you, Sponsors!
-              </h2>
-      
-      <SponsorZone
-        contentType="SEASON"
-        contentId={null}
-        levels={["PREMIER", "FEATURED"]}
-        slots={4}
-      />
-            </section>
+      {/* Sponsors Section */}
+      <section className="py-16 bg-gray-50">
+        <div className="max-w-6xl mx-auto px-6">
+          <h2 className="text-2xl font-semibold text-center mb-8">
+            Support Our Sponsors
+          </h2>
 
-  
+          <SponsorZone
+            contentType="SEASON"
+            contentId={null}
+            levels={["PREMIER", "FEATURED"]}
+            slots={4}
+            heading="" 
+          />
+        </div>
+      </section>
 
       <HomeCTA />
     </>
