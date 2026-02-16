@@ -10,7 +10,7 @@ export default function LatestAnnouncements({ announcements = [] }) {
 
       <ul className="space-y-3">
         {visible.map((a) => (
-          <li key={a.id} className="border rounded p-3 bg-white">
+          <li key={a.id} className="border rounded p-3">
             <div className="font-medium">{a.title}</div>
             <div className="text-sm text-gray-600">{a.content}</div>
           </li>
