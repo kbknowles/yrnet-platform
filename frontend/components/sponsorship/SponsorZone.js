@@ -36,12 +36,12 @@ export default function SponsorZone({
         let final = [];
 
         // direct first
-        direct.forEach(d => {
+        direct.forEach((d) => {
           if (final.length < slots) final.push(d.sponsor);
         });
 
         // backfill next
-        backfill.forEach(b => {
+        backfill.forEach((b) => {
           if (final.length < slots) final.push(b.sponsor);
         });
 
@@ -54,33 +54,42 @@ export default function SponsorZone({
     if (contentType) load();
   }, [contentType, contentId, levels, slots]);
 
-  if (!sponsors.length) return null;
-
   return (
     <section className="py-6">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {sponsors.map((s, i) => (
-          <a
-            key={i}
-            href={s.website || "#"}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-white border rounded p-4 flex items-center justify-center h-28"
-          >
-            {s.logoUrl ? (
-              <img
-                src={resolveImage(s.logoUrl)}
-                alt={s.name}
-                className="max-h-20 object-contain"
-              />
-            ) : (
-              <div className="font-semibold text-center">
-                {s.name}
-              </div>
-            )}
-          </a>
-        ))}
-      </div>
+      {sponsors.length > 0 ? (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {sponsors.map((s, i) => (
+            <a
+              key={i}
+              href={s.website || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-white border rounded p-4 flex items-center justify-center h-28"
+            >
+              {s.logoUrl ? (
+                <img
+                  src={resolveImage(s.logoUrl)}
+                  alt={s.name}
+                  className="max-h-20 object-contain"
+                />
+              ) : (
+                <div className="font-semibold text-center">
+                  {s.name}
+                </div>
+              )}
+            </a>
+          ))}
+        </div>
+      ) : (
+        <div className="bg-slate-100 border border-dashed rounded p-6 text-center">
+          <div className="font-semibold text-lg mb-2">
+            Sponsorship Available
+          </div>
+          <div className="text-sm text-slate-600">
+            This placement is available. Contact AHSRA to become a featured sponsor.
+          </div>
+        </div>
+      )}
     </section>
   );
 }
