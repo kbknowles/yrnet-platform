@@ -98,14 +98,14 @@ export default async function AthletesPage() {
       <section>
         <h2 className="text-xl font-semibold mb-4">
               Thank you, Sponsors!
-        </h2>
+      </h2>
             
      {/* Page-Level Sponsor Zone */}
       <SponsorZone
         contentType="ATHLETE"
         contentId={null}
         slots={4}      />
-         </section>
+    </section>
 
     </main>
   );
