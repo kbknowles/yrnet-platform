@@ -141,7 +141,7 @@ export default function SponsorZone({
               key={index}
               label={
                 index === 1
-                  ? "Support This Athlete"
+                  ? "Support Our Athletes"
                   : "Sponsorship Available"
               }
             />
