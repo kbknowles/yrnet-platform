@@ -1,267 +1,114 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import SponsorForm from "../../../components/admin/SponsorForm";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
-const LEVELS = ["PREMIER", "FEATURED", "STANDARD", "SUPPORTER"];
-const CONTENT_TYPES = [
-  "SEASON",
-  "EVENT",
-  "ATHLETE",
-  "LOCATION",
-  "GALLERY",
-  "ANNOUNCEMENT",
-];
-
-export default function SponsorshipForm({
-  sponsorship,
-  onSaved,
-  onClose,
-}) {
-  const isEdit = Boolean(sponsorship?.id);
-
+export default function SponsorsAdminPage() {
   const [sponsors, setSponsors] = useState([]);
-  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(null);
   const [error, setError] = useState(null);
 
-  const [form, setForm] = useState({
-    sponsorId: sponsorship?.sponsorId || "",
-    level: sponsorship?.level || "STANDARD",
-    contentType: sponsorship?.contentType || "SEASON",
-    contentId: sponsorship?.contentId || "",
-    startDate: sponsorship?.startDate
-      ? sponsorship.startDate.split("T")[0]
-      : "",
-    endDate: sponsorship?.endDate
-      ? sponsorship.endDate.split("T")[0]
-      : "",
-    priority: sponsorship?.priority || 0,
-    active: sponsorship?.active ?? true,
-  });
-
-  useEffect(() => {
-    loadSponsors();
-  }, []);
-
-  async function loadSponsors() {
+  async function fetchSponsors() {
     try {
-      const res = await fetch(`${API_BASE}/api/sponsors`);
+      setLoading(true);
+      setError(null);
+
+      const res = await fetch(`${API_BASE}/api/admin/sponsors`);
+      if (!res.ok) throw new Error();
+
       const data = await res.json();
       setSponsors(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error("Sponsor load error:", err);
-    }
-  }
-
-  function update(field, value) {
-    setForm((prev) => ({ ...prev, [field]: value }));
-  }
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-    setSaving(true);
-    setError(null);
-
-    try {
-      const method = isEdit ? "PUT" : "POST";
-      const url = isEdit
-        ? `${API_BASE}/api/sponsorships/${sponsorship.id}`
-        : `${API_BASE}/api/sponsorships`;
-
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sponsorId: Number(form.sponsorId),
-          level: form.level,
-          contentType: form.contentType || null,
-          contentId: form.contentId
-            ? Number(form.contentId)
-            : null,
-          startDate: new Date(form.startDate).toISOString(),
-          endDate: new Date(form.endDate).toISOString(),
-          priority: Number(form.priority),
-          active: form.active,
-        }),
-      });
-
-      if (!res.ok) {
-        const errText = await res.text();
-        console.error("SAVE ERROR:", errText);
-        setError("Failed to save sponsorship.");
-        return;
-      }
-
-      const data = await res.json();
-      onSaved?.(data);
-    } catch (err) {
-      console.error("Submit error:", err);
-      setError("Unexpected error occurred.");
+    } catch {
+      setError("Unable to load sponsors.");
     } finally {
-      setSaving(false);
+      setLoading(false);
     }
   }
 
-  const selectedSponsor = sponsors.find(
-    (s) => String(s.id) === String(form.sponsorId)
-  );
+  useEffect(() => {
+    fetchSponsors();
+  }, []);
+
+  if (loading) return <div className="p-6">Loading...</div>;
 
   return (
-    <div className="bg-white border rounded-lg p-6 shadow-sm max-w-4xl">
-      <h2 className="text-lg font-semibold mb-4">
-        {isEdit ? "Edit Sponsorship" : "Add Sponsorship"}
-      </h2>
+    <div className="max-w-6xl mx-auto p-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Sponsors</h1>
+        <button
+          onClick={() => setEditing({})}
+          className="bg-black text-white px-4 py-2 rounded"
+        >
+          Add Sponsor
+        </button>
+      </div>
 
       {error && (
-        <div className="mb-4 text-sm text-red-600 border border-red-300 p-2 rounded">
-          {error}
+        <div className="text-red-600 border p-3 rounded">{error}</div>
+      )}
+
+      {editing && (
+        <SponsorForm
+          sponsor={editing}
+          onClose={() => setEditing(null)}
+          onSaved={() => {
+            setEditing(null);
+            fetchSponsors();
+          }}
+        />
+      )}
+
+      {sponsors.length === 0 && !error && (
+        <div className="border p-4 rounded text-gray-600">
+          No sponsors found.
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      {sponsors.length > 0 && (
+        <div className="border rounded divide-y">
+          {sponsors.map((s) => (
+            <div
+              key={s.id}
+              className="p-4 flex justify-between items-center"
+            >
+              <div>
+                <div className="font-semibold">{s.name}</div>
+                <div className="text-sm text-gray-600">
+                  {s.website || "No website provided"}
+                </div>
+              </div>
 
-        {/* Row 1 */}
-        <div className="grid md:grid-cols-3 gap-4">
-          <select
-            className="border rounded p-2 text-sm"
-            value={form.sponsorId}
-            onChange={(e) =>
-              update("sponsorId", e.target.value)
-            }
-            required
-          >
-            <option value="">Select Sponsor</option>
-            {sponsors.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </select>
+              <div className="space-x-2">
+                <button
+                  onClick={() => setEditing(s)}
+                  className="px-3 py-1 border rounded"
+                >
+                  Edit
+                </button>
 
-          <select
-            className="border rounded p-2 text-sm"
-            value={form.level}
-            onChange={(e) =>
-              update("level", e.target.value)
-            }
-          >
-            {LEVELS.map((l) => (
-              <option key={l} value={l}>
-                {l}
-              </option>
-            ))}
-          </select>
+                <button
+                  onClick={async () => {
+                    if (!confirm("Delete this sponsor?")) return;
 
-          <input
-            type="number"
-            className="border rounded p-2 text-sm"
-            placeholder="Priority"
-            value={form.priority}
-            onChange={(e) =>
-              update("priority", e.target.value)
-            }
-          />
-        </div>
+                    await fetch(
+                      `${API_BASE}/api/admin/sponsors/${s.id}`,
+                      { method: "DELETE" }
+                    );
 
-        {/* Row 2 */}
-        <div className="grid md:grid-cols-2 gap-4">
-          <select
-            className="border rounded p-2 text-sm"
-            value={form.contentType}
-            onChange={(e) =>
-              update("contentType", e.target.value)
-            }
-          >
-            {CONTENT_TYPES.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </select>
-
-          <input
-            type="number"
-            className="border rounded p-2 text-sm"
-            placeholder="Content ID (optional)"
-            value={form.contentId}
-            onChange={(e) =>
-              update("contentId", e.target.value)
-            }
-          />
-        </div>
-
-        {/* Dates */}
-        <div className="grid md:grid-cols-2 gap-4">
-          <input
-            type="date"
-            className="border rounded p-2 text-sm"
-            value={form.startDate}
-            onChange={(e) =>
-              update("startDate", e.target.value)
-            }
-            required
-          />
-          <input
-            type="date"
-            className="border rounded p-2 text-sm"
-            value={form.endDate}
-            onChange={(e) =>
-              update("endDate", e.target.value)
-            }
-            required
-          />
-        </div>
-
-        {/* Active */}
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={form.active}
-            onChange={(e) =>
-              update("active", e.target.checked)
-            }
-          />
-          Active
-        </label>
-
-        {/* Preview */}
-        {selectedSponsor?.logoUrl && (
-          <div className="border-t pt-4 space-y-2">
-            <div className="text-xs text-gray-600">
-              Preview
+                    fetchSponsors();
+                  }}
+                  className="px-3 py-1 border rounded text-red-600"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
-            <img
-              src={
-                selectedSponsor.logoUrl.startsWith("http")
-                  ? selectedSponsor.logoUrl
-                  : `${API_BASE}${selectedSponsor.logoUrl}`
-              }
-              alt="Sponsor Preview"
-              className="h-16 object-contain border rounded bg-white p-2"
-            />
-          </div>
-        )}
-
-        {/* Buttons */}
-        <div className="flex gap-3 pt-4">
-          <button
-            type="submit"
-            disabled={saving}
-            className="bg-ahsra-blue text-white px-4 py-2 rounded text-sm"
-          >
-            {saving ? "Saving..." : "Save"}
-          </button>
-
-          <button
-            type="button"
-            onClick={onClose}
-            className="border px-4 py-2 rounded text-sm"
-          >
-            Cancel
-          </button>
+          ))}
         </div>
-      </form>
+      )}
     </div>
   );
 }

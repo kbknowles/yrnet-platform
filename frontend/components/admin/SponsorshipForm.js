@@ -21,46 +21,75 @@ export default function SponsorshipForm({
 }) {
   const isEdit = Boolean(sponsorship?.id);
 
+  const emptyForm = {
+    sponsorId: "",
+    level: "STANDARD",
+    contentType: "SEASON",
+    contentId: "",
+    startDate: "",
+    endDate: "",
+    priority: 0,
+    active: true,
+  };
+
+  const [form, setForm] = useState(emptyForm);
   const [sponsors, setSponsors] = useState([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
-  const [form, setForm] = useState({
-    sponsorId: sponsorship?.sponsorId || "",
-    level: sponsorship?.level || "STANDARD",
-    contentType: sponsorship?.contentType || "SEASON",
-    contentId: sponsorship?.contentId || "",
-    startDate: sponsorship?.startDate
-      ? sponsorship.startDate.split("T")[0]
-      : "",
-    endDate: sponsorship?.endDate
-      ? sponsorship.endDate.split("T")[0]
-      : "",
-    priority: sponsorship?.priority ?? 0,
-    active: sponsorship?.active ?? true,
-  });
-
+  /* -------------------------
+     LOAD SPONSORS (ADMIN)
+  ------------------------- */
   useEffect(() => {
+    async function loadSponsors() {
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/sponsors`);
+        if (!res.ok) return;
+        const data = await res.json();
+        setSponsors(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error("Sponsor load error:", err);
+      }
+    }
+
     loadSponsors();
   }, []);
 
-  async function loadSponsors() {
-    try {
-      const res = await fetch(`${API_BASE}/api/sponsors`);
-      if (!res.ok) return;
-      const data = await res.json();
-      setSponsors(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error("Sponsor load error:", err);
+  /* -------------------------
+     RESET FORM WHEN EDITING
+  ------------------------- */
+  useEffect(() => {
+    if (isEdit && sponsorship) {
+      setForm({
+        sponsorId: sponsorship.sponsorId || "",
+        level: sponsorship.level || "STANDARD",
+        contentType: sponsorship.contentType || "SEASON",
+        contentId: sponsorship.contentId || "",
+        startDate: sponsorship.startDate
+          ? sponsorship.startDate.split("T")[0]
+          : "",
+        endDate: sponsorship.endDate
+          ? sponsorship.endDate.split("T")[0]
+          : "",
+        priority: sponsorship.priority ?? 0,
+        active: sponsorship.active ?? true,
+      });
+    } else {
+      setForm(emptyForm);
     }
-  }
+  }, [sponsorship]);
 
   function update(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
+  /* -------------------------
+     SUBMIT (ADMIN ENDPOINT)
+  ------------------------- */
   async function handleSubmit(e) {
     e.preventDefault();
+    if (saving) return;
+
     setSaving(true);
     setError(null);
 
@@ -95,6 +124,9 @@ export default function SponsorshipForm({
       }
 
       const data = await res.json();
+
+      if (!isEdit) setForm(emptyForm);
+
       onSaved?.(data);
     } catch (err) {
       console.error("Submit error:", err);

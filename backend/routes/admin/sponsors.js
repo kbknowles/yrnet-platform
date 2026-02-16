@@ -1,174 +1,175 @@
 import express from "express";
 import prisma from "../../prismaClient.mjs";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 
 const router = express.Router();
 
-/**
- * GET /api/admin/sponsors
- */
+/* =============================
+   FILE STORAGE
+============================= */
+
+const uploadDir = path.resolve("uploads/sponsors");
+
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: uploadDir,
+  filename: (req, file, cb) => {
+    const unique = Date.now() + "-" + file.originalname;
+    cb(null, unique);
+  },
+});
+
+const upload = multer({ storage });
+
+/* =============================
+   GET ALL
+============================= */
+
 router.get("/", async (req, res) => {
   try {
     const sponsors = await prisma.sponsor.findMany({
-      include: {
-        athletes: true,
-      },
       orderBy: { createdAt: "desc" },
     });
 
     res.json(sponsors);
   } catch (err) {
-    console.error("GET /admin/sponsors failed", err);
+    console.error("GET sponsors failed", err);
     res.status(500).json({ error: "Failed to fetch sponsors" });
   }
 });
 
-/**
- * GET /api/admin/sponsors/:id
- */
+/* =============================
+   GET ONE
+============================= */
+
 router.get("/:id", async (req, res) => {
   try {
-    const id = Number(req.params.id);
-
-    if (!id) {
-      return res.status(400).json({ error: "Invalid sponsor ID" });
-    }
-
     const sponsor = await prisma.sponsor.findUnique({
-      where: { id },
-      include: {
-        athletes: true,
-      },
+      where: { id: Number(req.params.id) },
     });
 
     if (!sponsor) {
-      return res.status(404).json({ error: "Sponsor not found" });
+      return res.status(404).json({ error: "Not found" });
     }
 
     res.json(sponsor);
   } catch (err) {
-    console.error("GET /admin/sponsors/:id failed", err);
+    console.error("GET sponsor failed", err);
     res.status(500).json({ error: "Failed to fetch sponsor" });
   }
 });
 
-/**
- * POST /api/admin/sponsors
- */
+/* =============================
+   CREATE
+============================= */
+
 router.post("/", async (req, res) => {
   try {
-    const {
-      name,
-      logoUrl,
-      bannerUrl,
-      website,
-      description,
-      contactName,
-      contactEmail,
-      contactPhone,
-      startDate,
-      endDate,
-      tier,
-      active,
-      internalNotes,
-    } = req.body;
-
     const sponsor = await prisma.sponsor.create({
       data: {
-        name,
-        logoUrl: logoUrl || "",
-        bannerUrl: bannerUrl || null,
-        website: website || "",
-        description: description || "",
-        contactName: contactName || "",
-        contactEmail: contactEmail || "",
-        contactPhone: contactPhone || "",
-        startDate: new Date(startDate),
-        endDate: new Date(endDate),
-        tier,
-        active: active ?? true,
-        internalNotes: internalNotes || "",
+        name: req.body.name,
+        website: req.body.website,
+        description: req.body.description,
+        contactName: req.body.contactName,
+        contactEmail: req.body.contactEmail,
+        contactPhone: req.body.contactPhone,
+        internalNotes: req.body.internalNotes,
+        logoUrl: "",
       },
     });
 
     res.json(sponsor);
   } catch (err) {
-    console.error("POST /admin/sponsors failed", err);
+    console.error("CREATE sponsor failed", err);
     res.status(500).json({ error: "Failed to create sponsor" });
   }
 });
 
-/**
- * PUT /api/admin/sponsors/:id
- */
+/* =============================
+   UPDATE
+============================= */
+
 router.put("/:id", async (req, res) => {
   try {
-    const id = Number(req.params.id);
-
-    if (!id) {
-      return res.status(400).json({ error: "Invalid sponsor ID" });
-    }
-
-    const {
-      name,
-      logoUrl,
-      bannerUrl,
-      website,
-      description,
-      contactName,
-      contactEmail,
-      contactPhone,
-      startDate,
-      endDate,
-      tier,
-      active,
-      internalNotes,
-    } = req.body;
-
     const sponsor = await prisma.sponsor.update({
-      where: { id },
+      where: { id: Number(req.params.id) },
       data: {
-        name,
-        logoUrl: logoUrl || "",
-        bannerUrl: bannerUrl || null,
-        website: website || "",
-        description: description || "",
-        contactName: contactName || "",
-        contactEmail: contactEmail || "",
-        contactPhone: contactPhone || "",
-        startDate: new Date(startDate),
-        endDate: new Date(endDate),
-        tier,
-        active: active ?? true,
-        internalNotes: internalNotes || "",
+        name: req.body.name,
+        website: req.body.website,
+        description: req.body.description,
+        contactName: req.body.contactName,
+        contactEmail: req.body.contactEmail,
+        contactPhone: req.body.contactPhone,
+        internalNotes: req.body.internalNotes,
       },
     });
 
     res.json(sponsor);
   } catch (err) {
-    console.error("PUT /admin/sponsors failed", err);
+    console.error("UPDATE sponsor failed", err);
     res.status(500).json({ error: "Failed to update sponsor" });
   }
 });
 
-/**
- * DELETE /api/admin/sponsors/:id
- */
+/* =============================
+   DELETE
+============================= */
+
 router.delete("/:id", async (req, res) => {
   try {
-    const id = Number(req.params.id);
-
-    if (!id) {
-      return res.status(400).json({ error: "Invalid sponsor ID" });
-    }
-
     await prisma.sponsor.delete({
-      where: { id },
+      where: { id: Number(req.params.id) },
     });
 
     res.json({ success: true });
   } catch (err) {
-    console.error("DELETE /admin/sponsors failed", err);
+    console.error("DELETE sponsor failed", err);
     res.status(500).json({ error: "Failed to delete sponsor" });
+  }
+});
+
+/* =============================
+   UPLOAD LOGO
+============================= */
+
+router.post("/:id/upload-logo", upload.single("file"), async (req, res) => {
+  try {
+    const filePath = `/uploads/sponsors/${req.file.filename}`;
+
+    const sponsor = await prisma.sponsor.update({
+      where: { id: Number(req.params.id) },
+      data: { logoUrl: filePath },
+    });
+
+    res.json(sponsor);
+  } catch (err) {
+    console.error("Upload logo failed", err);
+    res.status(500).json({ error: "Failed to upload logo" });
+  }
+});
+
+/* =============================
+   UPLOAD BANNER
+============================= */
+
+router.post("/:id/upload-banner", upload.single("file"), async (req, res) => {
+  try {
+    const filePath = `/uploads/sponsors/${req.file.filename}`;
+
+    const sponsor = await prisma.sponsor.update({
+      where: { id: Number(req.params.id) },
+      data: { bannerUrl: filePath },
+    });
+
+    res.json(sponsor);
+  } catch (err) {
+    console.error("Upload banner failed", err);
+    res.status(500).json({ error: "Failed to upload banner" });
   }
 });
 

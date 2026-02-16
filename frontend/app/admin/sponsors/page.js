@@ -3,32 +3,23 @@
 import { useEffect, useState } from "react";
 import SponsorForm from "../../../components/admin/SponsorForm";
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL || "";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
-/**
- * Sponsors Admin Page
- * Sponsor = Vendor Contact Record Only
- * Sponsorship levels/dates handled in Sponsorship module
- */
 export default function SponsorsAdminPage() {
   const [sponsors, setSponsors] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState(null);
+  const [editingId, setEditingId] = useState(null);
+  const [showAdd, setShowAdd] = useState(false);
   const [error, setError] = useState(null);
 
   async function fetchSponsors() {
     try {
       setLoading(true);
-      setError(null);
-
-      const res = await fetch(`${API_BASE}/api/sponsors`);
-      if (!res.ok) throw new Error("Failed to fetch sponsors");
-
+      const res = await fetch(`${API_BASE}/api/admin/sponsors`);
+      if (!res.ok) throw new Error();
       const data = await res.json();
       setSponsors(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error("Fetch error", err);
+    } catch {
       setError("Unable to load sponsors.");
     } finally {
       setLoading(false);
@@ -47,62 +38,43 @@ export default function SponsorsAdminPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Sponsors</h1>
+
         <button
-          onClick={() =>
-            setEditing({
-              name: "",
-              website: "",
-              description: "",
-              contactName: "",
-              contactEmail: "",
-              contactPhone: "",
-              internalNotes: "",
-            })
-          }
+          onClick={() => {
+            setEditingId(null);
+            setShowAdd(!showAdd);
+          }}
           className="bg-black text-white px-4 py-2 rounded"
         >
-          Add Sponsor
+          {showAdd ? "Close" : "Add Sponsor"}
         </button>
       </div>
 
       {error && (
-        <div className="text-red-600 border p-3 rounded">
-          {error}
-        </div>
+        <div className="text-red-600 border p-3 rounded">{error}</div>
       )}
 
-      {/* Sponsor Form (Create / Edit) */}
-      {editing && (
-        <SponsorForm
-          sponsor={editing}
-          onClose={() => setEditing(null)}
-          onSaved={(savedSponsor) => {
-            // Stay in edit mode after save so logo upload works
-            setEditing(savedSponsor);
-            fetchSponsors();
-          }}
-        />
-      )}
-
-      {/* Empty State */}
-      {sponsors.length === 0 && !error && (
-        <div className="border p-4 rounded text-gray-600">
-          No sponsors found.
+      {/* Add Form (Top) */}
+      {showAdd && (
+        <div className="border rounded p-4 bg-gray-50">
+          <SponsorForm
+            sponsor={null}
+            onClose={() => setShowAdd(false)}
+            onSaved={() => {
+              setShowAdd(false);
+              fetchSponsors();
+            }}
+          />
         </div>
       )}
 
       {/* Sponsor List */}
-      {sponsors.length > 0 && (
-        <div className="border rounded divide-y">
-          {sponsors.map((s) => (
-            <div
-              key={s.id}
-              className="p-4 flex justify-between items-center"
-            >
+      <div className="border rounded divide-y">
+        {sponsors.map((s) => (
+          <div key={s.id}>
+            <div className="p-4 flex justify-between items-center">
               <div>
                 <div className="font-semibold">{s.name}</div>
-
-                {/* Vendor-level info only */}
                 <div className="text-sm text-gray-600">
                   {s.website || "No website provided"}
                 </div>
@@ -110,20 +82,22 @@ export default function SponsorsAdminPage() {
 
               <div className="space-x-2">
                 <button
-                  onClick={() => setEditing(s)}
+                  onClick={() => {
+                    setShowAdd(false);
+                    setEditingId(editingId === s.id ? null : s.id);
+                  }}
                   className="px-3 py-1 border rounded"
                 >
-                  Edit
+                  {editingId === s.id ? "Close" : "Edit"}
                 </button>
 
                 <button
                   onClick={async () => {
                     if (!confirm("Delete this sponsor?")) return;
-
-                    await fetch(`${API_BASE}/api/sponsors/${s.id}`, {
-                      method: "DELETE",
-                    });
-
+                    await fetch(
+                      `${API_BASE}/api/admin/sponsors/${s.id}`,
+                      { method: "DELETE" }
+                    );
                     fetchSponsors();
                   }}
                   className="px-3 py-1 border rounded text-red-600"
@@ -132,9 +106,23 @@ export default function SponsorsAdminPage() {
                 </button>
               </div>
             </div>
-          ))}
-        </div>
-      )}
+
+            {editingId === s.id && (
+              <div className="px-4 pb-6 bg-gray-50">
+                <SponsorForm
+                  sponsor={s}
+                  onClose={() => setEditingId(null)}
+                  onSaved={() => {
+                    setEditingId(null);
+                    fetchSponsors();
+                  }}
+                />
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
     </div>
   );
 }
