@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
 const LEVELS = ["PREMIER", "FEATURED", "STANDARD", "SUPPORTER"];
+
 const CONTENT_TYPES = [
   "SEASON",
   "EVENT",
@@ -17,14 +18,14 @@ const CONTENT_TYPES = [
 export default function SponsorshipForm({
   sponsorship,
   onSaved,
-  onClose,
+  onCancel,
 }) {
   const isEdit = Boolean(sponsorship?.id);
 
   const emptyForm = {
     sponsorId: "",
     level: "STANDARD",
-    contentType: "SEASON",
+    contentType: "",
     contentId: "",
     startDate: "",
     endDate: "",
@@ -38,7 +39,7 @@ export default function SponsorshipForm({
   const [error, setError] = useState(null);
 
   /* -------------------------
-     LOAD SPONSORS (ADMIN)
+     LOAD SPONSORS
   ------------------------- */
   useEffect(() => {
     async function loadSponsors() {
@@ -48,7 +49,7 @@ export default function SponsorshipForm({
         const data = await res.json();
         setSponsors(Array.isArray(data) ? data : []);
       } catch (err) {
-        console.error("Sponsor load error:", err);
+        console.error("Sponsor load failed", err);
       }
     }
 
@@ -56,14 +57,14 @@ export default function SponsorshipForm({
   }, []);
 
   /* -------------------------
-     RESET FORM WHEN EDITING
+     INIT FORM (EDIT MODE)
   ------------------------- */
   useEffect(() => {
     if (isEdit && sponsorship) {
       setForm({
         sponsorId: sponsorship.sponsorId || "",
         level: sponsorship.level || "STANDARD",
-        contentType: sponsorship.contentType || "SEASON",
+        contentType: sponsorship.contentType || "",
         contentId: sponsorship.contentId || "",
         startDate: sponsorship.startDate
           ? sponsorship.startDate.split("T")[0]
@@ -84,7 +85,7 @@ export default function SponsorshipForm({
   }
 
   /* -------------------------
-     SUBMIT (ADMIN ENDPOINT)
+     SUBMIT
   ------------------------- */
   async function handleSubmit(e) {
     e.preventDefault();
@@ -106,9 +107,7 @@ export default function SponsorshipForm({
           sponsorId: Number(form.sponsorId),
           level: form.level,
           contentType: form.contentType || null,
-          contentId: form.contentId
-            ? Number(form.contentId)
-            : null,
+          contentId: form.contentId ? Number(form.contentId) : null,
           startDate: form.startDate,
           endDate: form.endDate,
           priority: Number(form.priority),
@@ -117,20 +116,17 @@ export default function SponsorshipForm({
       });
 
       if (!res.ok) {
-        const errText = await res.text();
-        console.error("SAVE ERROR:", errText);
+        const text = await res.text();
+        console.error(text);
         setError("Failed to save sponsorship.");
         return;
       }
 
       const data = await res.json();
-
-      if (!isEdit) setForm(emptyForm);
-
       onSaved?.(data);
     } catch (err) {
-      console.error("Submit error:", err);
-      setError("Unexpected error occurred.");
+      console.error(err);
+      setError("Unexpected error.");
     } finally {
       setSaving(false);
     }
@@ -140,32 +136,33 @@ export default function SponsorshipForm({
     (s) => String(s.id) === String(form.sponsorId)
   );
 
-  function resolveLogo(url) {
+  function resolveUrl(url) {
     if (!url) return null;
     if (url.startsWith("http")) return url;
     return `${API_BASE}${url}`;
   }
 
   return (
-    <div className="bg-white border rounded-lg p-6 shadow-sm max-w-4xl">
-      <h2 className="text-lg font-semibold mb-4">
+    <div className="bg-white border rounded-lg p-6 shadow-md max-w-4xl">
+      <h2 className="text-xl font-semibold mb-4">
         {isEdit ? "Edit Sponsorship" : "Add Sponsorship"}
       </h2>
 
       {error && (
-        <div className="mb-4 text-sm text-red-600 border border-red-300 p-2 rounded">
+        <div className="mb-4 text-red-600 border border-red-300 p-3 rounded">
           {error}
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-5">
 
+        {/* Sponsor + Level + Priority */}
         <div className="grid md:grid-cols-3 gap-4">
           <select
+            required
             className="border rounded p-2 text-sm"
             value={form.sponsorId}
             onChange={(e) => update("sponsorId", e.target.value)}
-            required
           >
             <option value="">Select Sponsor</option>
             {sponsors.map((s) => (
@@ -196,12 +193,14 @@ export default function SponsorshipForm({
           />
         </div>
 
+        {/* Placement */}
         <div className="grid md:grid-cols-2 gap-4">
           <select
             className="border rounded p-2 text-sm"
             value={form.contentType}
             onChange={(e) => update("contentType", e.target.value)}
           >
+            <option value="">Global (No Attachment)</option>
             {CONTENT_TYPES.map((t) => (
               <option key={t} value={t}>
                 {t}
@@ -218,23 +217,25 @@ export default function SponsorshipForm({
           />
         </div>
 
+        {/* Dates */}
         <div className="grid md:grid-cols-2 gap-4">
           <input
+            required
             type="date"
             className="border rounded p-2 text-sm"
             value={form.startDate}
             onChange={(e) => update("startDate", e.target.value)}
-            required
           />
           <input
+            required
             type="date"
             className="border rounded p-2 text-sm"
             value={form.endDate}
             onChange={(e) => update("endDate", e.target.value)}
-            required
           />
         </div>
 
+        {/* Active */}
         <label className="flex items-center gap-2 text-sm">
           <input
             type="checkbox"
@@ -244,30 +245,43 @@ export default function SponsorshipForm({
           Active
         </label>
 
-        {selectedSponsor?.logoUrl && (
-          <div className="border-t pt-4 space-y-2">
-            <div className="text-xs text-gray-600">Preview</div>
-            <img
-              src={resolveLogo(selectedSponsor.logoUrl)}
-              alt="Sponsor Preview"
-              className="h-16 object-contain border rounded bg-white p-2"
-            />
+        {/* Sponsor Preview */}
+        {selectedSponsor && (
+          <div className="border-t pt-4 space-y-3">
+            <div className="text-sm font-medium">Sponsor Preview</div>
+
+            {selectedSponsor.logoUrl && (
+              <img
+                src={resolveUrl(selectedSponsor.logoUrl)}
+                alt="Logo"
+                className="h-16 object-contain border p-2 rounded bg-white"
+              />
+            )}
+
+            {selectedSponsor.bannerUrl && (
+              <img
+                src={resolveUrl(selectedSponsor.bannerUrl)}
+                alt="Banner"
+                className="h-24 object-contain border p-2 rounded bg-white"
+              />
+            )}
           </div>
         )}
 
+        {/* Buttons */}
         <div className="flex gap-3 pt-4">
           <button
             type="submit"
             disabled={saving}
-            className="bg-ahsra-blue text-white px-4 py-2 rounded text-sm"
+            className="bg-black text-white px-4 py-2 rounded"
           >
             {saving ? "Saving..." : "Save"}
           </button>
 
           <button
             type="button"
-            onClick={onClose}
-            className="border px-4 py-2 rounded text-sm"
+            onClick={onCancel}
+            className="border px-4 py-2 rounded"
           >
             Cancel
           </button>

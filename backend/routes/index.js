@@ -1,74 +1,71 @@
-// backend/routes/index.js
-
 import express from "express";
 
 /* =========================
-   ADMIN ROUTES (MUST COME FIRST)
+   ADMIN ROUTES
    ========================= */
 
-import seasonsRouter from "./admin/seasons.js";
-import locationsRouter from "./admin/locations.js";
-import eventsAdminRouter from "./admin/events.js";
-import eventScheduleItemsRouter from "./admin/eventScheduleItems.js";
-import eventContactsRouter from "./admin/eventContacts.js";
-import announcementsAdminRouter from "./admin/announcements.js";
-import announcementUploadRouter from "./admin/announcementUpload.js";
+import adminSeasonsRouter from "./admin/seasons.js";
+import adminLocationsRouter from "./admin/locations.js";
+import adminEventsRouter from "./admin/events.js";
+import adminEventScheduleItemsRouter from "./admin/eventScheduleItems.js";
+import adminEventContactsRouter from "./admin/eventContacts.js";
+import adminAnnouncementsRouter from "./admin/announcements.js";
+import adminAnnouncementUploadRouter from "./admin/announcementUpload.js";
 import adminOfficersRouter from "./admin/officers.js";
-import sponsorsRouter from "./admin/sponsors.js";
+import adminSponsorsRouter from "./admin/sponsors.js";
 import adminSponsorshipsRouter from "./admin/sponsorships.js";
-import adminGalleryRoutes from "./admin/gallery.js";
-import adminPagesRoutes from "./admin/pages.js";
-import uploadRoutes from "./admin/uploads.js";
+import adminGalleryRouter from "./admin/gallery.js";
+import adminPagesRouter from "./admin/pages.js";
+import adminUploadsRouter from "./admin/uploads.js";
 import adminAthletesRouter from "./admin/athletes.js";
 
 /* =========================
    PUBLIC ROUTES
    ========================= */
 
-import eventsPublicRouter from "./events.js";
-import schedulePublicRouter from "./schedule.js";
-import announcementsPublicRouter from "./announcements.js";
-import sponsorsRoutes from "./sponsors.js";
-import seasonsRoutes from "./seasons.js";
-import galleryRoutes from "./gallery.js";
-import homeRoutes from "./home.js";
-import officersPublicRouter from "./officers.js";
-import pagesRoutes from "./pages.js";
-import athletesPublicRouter from "./athletes.js";
-import calendarRoutes from "./calendar.js";
-import sponsorshipRoutes from "./sponsorships.js";
-
+import eventsRouter from "./events.js";
+import scheduleRouter from "./schedule.js";
+import announcementsRouter from "./announcements.js";
+import sponsorsRouter from "./sponsors.js";
+import seasonsRouter from "./seasons.js";
+import galleryRouter from "./gallery.js";
+import homeRouter from "./home.js";
+import officersRouter from "./officers.js";
+import pagesRouter from "./pages.js";
+import athletesRouter from "./athletes.js";
+import calendarRouter from "./calendar.js";
+import sponsorshipsRouter from "./sponsorships.js";
 
 const router = express.Router();
 
 /* ---------- Admin ---------- */
-router.use("/admin/seasons", seasonsRouter);
-router.use("/admin/locations", locationsRouter);
-router.use("/admin/events", eventsAdminRouter);
-router.use("/admin/event-schedule-items", eventScheduleItemsRouter);
-router.use("/admin/event-contacts", eventContactsRouter);
-router.use("/admin/announcements", announcementsAdminRouter);
-router.use("/admin/announcements/upload", announcementUploadRouter);
+router.use("/admin/seasons", adminSeasonsRouter);
+router.use("/admin/locations", adminLocationsRouter);
+router.use("/admin/events", adminEventsRouter);
+router.use("/admin/event-schedule-items", adminEventScheduleItemsRouter);
+router.use("/admin/event-contacts", adminEventContactsRouter);
+router.use("/admin/announcements", adminAnnouncementsRouter);
+router.use("/admin/announcements/upload", adminAnnouncementUploadRouter);
 router.use("/admin/officers", adminOfficersRouter);
-router.use("/admin/sponsors", sponsorsRouter);
+router.use("/admin/sponsors", adminSponsorsRouter);
 router.use("/admin/sponsorships", adminSponsorshipsRouter);
-router.use("/admin/gallery", adminGalleryRoutes);
-router.use("/admin/pages", adminPagesRoutes);
-router.use("/admin/uploads", uploadRoutes);
+router.use("/admin/gallery", adminGalleryRouter);
+router.use("/admin/pages", adminPagesRouter);
+router.use("/admin/uploads", adminUploadsRouter);
 router.use("/admin/athletes", adminAthletesRouter);
 
 /* ---------- Public ---------- */
-router.use("/events", eventsPublicRouter);
-router.use("/schedule", schedulePublicRouter);
-router.use("/announcements", announcementsPublicRouter);
-router.use("/sponsors", sponsorsRoutes);
-router.use("/seasons", seasonsRoutes);
-router.use("/gallery", galleryRoutes);
-router.use("/home", homeRoutes);
-router.use("/officers", officersPublicRouter);
-router.use("/pages", pagesRoutes);
-router.use("/athletes", athletesPublicRouter);
-router.use("/calendar", calendarRoutes);
-router.use("/sponsorships", sponsorshipRoutes);
+router.use("/events", eventsRouter);
+router.use("/schedule", scheduleRouter);
+router.use("/announcements", announcementsRouter);
+router.use("/sponsors", sponsorsRouter);
+router.use("/seasons", seasonsRouter);
+router.use("/gallery", galleryRouter);
+router.use("/home", homeRouter);
+router.use("/officers", officersRouter);
+router.use("/pages", pagesRouter);
+router.use("/athletes", athletesRouter);
+router.use("/calendar", calendarRouter);
+router.use("/sponsorships", sponsorshipsRouter);
 
 export default router;

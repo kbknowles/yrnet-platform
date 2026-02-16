@@ -1,59 +1,46 @@
-// backend/routes/admin/sponsorships.js
-
 import express from "express";
 import prisma from "../../prismaClient.mjs";
 
 const router = express.Router();
 
-/**
- * ==============================
- * GET ALL SPONSORSHIPS (ADMIN)
- * ==============================
- */
+/* ==============================
+   GET ALL
+============================== */
 router.get("/", async (req, res) => {
   try {
-    const sponsorships = await prisma.sponsorship.findMany({
+    const items = await prisma.sponsorship.findMany({
       include: { sponsor: true },
       orderBy: { createdAt: "desc" },
     });
 
-    res.json(sponsorships);
+    res.json(items);
   } catch (err) {
-    console.error("GET sponsorships failed", err);
+    console.error(err);
     res.status(500).json({ error: "Failed to fetch sponsorships" });
   }
 });
 
-/**
- * ==============================
- * GET SINGLE SPONSORSHIP
- * ==============================
- */
+/* ==============================
+   GET ONE
+============================== */
 router.get("/:id", async (req, res) => {
   try {
-    const id = Number(req.params.id);
-
-    const sponsorship = await prisma.sponsorship.findUnique({
-      where: { id },
+    const item = await prisma.sponsorship.findUnique({
+      where: { id: Number(req.params.id) },
       include: { sponsor: true },
     });
 
-    if (!sponsorship) {
-      return res.status(404).json({ error: "Not found" });
-    }
+    if (!item) return res.status(404).json({ error: "Not found" });
 
-    res.json(sponsorship);
+    res.json(item);
   } catch (err) {
-    console.error("GET sponsorship failed", err);
     res.status(500).json({ error: "Failed to fetch sponsorship" });
   }
 });
 
-/**
- * ==============================
- * CREATE SPONSORSHIP
- * ==============================
- */
+/* ==============================
+   CREATE
+============================== */
 router.post("/", async (req, res) => {
   try {
     const {
@@ -67,13 +54,7 @@ router.post("/", async (req, res) => {
       active,
     } = req.body;
 
-    if (!sponsorId || !level || !startDate || !endDate) {
-      return res.status(400).json({
-        error: "Missing required fields",
-      });
-    }
-
-    const sponsorship = await prisma.sponsorship.create({
+    const created = await prisma.sponsorship.create({
       data: {
         sponsorId: Number(sponsorId),
         level,
@@ -86,24 +67,19 @@ router.post("/", async (req, res) => {
       },
     });
 
-    res.json(sponsorship);
+    res.json(created);
   } catch (err) {
-    console.error("POST sponsorship failed", err);
+    console.error(err);
     res.status(500).json({ error: "Failed to create sponsorship" });
   }
 });
 
-/**
- * ==============================
- * UPDATE SPONSORSHIP
- * ==============================
- */
+/* ==============================
+   UPDATE
+============================== */
 router.put("/:id", async (req, res) => {
   try {
-    const id = Number(req.params.id);
-
     const {
-      sponsorId,
       level,
       startDate,
       endDate,
@@ -113,13 +89,12 @@ router.put("/:id", async (req, res) => {
       active,
     } = req.body;
 
-    const sponsorship = await prisma.sponsorship.update({
-      where: { id },
+    const updated = await prisma.sponsorship.update({
+      where: { id: Number(req.params.id) },
       data: {
-        sponsorId: sponsorId ? Number(sponsorId) : undefined,
         level,
-        startDate: startDate ? new Date(startDate) : undefined,
-        endDate: endDate ? new Date(endDate) : undefined,
+        startDate: new Date(startDate),
+        endDate: new Date(endDate),
         contentType: contentType || null,
         contentId: contentId ? Number(contentId) : null,
         priority: priority ?? 0,
@@ -127,29 +102,23 @@ router.put("/:id", async (req, res) => {
       },
     });
 
-    res.json(sponsorship);
+    res.json(updated);
   } catch (err) {
-    console.error("PUT sponsorship failed", err);
     res.status(500).json({ error: "Failed to update sponsorship" });
   }
 });
 
-/**
- * ==============================
- * DELETE SPONSORSHIP
- * ==============================
- */
+/* ==============================
+   DELETE
+============================== */
 router.delete("/:id", async (req, res) => {
   try {
-    const id = Number(req.params.id);
-
     await prisma.sponsorship.delete({
-      where: { id },
+      where: { id: Number(req.params.id) },
     });
 
     res.json({ success: true });
   } catch (err) {
-    console.error("DELETE sponsorship failed", err);
     res.status(500).json({ error: "Failed to delete sponsorship" });
   }
 });
