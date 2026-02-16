@@ -131,6 +131,14 @@ export default function SchedulePage() {
 
         {/* RIGHT — CALENDAR */}
         <div className="space-y-6">
+          {/* Sidebar Sponsor Zone */}
+          <SponsorZone
+            contentType={null}
+            contentId={null}
+            zone="SIDEBAR"
+            slots={1}
+          />
+
           <div className="bg-white border rounded-lg p-4">
             <FullCalendar
               plugins={[dayGridPlugin, interactionPlugin]}
@@ -146,23 +154,9 @@ export default function SchedulePage() {
             />
           </div>
 
-          {/* Sidebar Sponsor Zone */}
-          <SponsorZone
-            contentType={null}
-            contentId={null}
-            zone="SIDEBAR"
-            slots={1}
-          />
         </div>
       </div>
 
-      {/* Footer Sponsor Zone */}
-      <SponsorZone
-        contentType={null}
-        contentId={null}
-        zone="FOOTER"
-        slots={1}
-      />
-    </main>
+   </main>
   );
 }
