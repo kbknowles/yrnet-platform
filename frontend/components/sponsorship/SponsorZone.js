@@ -41,14 +41,12 @@ export default function SponsorZone({
 
         let final = [];
 
-        // direct first
         direct.forEach((d) => {
           if (final.length < slots && d?.sponsor) {
             final.push(d.sponsor);
           }
         });
 
-        // backfill next
         backfill.forEach((b) => {
           if (final.length < slots && b?.sponsor) {
             final.push(b.sponsor);
@@ -66,7 +64,7 @@ export default function SponsorZone({
 
   const gridClasses =
     slots === 1
-      ? "grid grid-cols-1 gap-4"
+      ? "grid grid-cols-1"
       : "grid grid-cols-2 md:grid-cols-4 gap-4";
 
   return (
@@ -79,26 +77,26 @@ export default function SponsorZone({
               href={s.website || "#"}
               target="_blank"
               rel="noopener noreferrer"
-              className={`bg-white border rounded overflow-hidden ${
+              className={`bg-white border rounded flex items-center justify-center overflow-hidden ${
                 slots === 1
-                  ? "h-32"
-                  : "p-4 flex items-center justify-center h-28"
+                  ? "h-40"
+                  : "h-28"
               }`}
             >
               {s.bannerUrl ? (
                 <img
                   src={resolveImage(s.bannerUrl)}
                   alt={s.name}
-                  className="w-full h-full object-cover"
+                  className="max-w-full max-h-full object-contain"
                 />
               ) : s.logoUrl ? (
                 <img
                   src={resolveImage(s.logoUrl)}
                   alt={s.name}
-                  className="max-h-20 object-contain mx-auto"
+                  className="max-w-full max-h-full object-contain"
                 />
               ) : (
-                <div className="font-semibold text-center p-4">
+                <div className="font-semibold text-center">
                   {s.name}
                 </div>
               )}
