@@ -11,15 +11,28 @@ const ALLOWED_TYPES = [
   "application/pdf",
 ];
 
+/* =============================
+   STORAGE (RENDER DISK)
+   Mounted at: /uploads
+============================= */
+
 const storage = multer.diskStorage({
   destination(req, file, cb) {
     const { id } = req.params;
-    const dir = path.join("uploads", "announcements", String(id));
-    fs.mkdirSync(dir, { recursive: true });
+
+    const dir = `/uploads/announcements/${id}`;
+
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+
     cb(null, dir);
   },
+
   filename(req, file, cb) {
     const ext = path.extname(file.originalname).toLowerCase();
+
+    // Always overwrite poster file
     cb(null, `poster${ext}`);
   },
 });
@@ -34,14 +47,26 @@ const upload = multer({
   },
 });
 
+/* =============================
+   UPLOAD / REPLACE POSTER
+============================= */
+
 router.post("/:id/poster", upload.single("file"), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: "No file uploaded" });
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    const imageUrl = `/uploads/announcements/${req.params.id}/${req.file.filename}`;
+
+    res.json({
+      ok: true,
+      imageUrl,
+    });
+  } catch (err) {
+    console.error("Poster upload failed", err);
+    res.status(500).json({ error: "Upload failed" });
   }
-
-  const imageUrl = `/uploads/announcements/${req.params.id}/${req.file.filename}`;
-
-  res.json({ ok: true, imageUrl });
 });
 
 export default router;
