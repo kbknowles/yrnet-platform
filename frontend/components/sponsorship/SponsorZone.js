@@ -59,6 +59,7 @@ function PlaceholderCard({ label }) {
 export default function SponsorZone({
   contentType,
   contentId,
+  levels = [],
   slots = 4,
   stickySession = true,
 }) {
@@ -67,41 +68,29 @@ export default function SponsorZone({
   useEffect(() => {
     async function loadSponsors() {
       try {
+        const levelParam =
+          levels.length > 0 ? `&levels=${levels.join(",")}` : "";
+
         const res = await fetch(
-          `${API_BASE}/api/sponsorships/resolve?contentType=${contentType}&contentId=${contentId}`
+          `${API_BASE}/api/sponsorships/resolve?contentType=${contentType}&contentId=${contentId ?? ""}${levelParam}`
         );
 
         if (!res.ok) return;
 
         const data = await res.json();
 
-        const direct = data.direct || [];
-        const backfill = data.backfill || [];
+        // NEW RESPONSE SHAPE
+        const sponsorships = data?.sponsorships || [];
 
-        let final = [];
+        let final = sponsorships
+          .map((s) => s.sponsor)
+          .filter(Boolean)
+          .slice(0, slots);
 
-        // Slot 1: Direct sponsor if exists
-        if (direct.length > 0) {
-          final.push(direct[0].sponsor);
-        }
-
-        // Slot 2: Always "Support This" placeholder if direct < 2
-        if (final.length < 2) {
-          final.push(null);
-        }
-
-        // Remaining: Backfill
-        for (let i = 0; i < backfill.length; i++) {
-          if (final.length >= slots) break;
-          final.push(backfill[i].sponsor);
-        }
-
-        // Fill empty slots with placeholder
         while (final.length < slots) {
           final.push(null);
         }
 
-        // Optional sticky per session
         if (stickySession) {
           const key = `sponsorZone_${contentType}_${contentId}`;
           const existing = sessionStorage.getItem(key);
@@ -122,7 +111,7 @@ export default function SponsorZone({
     if (contentType) {
       loadSponsors();
     }
-  }, [contentType, contentId, slots, stickySession]);
+  }, [contentType, contentId, levels, slots, stickySession]);
 
   if (!sponsors || sponsors.length === 0) return null;
 
