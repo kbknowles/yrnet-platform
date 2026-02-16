@@ -66,13 +66,6 @@ export default function SchedulePage() {
       <section className="space-y-4">
         <h1 className="text-3xl font-bold">Rodeo Schedule</h1>
 
-        {/* Header Sponsor Zone */}
-        <SponsorZone
-          contentType={null}
-          contentId={null}
-          zone="HEADER"
-          slots={1}
-        />
       </section>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -133,8 +126,8 @@ export default function SchedulePage() {
         <div className="space-y-6">
           {/* Sidebar Sponsor Zone */}
           <SponsorZone
-            contentType={null}
-            contentId={null}
+            contentType="SEASON"
+            contentId={1}
             zone="SIDEBAR"
             slots={1}
           />
