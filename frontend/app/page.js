@@ -57,12 +57,20 @@ export default async function HomePage() {
 
       <EventGallery albums={galleryAlbums} />
 
+          <section>
+              <h2 className="text-xl font-semibold mb-4">
+                Thank you, Sponsors!
+              </h2>
+      
       <SponsorZone
         contentType="SEASON"
         contentId={null}
         levels={["PREMIER", "FEATURED"]}
         slots={4}
       />
+            </section>
+
+  
 
       <HomeCTA />
     </>
