@@ -68,7 +68,7 @@ export default function HomeHighlights({ rodeos, announcements }) {
             </h2>
 
             {featured ? (
-              <div className="bg-white rounded-md shadow-sm overflow-hidden">
+              <div className="rounded-md shadow-sm overflow-hidden">
                 {featured.mode === "POSTER" && featured.imageUrl ? (
                   <Link href={featuredHref}>
                     <img
