@@ -21,8 +21,14 @@ export default function SponsorZone({
   useEffect(() => {
     async function load() {
       try {
+        const params = new URLSearchParams();
+
+        if (contentType) params.append("contentType", contentType);
+        if (contentId) params.append("contentId", contentId);
+        if (levels?.length) params.append("levels", levels.join(","));
+
         const res = await fetch(
-          `${API_BASE}/api/sponsorships/resolve?contentType=${contentType}&contentId=${contentId}&levels=${levels.join(",")}`,
+          `${API_BASE}/api/sponsorships/resolve?${params.toString()}`,
           { cache: "no-store" }
         );
 
@@ -37,12 +43,16 @@ export default function SponsorZone({
 
         // direct first
         direct.forEach((d) => {
-          if (final.length < slots) final.push(d.sponsor);
+          if (final.length < slots && d?.sponsor) {
+            final.push(d.sponsor);
+          }
         });
 
         // backfill next
         backfill.forEach((b) => {
-          if (final.length < slots) final.push(b.sponsor);
+          if (final.length < slots && b?.sponsor) {
+            final.push(b.sponsor);
+          }
         });
 
         setSponsors(final);
@@ -51,29 +61,44 @@ export default function SponsorZone({
       }
     }
 
-    if (contentType) load();
+    load();
   }, [contentType, contentId, levels, slots]);
+
+  const gridClasses =
+    slots === 1
+      ? "grid grid-cols-1 gap-4"
+      : "grid grid-cols-2 md:grid-cols-4 gap-4";
 
   return (
     <section className="py-6">
       {sponsors.length > 0 ? (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className={gridClasses}>
           {sponsors.map((s, i) => (
             <a
               key={i}
               href={s.website || "#"}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-white border rounded p-4 flex items-center justify-center h-28"
+              className={`bg-white border rounded overflow-hidden ${
+                slots === 1
+                  ? "h-32"
+                  : "p-4 flex items-center justify-center h-28"
+              }`}
             >
-              {s.logoUrl ? (
+              {s.bannerUrl ? (
+                <img
+                  src={resolveImage(s.bannerUrl)}
+                  alt={s.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : s.logoUrl ? (
                 <img
                   src={resolveImage(s.logoUrl)}
                   alt={s.name}
-                  className="max-h-20 object-contain"
+                  className="max-h-20 object-contain mx-auto"
                 />
               ) : (
-                <div className="font-semibold text-center">
+                <div className="font-semibold text-center p-4">
                   {s.name}
                 </div>
               )}
