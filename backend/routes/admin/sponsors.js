@@ -1,16 +1,16 @@
 import express from "express";
 import prisma from "../../prismaClient.mjs";
 import multer from "multer";
-import path from "path";
 import fs from "fs";
 
 const router = express.Router();
 
 /* =============================
-   FILE STORAGE
+   FILE STORAGE (RENDER DISK)
+   Mounted at: /uploads
 ============================= */
 
-const uploadDir = path.resolve("uploads/sponsors");
+const uploadDir = "/uploads/sponsors";
 
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
@@ -25,6 +25,16 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage });
+
+function deleteFileIfExists(fileUrl) {
+  if (!fileUrl) return;
+
+  const absolutePath = fileUrl.replace("/uploads", "/uploads");
+
+  if (fs.existsSync(absolutePath)) {
+    fs.unlinkSync(absolutePath);
+  }
+}
 
 /* =============================
    GET ALL
@@ -79,7 +89,8 @@ router.post("/", async (req, res) => {
         contactEmail: req.body.contactEmail,
         contactPhone: req.body.contactPhone,
         internalNotes: req.body.internalNotes,
-        logoUrl: "",
+        logoUrl: null,
+        bannerUrl: null,
       },
     });
 
@@ -117,13 +128,24 @@ router.put("/:id", async (req, res) => {
 });
 
 /* =============================
-   DELETE
+   DELETE SPONSOR
 ============================= */
 
 router.delete("/:id", async (req, res) => {
   try {
-    await prisma.sponsor.delete({
+    const sponsor = await prisma.sponsor.findUnique({
       where: { id: Number(req.params.id) },
+    });
+
+    if (!sponsor) {
+      return res.status(404).json({ error: "Not found" });
+    }
+
+    deleteFileIfExists(sponsor.logoUrl);
+    deleteFileIfExists(sponsor.bannerUrl);
+
+    await prisma.sponsor.delete({
+      where: { id: sponsor.id },
     });
 
     res.json({ success: true });
@@ -134,19 +156,33 @@ router.delete("/:id", async (req, res) => {
 });
 
 /* =============================
-   UPLOAD LOGO
+   UPLOAD LOGO (REPLACE / REFRESH)
 ============================= */
 
 router.post("/:id/upload-logo", upload.single("file"), async (req, res) => {
   try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    const sponsor = await prisma.sponsor.findUnique({
+      where: { id: Number(req.params.id) },
+    });
+
+    if (!sponsor) {
+      return res.status(404).json({ error: "Not found" });
+    }
+
+    deleteFileIfExists(sponsor.logoUrl);
+
     const filePath = `/uploads/sponsors/${req.file.filename}`;
 
-    const sponsor = await prisma.sponsor.update({
-      where: { id: Number(req.params.id) },
+    const updated = await prisma.sponsor.update({
+      where: { id: sponsor.id },
       data: { logoUrl: filePath },
     });
 
-    res.json(sponsor);
+    res.json(updated);
   } catch (err) {
     console.error("Upload logo failed", err);
     res.status(500).json({ error: "Failed to upload logo" });
@@ -154,22 +190,92 @@ router.post("/:id/upload-logo", upload.single("file"), async (req, res) => {
 });
 
 /* =============================
-   UPLOAD BANNER
+   DELETE LOGO
+============================= */
+
+router.delete("/:id/logo", async (req, res) => {
+  try {
+    const sponsor = await prisma.sponsor.findUnique({
+      where: { id: Number(req.params.id) },
+    });
+
+    if (!sponsor) {
+      return res.status(404).json({ error: "Not found" });
+    }
+
+    deleteFileIfExists(sponsor.logoUrl);
+
+    const updated = await prisma.sponsor.update({
+      where: { id: sponsor.id },
+      data: { logoUrl: null },
+    });
+
+    res.json(updated);
+  } catch (err) {
+    console.error("Delete logo failed", err);
+    res.status(500).json({ error: "Failed to delete logo" });
+  }
+});
+
+/* =============================
+   UPLOAD BANNER (REPLACE / REFRESH)
 ============================= */
 
 router.post("/:id/upload-banner", upload.single("file"), async (req, res) => {
   try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    const sponsor = await prisma.sponsor.findUnique({
+      where: { id: Number(req.params.id) },
+    });
+
+    if (!sponsor) {
+      return res.status(404).json({ error: "Not found" });
+    }
+
+    deleteFileIfExists(sponsor.bannerUrl);
+
     const filePath = `/uploads/sponsors/${req.file.filename}`;
 
-    const sponsor = await prisma.sponsor.update({
-      where: { id: Number(req.params.id) },
+    const updated = await prisma.sponsor.update({
+      where: { id: sponsor.id },
       data: { bannerUrl: filePath },
     });
 
-    res.json(sponsor);
+    res.json(updated);
   } catch (err) {
     console.error("Upload banner failed", err);
     res.status(500).json({ error: "Failed to upload banner" });
+  }
+});
+
+/* =============================
+   DELETE BANNER
+============================= */
+
+router.delete("/:id/banner", async (req, res) => {
+  try {
+    const sponsor = await prisma.sponsor.findUnique({
+      where: { id: Number(req.params.id) },
+    });
+
+    if (!sponsor) {
+      return res.status(404).json({ error: "Not found" });
+    }
+
+    deleteFileIfExists(sponsor.bannerUrl);
+
+    const updated = await prisma.sponsor.update({
+      where: { id: sponsor.id },
+      data: { bannerUrl: null },
+    });
+
+    res.json(updated);
+  } catch (err) {
+    console.error("Delete banner failed", err);
+    res.status(500).json({ error: "Failed to delete banner" });
   }
 });
 
