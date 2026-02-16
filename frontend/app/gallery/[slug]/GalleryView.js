@@ -61,6 +61,11 @@ export default function GalleryView({ album, API_BASE, isDev }) {
         </div>
       )}
 
+        <section>
+        <h2 className="text-xl font-semibold mb-4">
+              Thank you, Sponsors!
+        </h2>
+        
       {/* SponsorZone at bottom */}
       <SponsorZone
         contentType="GALLERY"
@@ -68,6 +73,7 @@ export default function GalleryView({ album, API_BASE, isDev }) {
         zone="FOOTER"
         slots={4}
       />
+      </section>
     </main>
   );
 }

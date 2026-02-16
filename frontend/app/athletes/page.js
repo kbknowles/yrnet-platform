@@ -95,10 +95,10 @@ export default async function AthletesPage() {
         </p>
       </section>
 
-               <section>
-                    <h2 className="text-xl font-semibold mb-4">
-                      Thank you, Sponsors!
-                    </h2>
+      <section>
+        <h2 className="text-xl font-semibold mb-4">
+              Thank you, Sponsors!
+        </h2>
             
      {/* Page-Level Sponsor Zone */}
       <SponsorZone
