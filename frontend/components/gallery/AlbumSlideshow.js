@@ -1,9 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-export default function AlbumSlideshow({ images }) {
-  const [index, setIndex] = useState(0);
+export default function AlbumSlideshow({ images, initialIndex = 0 }) {
+  const [index, setIndex] = useState(initialIndex);
+
+  useEffect(() => {
+    setIndex(initialIndex);
+  }, [initialIndex]);
 
   if (!images?.length) return null;
 
@@ -16,23 +20,23 @@ export default function AlbumSlideshow({ images }) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 relative">
       <div className="relative">
         <img
           src={images[index].imageUrl}
-          className="rounded w-full"
+          className="rounded w-full max-h-[80vh] object-contain"
         />
 
         <button
           onClick={prev}
-          className="absolute left-2 top-1/2 bg-black/50 text-white px-3 py-1 rounded"
+          className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white px-3 py-1 rounded"
         >
           ‹
         </button>
 
         <button
           onClick={next}
-          className="absolute right-2 top-1/2 bg-black/50 text-white px-3 py-1 rounded"
+          className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white px-3 py-1 rounded"
         >
           ›
         </button>
