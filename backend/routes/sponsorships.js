@@ -6,7 +6,7 @@ const router = express.Router();
 /**
  * ===============================
  * GET /api/sponsorships
- * Optional filters:
+ * Optional:
  *   ?levels=PREMIER,FEATURED
  * ===============================
  */
@@ -28,10 +28,7 @@ router.get("/", async (req, res) => {
         ...levelFilter,
       },
       include: { sponsor: true },
-      orderBy: [
-        { priority: "desc" },
-        { level: "asc" },
-      ],
+      orderBy: [{ priority: "desc" }, { level: "asc" }],
     });
 
     res.json(sponsorships);
@@ -68,6 +65,9 @@ router.get("/resolve", async (req, res) => {
 
     /**
      * DIRECT MATCH
+     * Handles:
+     *  - specific contentId
+     *  - SEASON with null contentId
      */
     const direct = await prisma.sponsorship.findMany({
       where: {
@@ -77,36 +77,37 @@ router.get("/resolve", async (req, res) => {
         ...(contentType ? { contentType } : {}),
         ...(numericContentId !== null
           ? { contentId: numericContentId }
-          : {}),
+          : { contentId: null }), // <-- FIX
         ...levelFilter,
       },
       include: { sponsor: true },
-      orderBy: [
-        { priority: "desc" },
-        { level: "asc" },
-      ],
+      orderBy: [{ priority: "desc" }, { level: "asc" }],
     });
 
     /**
-     * BACKFILL (GLOBAL / SEASON LEVEL)
+     * GLOBAL BACKFILL
+     * Only if no direct results
      */
-    const backfill = await prisma.sponsorship.findMany({
-      where: {
-        active: true,
-        startDate: { lte: now },
-        endDate: { gte: now },
-        contentType: null,
-        contentId: null,
-        ...levelFilter,
-      },
-      include: { sponsor: true },
-      orderBy: [
-        { priority: "desc" },
-        { level: "asc" },
-      ],
-    });
+    let backfill = [];
 
-    res.json({ direct, backfill });
+    if (direct.length === 0) {
+      backfill = await prisma.sponsorship.findMany({
+        where: {
+          active: true,
+          startDate: { lte: now },
+          endDate: { gte: now },
+          contentType: null,
+          contentId: null,
+          ...levelFilter,
+        },
+        include: { sponsor: true },
+        orderBy: [{ priority: "desc" }, { level: "asc" }],
+      });
+    }
+
+    res.json({
+      sponsorships: direct.length > 0 ? direct : backfill,
+    });
   } catch (err) {
     console.error("Resolve sponsorship failed", err);
     res.status(500).json({ error: "Failed to resolve sponsorships" });
