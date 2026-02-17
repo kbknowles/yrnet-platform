@@ -1,3 +1,5 @@
+// filepath: frontend/app/admin/events/[slug]/schedule/page.js
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -6,22 +8,23 @@ import { useParams } from "next/navigation";
 export default function EventSchedulePage() {
   const API_BASE = process.env.NEXT_PUBLIC_API_URL;
   const params = useParams();
-  const eventId = params?.id;
+  const slug = params?.slug;
 
   const [items, setItems] = useState([]);
   const [form, setForm] = useState({
     title: "",
     startTime: "",
-    endTime: "",
     notes: "",
   });
 
   async function loadItems() {
-    if (!eventId) return;
+    if (!slug) return;
 
     try {
       const res = await fetch(
-        `${API_BASE}/api/admin/event-schedule-items?eventId=${eventId}`,
+        `${API_BASE}/api/admin/event-schedule-items?slug=${encodeURIComponent(
+          slug
+        )}`,
         { cache: "no-store" }
       );
 
@@ -35,18 +38,18 @@ export default function EventSchedulePage() {
   }
 
   useEffect(() => {
-    if (eventId) loadItems();
-  }, [eventId]);
+    if (slug) loadItems();
+  }, [slug]);
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!eventId) return;
+    if (!slug) return;
 
     await fetch(`${API_BASE}/api/admin/event-schedule-items`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        eventId: Number(eventId),
+        slug,
         label: form.title,
         date: form.startTime,
         startTime: form.startTime,
@@ -57,7 +60,6 @@ export default function EventSchedulePage() {
     setForm({
       title: "",
       startTime: "",
-      endTime: "",
       notes: "",
     });
 
@@ -66,7 +68,9 @@ export default function EventSchedulePage() {
 
   return (
     <main className="max-w-4xl mx-auto px-4 py-10 space-y-6">
-      <h1 className="text-2xl font-bold">Event Schedule</h1>
+      <h1 className="text-2xl font-bold">
+        Event Schedule: {slug}
+      </h1>
 
       <form onSubmit={handleSubmit} className="grid gap-3">
         <input

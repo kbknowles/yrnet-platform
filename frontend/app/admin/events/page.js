@@ -1,96 +1,139 @@
+// filepath: frontend/app/admin/events/page.js
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { formatDate } from "../../../lib/formatDate";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
-async function getEvent(slug) {
-  try {
-    const res = await fetch(
-      `${API_BASE}/api/events/${encodeURIComponent(slug)}`,
-      { cache: "no-store" }
-    );
-
-    if (!res.ok) return null;
-    return await res.json();
-  } catch {
-    return null;
-  }
+function formatMMDDYYYY(date) {
+  if (!date) return "";
+  const d = new Date(date);
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  const yyyy = d.getFullYear();
+  return `${mm}/${dd}/${yyyy}`;
 }
 
-export default async function EventPage({ params }) {
-  const { slug } = await params;
+export default function AdminEventsPage() {
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  if (!slug) notFound();
+  useEffect(() => {
+    async function load() {
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/events`, {
+          cache: "no-store",
+        });
 
-  const event = await getEvent(slug);
+        if (!res.ok) {
+          setLoading(false);
+          return;
+        }
 
-  if (!event) notFound();
+        const data = await res.json();
+        setEvents(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error("Failed to load events", err);
+      } finally {
+        setLoading(false);
+      }
+    }
 
-  const location = event.location;
+    load();
+  }, []);
 
-  const fullAddress =
-    location?.streetAddress &&
-    location?.city &&
-    location?.state &&
-    location?.zip
-      ? `${location.streetAddress}, ${location.city}, ${location.state} ${location.zip}`
-      : null;
+  if (loading) {
+    return <div className="p-6">Loading…</div>;
+  }
 
   return (
-    <main className="max-w-7xl mx-auto px-4 py-10 space-y-10">
-      <section>
-        <h1 className="text-3xl font-bold">{event.name}</h1>
-        <p className="text-gray-600">
-          {formatDate(event.startDate)}
-          {event.endDate && ` – ${formatDate(event.endDate)}`}
-        </p>
-      </section>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-1 space-y-6">
-          {event.generalInfo && (
-            <div>
-              <h2 className="font-semibold mb-2">General Info</h2>
-              <p className="whitespace-pre-line text-sm">
-                {event.generalInfo}
-              </p>
-            </div>
-          )}
-
-          {location && (
-            <div>
-              <h2 className="font-semibold mb-2">Location</h2>
-              <p className="text-sm">
-                {location.name}
-                {fullAddress && (
-                  <>
-                    <br />
-                    {fullAddress}
-                  </>
-                )}
-              </p>
-
-              {fullAddress && (
-                <div className="mt-3 h-[220px] border rounded overflow-hidden">
-                  <iframe
-                    width="100%"
-                    height="100%"
-                    loading="lazy"
-                    src={`https://www.google.com/maps?q=${encodeURIComponent(
-                      fullAddress
-                    )}&output=embed`}
-                  />
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+    <div className="max-w-6xl mx-auto px-6 py-10 space-y-8">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">Events</h1>
+        <Link
+          href="/admin/events/new"
+          className="px-4 py-2 bg-black text-white rounded text-sm"
+        >
+          + New Event
+        </Link>
       </div>
 
-      <Link href="/schedule" className="underline">
-        Back to schedule
-      </Link>
-    </main>
+      {events.length === 0 && (
+        <p className="text-slate-600 text-sm">No events found.</p>
+      )}
+
+      <div className="bg-white border rounded overflow-hidden">
+        <table className="w-full text-sm">
+          <thead className="bg-slate-100 text-left">
+            <tr>
+              <th className="px-4 py-3">Name</th>
+              <th className="px-4 py-3">Dates</th>
+              <th className="px-4 py-3">Season</th>
+              <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {events.map((event) => (
+              <tr key={event.id} className="border-t">
+                <td className="px-4 py-3 font-medium">
+                  {event.name}
+                  <div className="text-xs text-slate-500">
+                    /events/{event.slug}
+                  </div>
+                </td>
+
+                <td className="px-4 py-3 text-slate-700">
+                  {formatMMDDYYYY(event.startDate)}
+                  {event.endDate &&
+                    ` – ${formatMMDDYYYY(event.endDate)}`}
+                </td>
+
+                <td className="px-4 py-3 text-slate-700">
+                  {event.season?.year || "—"}
+                </td>
+
+                <td className="px-4 py-3">
+                  <span
+                    className={`px-2 py-1 rounded text-xs ${
+                      event.status === "published"
+                        ? "bg-green-100 text-green-700"
+                        : "bg-yellow-100 text-yellow-700"
+                    }`}
+                  >
+                    {event.status}
+                  </span>
+                </td>
+
+                <td className="px-4 py-3 text-right space-x-3">
+                  <Link
+                    href={`/admin/events/${event.slug}`}
+                    className="underline"
+                  >
+                    Edit
+                  </Link>
+
+                  <Link
+                    href={`/admin/events/${event.slug}/schedule`}
+                    className="underline"
+                  >
+                    Schedule
+                  </Link>
+
+                  <Link
+                    href={`/events/${event.slug}`}
+                    target="_blank"
+                    className="underline"
+                  >
+                    View
+                  </Link>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 }

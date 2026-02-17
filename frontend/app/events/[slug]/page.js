@@ -148,6 +148,12 @@ export default async function EventPage({ params }) {
         Back to schedule
       </Link>
 
+      <section>
+        <h2 className="text-xl font-semibold mb-4">
+              Thank you, Sponsors!
+      </h2>
+
+
       {/* FOOTER / TITLE LEVEL AREA */}
       <SponsorZone
         contentType="EVENT"
@@ -155,6 +161,8 @@ export default async function EventPage({ params }) {
         zone="FOOTER"
         slots={4}
       />
+
+</section>
 
     </main>
   );
