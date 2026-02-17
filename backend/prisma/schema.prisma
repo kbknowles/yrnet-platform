@@ -240,7 +240,7 @@ model EventContact {
 model Sponsor {
   id           Int      @id @default(autoincrement())
   name         String
-  logoUrl      String
+  logoUrl      String?
   bannerUrl    String?
   website      String?
   description  String?
