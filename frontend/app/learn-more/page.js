@@ -15,14 +15,22 @@ export default function LearnMorePage() {
           promotes sportsmanship, and creates opportunities through organized
           competition, education, and community involvement.
         </p>
-
-        {/* Header Sponsor Zone */}
-        <SponsorZone
-          contentType={null}
-          contentId={null}
-          zone="HEADER"
-          slots={4}
-        />
+      </section>
+ 
+     {/* Sponsors Section */}
+      <section className="py-16 bg-gray-50">
+        <div className="max-w-6xl mx-auto px-6">
+          <h2 className="text-xl font-semibold text-center">
+            Support our Sponsors!
+          </h2>
+          <SponsorZone
+            contentType="GLOBAL"
+            contentId={null}
+            zone="HEADER"
+            levels={["PREMIER", "FEATURED"]}
+            slots={4}
+          />
+        </div>
       </section>
 
       <div className="grid gap-10 md:grid-cols-2">
@@ -36,13 +44,6 @@ export default function LearnMorePage() {
             eligibility, and athlete resources will be available here soon.
           </p>
 
-          {/* Inline Sponsor Zone */}
-          <SponsorZone
-            contentType={null}
-            contentId={null}
-            zone="INLINE"
-            slots={4}
-          />
         </section>
 
         {/* Sponsors */}
@@ -57,13 +58,7 @@ export default function LearnMorePage() {
         </section>
       </div>
 
-      {/* Footer Sponsor Zone */}
-      <SponsorZone
-        contentType={null}
-        contentId={null}
-        zone="FOOTER"
-        slots={4}
-      />
+  
 
       <div className="pt-8 text-sm text-gray-500">
         More details coming soon.

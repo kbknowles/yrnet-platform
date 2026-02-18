@@ -61,9 +61,10 @@ export default async function HomePage() {
       <section className="py-16 bg-gray-50">
         <div className="max-w-6xl mx-auto px-6">
           <h2 className="text-2xl font-semibold text-center mb-8">
-            Support Our Sponsors
+            Thank you, Sponsors!
+            
           </h2>
-
+            <p className="text-center text-xl">Hit a banner to learn more about a sponsor</p> 
           <SponsorZone
             contentType="SEASON"
             contentId={null}
