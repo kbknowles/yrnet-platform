@@ -7,10 +7,6 @@ const router = express.Router();
 
 /**
  * GET /api/sponsorships/resolve
- * Query:
- *   contentType=SEASON|ATHLETE|EVENT|...
- *   contentId=null|number
- *   levels=PREMIER,FEATURED
  */
 router.get("/resolve", async (req, res) => {
   try {
@@ -27,13 +23,19 @@ router.get("/resolve", async (req, res) => {
         ? { level: { in: levels.split(",") } }
         : {};
 
+    // 🔑 Translate GLOBAL → null
+    const normalizedContentType =
+      contentType === "GLOBAL" ? null : contentType;
+
     // DIRECT MATCH
     const direct = await prisma.sponsorship.findMany({
       where: {
         active: true,
         startDate: { lte: now },
         endDate: { gte: now },
-        ...(contentType ? { contentType } : {}),
+        ...(normalizedContentType !== undefined
+          ? { contentType: normalizedContentType }
+          : {}),
         ...(numericContentId !== null
           ? { contentId: numericContentId }
           : { contentId: null }),
@@ -46,7 +48,7 @@ router.get("/resolve", async (req, res) => {
       ],
     });
 
-    // GLOBAL BACKFILL (true global = null/null)
+    // GLOBAL BACKFILL (null/null)
     const backfill = await prisma.sponsorship.findMany({
       where: {
         active: true,
@@ -63,7 +65,7 @@ router.get("/resolve", async (req, res) => {
       ],
     });
 
-    res.json({ direct, backfill });   // 🔒 LOCKED RESPONSE SHAPE
+    res.json({ direct, backfill });
   } catch (err) {
     console.error("Resolve sponsorship failed", err);
     res.status(500).json({ error: "Failed to resolve sponsorships" });
