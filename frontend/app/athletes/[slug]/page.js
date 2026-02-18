@@ -24,7 +24,7 @@ async function getAthlete(slug) {
 }
 
 export default async function AthleteDetailPage(props) {
-  const { slug } = props.params;
+  const { slug } = await props.params;
   const athlete = await getAthlete(slug);
 
   if (!athlete || !athlete.isActive) {

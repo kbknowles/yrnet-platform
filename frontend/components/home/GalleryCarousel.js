@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import AlbumSlideshow from "../../gallery/AlbumSlideshow";
+import AlbumSlideshow from "../gallery/AlbumSlideshow";
 
 export default function GalleryCarousel({ albums = [] }) {
   const API_BASE = process.env.NEXT_PUBLIC_API_URL;
