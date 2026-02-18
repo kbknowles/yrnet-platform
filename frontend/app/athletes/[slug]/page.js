@@ -1,4 +1,7 @@
+// filepath: frontend/app/athletes/[slug]/page.js
+
 import Image from "next/image";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import SponsorZone from "../../../components/sponsorship/SponsorZone";
 
@@ -21,7 +24,7 @@ async function getAthlete(slug) {
 }
 
 export default async function AthleteDetailPage(props) {
-  const { slug } = await props.params;
+  const { slug } = props.params;
   const athlete = await getAthlete(slug);
 
   if (!athlete || !athlete.isActive) {
@@ -30,18 +33,28 @@ export default async function AthleteDetailPage(props) {
 
   return (
     <main className="max-w-5xl mx-auto px-4 py-10 space-y-12">
+      
+      {/* Breadcrumb */}
+      <nav className="text-sm">
+        <Link href="/athletes" className="text-blue-600 hover:underline">
+          Athletes
+        </Link>
+        <span className="mx-2">/</span>
+        <span className="text-gray-600">
+          {athlete.firstName} {athlete.lastName}
+        </span>
+      </nav>
 
       {/* Header Section */}
       <section className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {athlete.headshotUrl && (
-          <div className="w-full aspect-square border rounded bg-gray-100 flex items-center justify-center overflow-hidden">
+          <div className="relative w-full aspect-square border rounded bg-gray-100 overflow-hidden">
             <Image
               src={resolveImage(athlete.headshotUrl)}
               alt={`${athlete.firstName} ${athlete.lastName}`}
-              width={300}
-              height={300}
+              fill
               unoptimized
-              className="max-w-full max-h-full object-contain"
+              className="object-contain p-2"
             />
           </div>
         )}
@@ -51,20 +64,28 @@ export default async function AthleteDetailPage(props) {
             {athlete.firstName} {athlete.lastName}
           </h1>
 
-          {athlete.school && <p><strong>School:</strong> {athlete.school}</p>}
-          {athlete.grade && <p><strong>Grade:</strong> {athlete.grade}</p>}
-          {athlete.hometown && <p><strong>Hometown:</strong> {athlete.hometown}</p>}
+          {athlete.school && (
+            <p><strong>School:</strong> {athlete.school}</p>
+          )}
+          {athlete.grade && (
+            <p><strong>Grade:</strong> {athlete.grade}</p>
+          )}
+          {athlete.hometown && (
+            <p><strong>Hometown:</strong> {athlete.hometown}</p>
+          )}
 
           {athlete.events?.length > 0 && (
             <p>
               <strong>Events:</strong>{" "}
-              {athlete.events.map(e => e.replaceAll("_", " ")).join(", ")}
+              {athlete.events
+                .map((e) => e.replaceAll("_", " "))
+                .join(", ")}
             </p>
           )}
         </div>
       </section>
 
-      {/* Athlete Sponsorship Zone (4 Slots Total) */}
+      {/* Athlete Sponsorship Zone */}
       <section>
         <h2 className="text-xl font-semibold mb-4">
           Athlete Sponsors
@@ -97,14 +118,13 @@ export default async function AthleteDetailPage(props) {
       {athlete.actionPhotoUrl && (
         <section>
           <h2 className="text-xl font-semibold mb-3">In Action</h2>
-          <div className="w-full max-h-[420px] aspect-[16/9] border rounded bg-gray-100 flex items-center justify-center overflow-hidden">
+          <div className="relative w-full aspect-[16/9] border rounded bg-gray-100 overflow-hidden">
             <Image
               src={resolveImage(athlete.actionPhotoUrl)}
               alt="Action shot"
-              width={900}
-              height={500}
+              fill
               unoptimized
-              className="max-w-full max-h-full object-contain"
+              className="object-contain p-2"
             />
           </div>
         </section>
