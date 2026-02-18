@@ -26,7 +26,6 @@ export default function LearnMorePage() {
           <SponsorZone
             contentType="GLOBAL"
             contentId={null}
-            zone="HEADER"
             levels={["PREMIER", "FEATURED"]}
             slots={4}
           />

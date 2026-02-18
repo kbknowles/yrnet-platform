@@ -1,3 +1,4 @@
+// filepath: frontend/components/sponsorship/SponsorZone.js
 "use client";
 
 import { useEffect, useState } from "react";
@@ -26,6 +27,7 @@ export default function SponsorZone({
         if (contentType) params.append("contentType", contentType);
         if (contentId) params.append("contentId", contentId);
         if (levels?.length) params.append("levels", levels.join(","));
+        params.append("slots", slots);
 
         const res = await fetch(
           `${API_BASE}/api/sponsorships/resolve?${params.toString()}`,
@@ -36,22 +38,33 @@ export default function SponsorZone({
 
         const data = await res.json();
 
-        const direct = data.direct || [];
-        const backfill = data.backfill || [];
+        const direct = Array.isArray(data.direct) ? data.direct : [];
+        const backfill = Array.isArray(data.backfill) ? data.backfill : [];
 
-        let final = [];
+        const final = [];
+        const seen = new Set();
 
-        direct.forEach((d) => {
-          if (final.length < slots && d?.sponsor) {
-            final.push(d.sponsor);
-          }
-        });
+        // 1️⃣ Add direct matches first
+        for (const d of direct) {
+          if (final.length >= slots) break;
+          if (!d?.sponsor) continue;
+          if (seen.has(d.sponsor.id)) continue;
 
-        backfill.forEach((b) => {
-          if (final.length < slots && b?.sponsor) {
+          seen.add(d.sponsor.id);
+          final.push(d.sponsor);
+        }
+
+        // 2️⃣ Only backfill if needed
+        if (final.length < slots) {
+          for (const b of backfill) {
+            if (final.length >= slots) break;
+            if (!b?.sponsor) continue;
+            if (seen.has(b.sponsor.id)) continue;
+
+            seen.add(b.sponsor.id);
             final.push(b.sponsor);
           }
-        });
+        }
 
         setSponsors(final);
       } catch (err) {
@@ -71,16 +84,14 @@ export default function SponsorZone({
     <section className="py-6">
       {sponsors.length > 0 ? (
         <div className={gridClasses}>
-          {sponsors.map((s, i) => (
+          {sponsors.map((s) => (
             <a
-              key={i}
+              key={s.id}
               href={s.website || "#"}
               target="_blank"
               rel="noopener noreferrer"
               className={`bg-white border rounded flex items-center justify-center overflow-hidden ${
-                slots === 1
-                  ? "h-40"
-                  : "h-28"
+                slots === 1 ? "h-40" : "h-28"
               }`}
             >
               {s.bannerUrl ? (
