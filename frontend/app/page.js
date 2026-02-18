@@ -69,7 +69,6 @@ export default async function HomePage() {
             contentId={null}
             levels={["PREMIER", "FEATURED"]}
             slots={4}
-            heading="" 
           />
         </div>
       </section>

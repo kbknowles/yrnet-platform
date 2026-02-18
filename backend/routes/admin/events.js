@@ -6,40 +6,53 @@ import prisma from "../../prismaClient.mjs";
 const router = express.Router();
 
 /* ---------------- */
-/* GET ALL EVENTS */
+/* GET ALL EVENTS  */
 /* ---------------- */
-router.get("/", async (req, res) => {
-  const events = await prisma.event.findMany({
-    include: {
-      season: true,
-      location: true,
-      callInPolicy: true,
-      contacts: true,
-      scheduleItems: true,
-    },
-    orderBy: { startDate: "asc" },
-  });
+router.get("/", async (_req, res) => {
+  try {
+    const events = await prisma.event.findMany({
+      include: {
+        season: true,
+        location: true,
+        callInPolicy: true,
+        contacts: true,
+        scheduleItems: true,
+      },
+      orderBy: { startDate: "asc" },
+    });
 
-  res.json(events);
+    res.json(events);
+  } catch (err) {
+    console.error("GET EVENTS ERROR:", err);
+    res.status(500).json({ error: "Failed to load events" });
+  }
 });
 
 /* ---------------- */
-/* GET EVENT BY ID */
+/* GET EVENT BY SLUG */
 /* ---------------- */
-router.get("/:id", async (req, res) => {
-  const event = await prisma.event.findUnique({
-    where: { id: Number(req.params.id) },
-    include: {
-      season: true,
-      location: true,
-      callInPolicy: true,
-      contacts: true,
-      scheduleItems: true,
-    },
-  });
+router.get("/:slug", async (req, res) => {
+  try {
+    const event = await prisma.event.findUnique({
+      where: { slug: req.params.slug },
+      include: {
+        season: true,
+        location: true,
+        callInPolicy: true,
+        contacts: true,
+        scheduleItems: true,
+      },
+    });
 
-  if (!event) return res.status(404).json({ error: "Event not found" });
-  res.json(event);
+    if (!event) {
+      return res.status(404).json({ error: "Event not found" });
+    }
+
+    res.json(event);
+  } catch (err) {
+    console.error("GET EVENT ERROR:", err);
+    res.status(500).json({ error: "Failed to load event" });
+  }
 });
 
 /* ---------------- */
@@ -91,13 +104,13 @@ router.post("/", async (req, res) => {
 });
 
 /* ---------------- */
-/* UPDATE EVENT */
+/* UPDATE EVENT (BY SLUG) */
 /* ---------------- */
-router.put("/:id", async (req, res) => {
+router.put("/:slug", async (req, res) => {
   try {
     const {
       name,
-      slug,
+      slug: newSlug,
       startDate,
       endDate,
       seasonId,
@@ -109,17 +122,17 @@ router.put("/:id", async (req, res) => {
       status,
     } = req.body;
 
-    if (!name || !slug || !startDate || !endDate || !seasonId || !locationId) {
+    if (!name || !newSlug || !startDate || !endDate || !seasonId || !locationId) {
       return res.status(400).json({
         error: "Missing required fields",
       });
     }
 
     const event = await prisma.event.update({
-      where: { id: Number(req.params.id) },
+      where: { slug: req.params.slug },
       data: {
         name,
-        slug,
+        slug: newSlug,
         startDate: new Date(startDate),
         endDate: new Date(endDate),
         seasonId: Number(seasonId),
@@ -140,14 +153,19 @@ router.put("/:id", async (req, res) => {
 });
 
 /* ---------------- */
-/* DELETE EVENT */
+/* DELETE EVENT (BY SLUG) */
 /* ---------------- */
-router.delete("/:id", async (req, res) => {
-  await prisma.event.delete({
-    where: { id: Number(req.params.id) },
-  });
+router.delete("/:slug", async (req, res) => {
+  try {
+    await prisma.event.delete({
+      where: { slug: req.params.slug },
+    });
 
-  res.json({ success: true });
+    res.json({ success: true });
+  } catch (err) {
+    console.error("DELETE EVENT ERROR:", err);
+    res.status(500).json({ error: "Failed to delete event" });
+  }
 });
 
 export default router;
