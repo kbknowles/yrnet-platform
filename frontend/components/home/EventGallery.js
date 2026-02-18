@@ -86,7 +86,7 @@ export default function EventGallery({ albums = [] }) {
 
       {isOpen && (
         <AlbumSlideshow
-          images={images}
+          images={latestImages}
           initialIndex={startIndex}
           onClose={closeSlideshow}
         />
