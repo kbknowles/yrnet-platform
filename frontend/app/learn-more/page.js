@@ -24,7 +24,7 @@ export default function LearnMorePage() {
             Support our Sponsors!
           </h2>
           <SponsorZone
-            contentType="GLOBAL"
+            contentType="SEASON"
             contentId={null}
             levels={["PREMIER", "FEATURED"]}
             slots={4}
