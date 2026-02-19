@@ -7,16 +7,20 @@ const router = express.Router();
 
 /**
  * GET /api/sponsorships/resolve
- * Simple Logic:
- * 1. Pull direct matches
- * 2. If not enough, backfill with GLOBAL (null/null)
- * 3. Respect levels
- * 4. De-duplicate
+ *
+ * Hierarchy:
+ * ContentType order:
+ *   GLOBAL(null) → SEASON → EVENT → ATHLETE
+ *
+ * Level order:
+ *   PREMIER → FEATURED → STANDARD → SUPPORTER
+ *
+ * Stops once slots are filled.
  */
 router.get("/resolve", async (req, res) => {
   try {
     const now = new Date();
-    const { contentType, contentId, levels, slots } = req.query;
+    const { contentType, contentId, slots } = req.query;
 
     const slotLimit = Number(slots) || 4;
 
@@ -25,69 +29,68 @@ router.get("/resolve", async (req, res) => {
         ? Number(contentId)
         : null;
 
-    const levelFilter =
-      levels && typeof levels === "string"
-        ? { level: { in: levels.split(",") } }
-        : {};
-
-    // Normalize GLOBAL → null
-    const normalizedContentType =
-      contentType === "GLOBAL" ? null : contentType;
-
     const baseWhere = {
       active: true,
       startDate: { lte: now },
       endDate: { gte: now },
-      ...levelFilter,
     };
 
-    // 1️⃣ Direct matches
-    const direct = await prisma.sponsorship.findMany({
-      where: {
+    // Normalize GLOBAL → null
+    const normalizedType =
+      contentType === "GLOBAL" ? null : contentType;
+
+    const contentHierarchy = [null, "SEASON", "EVENT", "ATHLETE"];
+    const levelHierarchy = ["PREMIER", "FEATURED", "STANDARD", "SUPPORTER"];
+
+    const collected = [];
+    const seenSponsors = new Set();
+
+    async function fetchLayer(type, level) {
+      const where = {
         ...baseWhere,
-        ...(normalizedContentType !== undefined
-          ? { contentType: normalizedContentType }
-          : {}),
-        ...(numericContentId !== null
-          ? { contentId: numericContentId }
-          : { contentId: null }),
-      },
-      include: { sponsor: true },
-      orderBy: [{ priority: "desc" }],
-    });
+        contentType: type,
+        level,
+      };
 
-    const seen = new Set();
-    const final = [];
-
-    direct.forEach((d) => {
-      if (d?.sponsor && !seen.has(d.sponsor.id) && final.length < slotLimit) {
-        final.push(d);
-        seen.add(d.sponsor.id);
+      // Only match specific contentId when NOT GLOBAL
+      if (type && numericContentId !== null) {
+        where.contentId = numericContentId;
       }
-    });
 
-    // 2️⃣ Backfill with GLOBAL (null/null) if needed
-    if (final.length < slotLimit) {
-      const backfill = await prisma.sponsorship.findMany({
-        where: {
-          ...baseWhere,
-          contentType: null,
-          contentId: null,
-        },
+      const rows = await prisma.sponsorship.findMany({
+        where,
         include: { sponsor: true },
         orderBy: [{ priority: "desc" }],
       });
 
-      backfill.forEach((b) => {
-        if (b?.sponsor && !seen.has(b.sponsor.id) && final.length < slotLimit) {
-          final.push(b);
-          seen.add(b.sponsor.id);
-        }
+      rows.forEach((r) => {
+        if (!r?.sponsor) return;
+        if (seenSponsors.has(r.sponsor.id)) return;
+        if (collected.length >= slotLimit) return;
+
+        collected.push(r);
+        seenSponsors.add(r.sponsor.id);
       });
     }
 
+    // Start from requested type position in hierarchy
+    const startIndex = contentHierarchy.indexOf(normalizedType);
+
+    const orderedContentTypes =
+      startIndex >= 0
+        ? contentHierarchy.slice(startIndex)
+        : contentHierarchy;
+
+    for (const type of orderedContentTypes) {
+      for (const level of levelHierarchy) {
+        if (collected.length >= slotLimit) break;
+        await fetchLayer(type, level);
+      }
+      if (collected.length >= slotLimit) break;
+    }
+
     res.json({
-      direct: final,
+      direct: collected,
       backfill: [],
     });
   } catch (err) {
