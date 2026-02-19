@@ -17,80 +17,81 @@ router.get("/resolve", async (req, res) => {
         ? Number(contentId)
         : null;
 
+    const levelFilter =
+      levels && typeof levels === "string"
+        ? { level: { in: levels.split(",") } }
+        : {};
+
     const baseWhere = {
       active: true,
       startDate: { lte: now },
       endDate: { gte: now },
+      ...levelFilter,
     };
 
-    const placementOrder = [
-      null,          // GLOBAL
-      "SEASON",
-      "EVENT",
-      "ATHLETE",
-    ];
+    const results = [];
+    const seen = new Set();
 
-    const levelWeight = {
-      PREMIER: 4,
-      FEATURED: 3,
-      STANDARD: 2,
-      SUPPORTER: 1,
-    };
-
-    const collected = [];
-    const seenSponsors = new Set();
-
-    async function fetchPlacement(type) {
-      const where = {
-        ...baseWhere,
-        contentType: type,
-        ...(type && numericContentId
-          ? { contentId: numericContentId }
-          : {}),
-      };
+    async function fetchMatches(where) {
+      if (results.length >= slotLimit) return;
 
       const rows = await prisma.sponsorship.findMany({
-        where,
+        where: { ...baseWhere, ...where },
         include: { sponsor: true },
+        orderBy: [
+          { level: "asc" },       // PREMIER first (enum order)
+          { priority: "desc" },
+        ],
       });
 
-      rows.forEach((r) => {
-        if (!r?.sponsor) return;
-        if (seenSponsors.has(r.sponsor.id)) return;
+      for (const r of rows) {
+        if (results.length >= slotLimit) break;
+        if (!r?.sponsor) continue;
+        if (seen.has(r.sponsor.id)) continue;
 
-        collected.push({
-          ...r,
-          placementWeight: placementOrder.indexOf(type),
-          levelWeight: levelWeight[r.level] || 0,
-        });
+        seen.add(r.sponsor.id);
+        results.push(r);
+      }
+    }
 
-        seenSponsors.add(r.sponsor.id);
+    // === STRICT HIERARCHY ===
+
+    if (contentType === "EVENT") {
+      await fetchMatches({
+        contentType: "EVENT",
+        contentId: numericContentId,
+      });
+
+      await fetchMatches({
+        contentType: "SEASON",
+      });
+
+      await fetchMatches({
+        contentType: null,
+        contentId: null,
+      });
+
+    } else if (contentType === "SEASON") {
+      await fetchMatches({
+        contentType: "SEASON",
+        contentId: numericContentId,
+      });
+
+      await fetchMatches({
+        contentType: null,
+        contentId: null,
+      });
+
+    } else {
+      // GLOBAL zone
+      await fetchMatches({
+        contentType: null,
+        contentId: null,
       });
     }
-
-    // Fetch in hierarchy order
-    for (const type of placementOrder) {
-      await fetchPlacement(type);
-    }
-
-    // Sort by:
-    // 1. placement priority
-    // 2. level weight
-    // 3. priority field
-    collected.sort((a, b) => {
-      if (a.placementWeight !== b.placementWeight)
-        return a.placementWeight - b.placementWeight;
-
-      if (a.levelWeight !== b.levelWeight)
-        return b.levelWeight - a.levelWeight;
-
-      return (b.priority || 0) - (a.priority || 0);
-    });
-
-    const final = collected.slice(0, slotLimit);
 
     res.json({
-      direct: final,
+      direct: results,
       backfill: [],
     });
 
