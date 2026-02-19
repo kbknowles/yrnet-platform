@@ -13,6 +13,7 @@ const STATIC_LINKS = [
   { title: "Athletes", href: "/athletes" },
   { title: "Schedule", href: "/schedule" },
   { title: "Gallery", href: "/gallery" },
+  { title: "Sponsors", href: "/sponsors" },
   { title: "Leadership", href: "/leadership" },
 ];
 
