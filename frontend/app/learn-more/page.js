@@ -19,7 +19,7 @@ export default function LearnMorePage() {
  
      {/* Sponsors Section */}
       <section className="py-16 bg-gray-50">
-        <div className="max-w-6xl mx-auto px-6">
+        <div className="max-w-6xl px-6">
           <h2 className="text-xl font-semibold text-center">
             Support our Sponsors!
           </h2>

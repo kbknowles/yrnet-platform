@@ -1,10 +1,18 @@
-// backend/routes/sponsorships.js
+// filepath: backend/routes/sponsorships.js
 
 import express from "express";
 import prisma from "../prismaClient.mjs";
 
 const router = express.Router();
 
+/**
+ * GET /api/sponsorships/resolve
+ * Simple Logic:
+ * 1. Pull direct matches
+ * 2. If not enough, backfill with GLOBAL (null/null)
+ * 3. Respect levels
+ * 4. De-duplicate
+ */
 router.get("/resolve", async (req, res) => {
   try {
     const now = new Date();
@@ -22,6 +30,10 @@ router.get("/resolve", async (req, res) => {
         ? { level: { in: levels.split(",") } }
         : {};
 
+    // Normalize GLOBAL → null
+    const normalizedContentType =
+      contentType === "GLOBAL" ? null : contentType;
+
     const baseWhere = {
       active: true,
       startDate: { lte: now },
@@ -29,72 +41,55 @@ router.get("/resolve", async (req, res) => {
       ...levelFilter,
     };
 
-    const results = [];
+    // 1️⃣ Direct matches
+    const direct = await prisma.sponsorship.findMany({
+      where: {
+        ...baseWhere,
+        ...(normalizedContentType !== undefined
+          ? { contentType: normalizedContentType }
+          : {}),
+        ...(numericContentId !== null
+          ? { contentId: numericContentId }
+          : { contentId: null }),
+      },
+      include: { sponsor: true },
+      orderBy: [{ priority: "desc" }],
+    });
+
     const seen = new Set();
+    const final = [];
 
-    async function fetchMatches(where) {
-      if (results.length >= slotLimit) return;
-
-      const rows = await prisma.sponsorship.findMany({
-        where: { ...baseWhere, ...where },
-        include: { sponsor: true },
-        orderBy: [
-          { level: "asc" },       // PREMIER first (enum order)
-          { priority: "desc" },
-        ],
-      });
-
-      for (const r of rows) {
-        if (results.length >= slotLimit) break;
-        if (!r?.sponsor) continue;
-        if (seen.has(r.sponsor.id)) continue;
-
-        seen.add(r.sponsor.id);
-        results.push(r);
+    direct.forEach((d) => {
+      if (d?.sponsor && !seen.has(d.sponsor.id) && final.length < slotLimit) {
+        final.push(d);
+        seen.add(d.sponsor.id);
       }
-    }
+    });
 
-    // === STRICT HIERARCHY ===
-
-    if (contentType === "EVENT") {
-      await fetchMatches({
-        contentType: "EVENT",
-        contentId: numericContentId,
+    // 2️⃣ Backfill with GLOBAL (null/null) if needed
+    if (final.length < slotLimit) {
+      const backfill = await prisma.sponsorship.findMany({
+        where: {
+          ...baseWhere,
+          contentType: null,
+          contentId: null,
+        },
+        include: { sponsor: true },
+        orderBy: [{ priority: "desc" }],
       });
 
-      await fetchMatches({
-        contentType: "SEASON",
-      });
-
-      await fetchMatches({
-        contentType: null,
-        contentId: null,
-      });
-
-    } else if (contentType === "SEASON") {
-      await fetchMatches({
-        contentType: "SEASON",
-        contentId: numericContentId,
-      });
-
-      await fetchMatches({
-        contentType: null,
-        contentId: null,
-      });
-
-    } else {
-      // GLOBAL zone
-      await fetchMatches({
-        contentType: null,
-        contentId: null,
+      backfill.forEach((b) => {
+        if (b?.sponsor && !seen.has(b.sponsor.id) && final.length < slotLimit) {
+          final.push(b);
+          seen.add(b.sponsor.id);
+        }
       });
     }
 
     res.json({
-      direct: results,
+      direct: final,
       backfill: [],
     });
-
   } catch (err) {
     console.error("Resolve sponsorship failed", err);
     res.status(500).json({ error: "Failed to resolve sponsorships" });
