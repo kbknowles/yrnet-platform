@@ -76,152 +76,163 @@ export default function SchedulePage() {
   }));
 
   return (
-    <main className="max-w-7xl mx-auto px-4 py-12 space-y-12 bg-slate-50">
-      {/* Header */}
-      <section className="text-center space-y-4">
-        <h1 className="text-4xl font-bold text-ahsra-blue">
-          Rodeo Schedule
-        </h1>
-        <p className="text-gray-600 max-w-2xl mx-auto">
-          View upcoming rodeos, download to your calendar, and plan your season.
-        </p>
+    <main className="bg-slate-50">
+      {/* HERO */}
+      <section className="bg-ahsra-blue/95 border-b-4 border-ahsra-red py-20 px-4 relative">
+        {/* subtle red accent bar */}
+        <div className="absolute top-0 left-0 right-0 h-1 bg-ahsra-blue" />
+
+        <div className="max-w-5xl mx-auto text-center space-y-6">
+          <h1 className="text-4xl md:text-5xl font-bold text-white/90 tracking-tight">
+            2026 Rodeo Schedule
+          </h1>
+
+          <p className="text-lg text-white opacity-90 max-w-2xl mx-auto">
+            View upcoming rodeos, download to your calendar, and plan your season.
+          </p>
+
+          {nextEvent && (
+            <div className="mt-10 space-y-4">
+              <div className="text-xl uppercase tracking-wide text-slate-900 font-bold">
+                Next Rodeo
+              </div>
+
+              <h2 className="text-3xl md:text-4xl font-semibold text-white">
+                {nextEvent.name}
+              </h2>
+
+              <p className="text-white opacity-90">
+                {formatMMDDYYYY(nextEvent.startDate)}
+                {nextEvent.endDate &&
+                  ` – ${formatMMDDYYYY(nextEvent.endDate)}`}
+                {nextEvent.location &&
+                  ` · ${nextEvent.location.name}`}
+              </p>
+
+              <Link
+                href={`/events/${nextEvent.slug}`}
+                className="inline-block bg-ahsra-red text-white px-8 py-3 rounded-md text-sm font-semibold hover:opacity-90 transition"
+              >
+                View Event Details
+              </Link>
+            </div>
+          )}
+        </div>
       </section>
 
-      {/* Next Event Highlight */}
-      {nextEvent && (
-        <section className="bg-gray-100 border rounded-lg p-8 text-center space-y-4">
-          <div className="text-sm uppercase tracking-wide text-ahsra-red font-semibold">
-            Next Rodeo
+      {/* MAIN CONTENT */}
+      <div className="max-w-7xl mx-auto px-4 py-14 space-y-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+          {/* LEFT — LIST */}
+          <div className="lg:col-span-2 space-y-6">
+            {events.map((e) => {
+              const status = getStatus(e);
+
+              const badgeStyles =
+                status === "CURRENT"
+                  ? "bg-green-100 text-green-800"
+                  : status === "UPCOMING"
+                  ? "bg-ahsra-red/10 text-ahsra-red"
+                  : "bg-gray-200 text-gray-600";
+
+              return (
+                <div
+                  key={e.id}
+                  data-slug={e.slug}
+                  className={`bg-white border border-gray-300 rounded-lg p-6 shadow-sm hover:shadow-md transition ${
+                    selectedSlug === e.slug
+                      ? "ring-2 ring-ahsra-red"
+                      : ""
+                  }`}
+                >
+                  <div className="flex justify-between items-start">
+                    <Link
+                      href={`/events/${e.slug}`}
+                      className="text-xl font-semibold text-ahsra-red hover:underline"
+                    >
+                      {e.name}
+                    </Link>
+
+                    <span
+                      className={`text-xs px-3 py-1 rounded-full font-medium ${badgeStyles}`}
+                    >
+                      {status}
+                    </span>
+                  </div>
+
+                  <p className="mt-2 text-sm text-gray-700">
+                    {formatMMDDYYYY(e.startDate)}
+                    {e.endDate &&
+                      ` – ${formatMMDDYYYY(e.endDate)}`}
+                    {e.location &&
+                      ` · ${e.location.name}`}
+                  </p>
+
+                  <div className="flex gap-6 text-sm mt-4">
+                    <a
+                      href={`https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
+                        e.name
+                      )}&dates=${new Date(e.startDate)
+                        .toISOString()
+                        .replace(/[-:]/g, "")
+                        .split(".")[0]}/${new Date(
+                        e.endDate || e.startDate
+                      )
+                        .toISOString()
+                        .replace(/[-:]/g, "")
+                        .split(".")[0]}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="underline text-ahsra-blue hover:text-ahsra-red"
+                    >
+                      Add to Google
+                    </a>
+
+                    <a
+                      href={`/api/calendar/${e.slug}.ics`}
+                      className="underline text-ahsra-blue hover:text-ahsra-red"
+                    >
+                      Download .ics
+                    </a>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-          <h2 className="text-3xl font-bold text-ahsra-blue">
-            {nextEvent.name}
-          </h2>
-          <p className="text-gray-700">
-            {formatMMDDYYYY(nextEvent.startDate)}
-            {nextEvent.endDate &&
-              ` – ${formatMMDDYYYY(nextEvent.endDate)}`}
-          </p>
-          <Link
-            href={`/events/${nextEvent.slug}`}
-            className="inline-block bg-ahsra-red text-white px-6 py-3 rounded-md text-sm font-medium hover:opacity-90 transition"
-          >
-            View Event Details
-          </Link>
-        </section>
-      )}
 
-      <hr className="border-gray-200" />
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-        {/* LEFT — LIST */}
-        <div className="lg:col-span-2 space-y-6">
-          {events.map((e) => {
-            const status = getStatus(e);
-
-            const badgeStyles =
-              status === "CURRENT"
-                ? "bg-green-100 text-green-800"
-                : status === "UPCOMING"
-                ? "bg-blue-100 text-blue-800"
-                : "bg-gray-200 text-gray-600";
-
-            return (
-              <div
-                key={e.id}
-                data-slug={e.slug}
-                className={`border rounded-lg bg-white p-6 shadow-sm ${
-                  selectedSlug === e.slug
-                    ? "ring-2 ring-ahsra-blue"
-                    : ""
-                }`}
-              >
-                <div className="flex justify-between items-start">
-                  <Link
-                    href={`/events/${e.slug}`}
-                    className="text-xl font-semibold text-ahsra-red hover:underline"
-                  >
-                    {e.name}
-                  </Link>
-
-                  <span
-                    className={`text-xs px-3 py-1 rounded-full font-medium ${badgeStyles}`}
-                  >
-                    {status}
-                  </span>
-                </div>
-
-                <p className="mt-2 text-sm text-gray-600">
-                  {formatMMDDYYYY(e.startDate)}
-                  {e.endDate &&
-                    ` – ${formatMMDDYYYY(e.endDate)}`}
-                  {e.location &&
-                    ` · ${e.location.name}`}
-                </p>
-
-                <div className="flex gap-6 text-sm mt-4">
-                  <a
-                    href={`https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
-                      e.name
-                    )}&dates=${new Date(e.startDate)
-                      .toISOString()
-                      .replace(/[-:]/g, "")
-                      .split(".")[0]}/${new Date(
-                      e.endDate || e.startDate
-                    )
-                      .toISOString()
-                      .replace(/[-:]/g, "")
-                      .split(".")[0]}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="underline text-ahsra-blue"
-                  >
-                    Add to Google
-                  </a>
-
-                  <a
-                    href={`/api/calendar/${e.slug}.ics`}
-                    className="underline text-ahsra-blue"
-                  >
-                    Download .ics
-                  </a>
-                </div>
+          {/* RIGHT — CALENDAR + SPONSOR */}
+          <div className="space-y-8 lg:sticky lg:top-24">
+            <div>
+              <div className="text-sm uppercase tracking-wide text-gray-600 mb-3">
+                Season Partner
               </div>
-            );
-          })}
-        </div>
-
-        {/* RIGHT — CALENDAR + SPONSOR */}
-        <div className="space-y-8 lg:sticky lg:top-24">
-          <div>
-            <div className="text-sm uppercase tracking-wide text-gray-500 mb-3">
-              Season Partner
+              <SponsorZone
+                contentType="SEASON"
+                contentId={1}
+                slots={1}
+              />
             </div>
-            <SponsorZone
-              contentType="SEASON"
-              contentId={1}
-              slots={1}
-            />
-          </div>
 
-          <div className="bg-white border rounded-lg p-4 shadow-sm">
-            <FullCalendar
-              plugins={[dayGridPlugin, interactionPlugin]}
-              initialView="dayGridMonth"
-              events={calendarEvents}
-              height={500}
-              eventColor="#8B1E2D"
-              eventClick={(info) => {
-                setSelectedSlug(info.event.id);
-                document
-                  .querySelector(
-                    `[data-slug="${info.event.id}"]`
-                  )
-                  ?.scrollIntoView({
-                    behavior: "smooth",
-                    block: "center",
-                  });
-              }}
-            />
+            <div className="bg-white border border-gray-300 rounded-lg p-4 shadow-sm">
+              <FullCalendar
+                plugins={[dayGridPlugin, interactionPlugin]}
+                initialView="dayGridMonth"
+                events={calendarEvents}
+                height={500}
+                eventColor="#8B1E2D"
+                eventClick={(info) => {
+                  setSelectedSlug(info.event.id);
+                  document
+                    .querySelector(
+                      `[data-slug="${info.event.id}"]`
+                    )
+                    ?.scrollIntoView({
+                      behavior: "smooth",
+                      block: "center",
+                    });
+                }}
+              />
+            </div>
           </div>
         </div>
       </div>
