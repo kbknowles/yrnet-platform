@@ -58,112 +58,159 @@ export default async function EventPage({ params }) {
   );
 
   return (
-    <main className="max-w-7xl mx-auto px-4 py-10 space-y-10">
-      {/* HEADER */}
-      <section className="space-y-4">
-        <div>
-          <h1 className="text-3xl font-bold">{event.name}</h1>
-          <p className="text-gray-600">
+    <main className="bg-gray-50">
+      {/* HERO */}
+      <section className="bg-gray-900 text-white">
+        <div className="max-w-7xl mx-auto px-4 py-14 space-y-4">
+          <h1 className="text-4xl font-bold">{event.name}</h1>
+
+          <p className="text-lg text-gray-300">
             {formatDate(event.startDate)}
             {event.endDate && ` – ${formatDate(event.endDate)}`}
           </p>
-        </div>
 
+          {location?.name && (
+            <p className="text-sm text-gray-400">
+              {location.name}
+            </p>
+          )}
+
+          <div className="flex flex-wrap gap-4 pt-4">
+            <Link
+              href="/schedule"
+              className="bg-rose-700 hover:bg-rose-800 text-white px-5 py-2 rounded-md text-sm font-medium"
+            >
+              Back to Schedule
+            </Link>
+
+            {fullAddress && (
+              <a
+                href={`https://www.google.com/maps?q=${encodeURIComponent(
+                  fullAddress
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="border border-gray-500 hover:border-white px-5 py-2 rounded-md text-sm font-medium"
+              >
+                Get Directions
+              </a>
+            )}
+          </div>
+        </div>
       </section>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* LEFT */}
-        <div className="lg:col-span-1 space-y-8">
-          {event.generalInfo && (
-            <div>
-              <h2 className="font-semibold mb-2">General Info</h2>
-              <p className="whitespace-pre-line text-sm">
-                {event.generalInfo}
-              </p>
-            </div>
-          )}
-
-          {location && (
-            <div className="space-y-4">
-              <div>
-                <h2 className="font-semibold mb-2">Location</h2>
-                <p className="text-sm">
-                  {location.name}
-                  <br />
-                  {fullAddress}
+      {/* CONTENT */}
+      <section className="max-w-7xl mx-auto px-4 py-12 space-y-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+          {/* LEFT COLUMN */}
+          <div className="space-y-8">
+            {event.generalInfo && (
+              <div className="bg-white rounded-lg shadow-sm border p-6">
+                <h2 className="text-lg font-semibold mb-3 border-l-4 border-rose-700 pl-3">
+                  General Information
+                </h2>
+                <p className="whitespace-pre-line text-sm leading-relaxed">
+                  {event.generalInfo}
                 </p>
               </div>
+            )}
 
-              {fullAddress && (
-                <div className="h-[220px] border rounded overflow-hidden">
-                  <iframe
-                    width="100%"
-                    height="100%"
-                    loading="lazy"
-                    src={`https://www.google.com/maps?q=${encodeURIComponent(
-                      fullAddress
-                    )}&output=embed`}
-                  />
+            {location && (
+              <div className="bg-white rounded-lg shadow-sm border p-6 space-y-6">
+                <div>
+                  <h2 className="text-lg font-semibold mb-3 border-l-4 border-rose-700 pl-3">
+                    Location
+                  </h2>
+                  <p className="text-sm">
+                    {location.name}
+                    <br />
+                    {fullAddress}
+                  </p>
                 </div>
-              )}
 
-            </div>
-          )}
-        </div>
-
-        {/* RIGHT */}
-        <div className="lg:col-span-2 space-y-6">
-          {posters.length > 0 && (
-            <MediaSwiper items={posters} />
-          )}
-
-          {standardAnnouncements.length > 0 && (
-            <section className="space-y-4">
-              <h2 className="text-xl font-semibold">Announcements</h2>
-
-              {standardAnnouncements.map((a) => (
-                <div
-                  key={a.id}
-                  className="border rounded p-4"
-                >
-                  {a.title && (
-                    <div className="font-medium mb-1">
-                      {a.title}
+                {fullAddress && (
+                  <div className="space-y-3">
+                    <div className="h-[260px] border rounded-md overflow-hidden">
+                      <iframe
+                        width="100%"
+                        height="100%"
+                        loading="lazy"
+                        src={`https://www.google.com/maps?q=${encodeURIComponent(
+                          fullAddress
+                        )}&output=embed`}
+                      />
                     </div>
-                  )}
-                  {a.content && (
-                    <div className="text-sm whitespace-pre-line">
-                      {a.content}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </section>
-          )}
+
+                    <a
+                      href={`https://www.google.com/maps?q=${encodeURIComponent(
+                        fullAddress
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block text-sm text-rose-700 hover:underline"
+                    >
+                      Open in Google Maps
+                    </a>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* RIGHT COLUMN */}
+          <div className="lg:col-span-2 space-y-8">
+            {posters.length > 0 && (
+              <div className="bg-white rounded-lg shadow-sm border p-4">
+                <MediaSwiper items={posters} />
+              </div>
+            )}
+
+            {standardAnnouncements.length > 0 && (
+              <div className="space-y-5">
+                <h2 className="text-xl font-semibold">
+                  Announcements
+                </h2>
+
+                {standardAnnouncements.map((a) => (
+                  <div
+                    key={a.id}
+                    className="bg-white border rounded-lg shadow-sm p-6 border-l-4 border-rose-700"
+                  >
+                    {a.title && (
+                      <div className="font-semibold mb-2">
+                        {a.title}
+                      </div>
+                    )}
+                    {a.content && (
+                      <div className="text-sm whitespace-pre-line leading-relaxed">
+                        {a.content}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      </section>
 
+      {/* SPONSORS */}
+      <section className="bg-gray-100 py-14">
+        <div className="max-w-7xl mx-auto px-4 space-y-6">
+          <h2 className="text-2xl font-semibold text-center">
+            Thank You to Our Sponsors
+          </h2>
 
-      <Link href="/schedule" className="underline">
-        Back to schedule
-      </Link>
+          <div className="border-t-2 border-rose-700 w-20 mx-auto" />
 
-      <section>
-        <h2 className="text-xl font-semibold mb-4">
-              Thank you, Sponsors!
-      </h2>
-
-
-      {/* FOOTER / TITLE LEVEL AREA */}
-      <SponsorZone
-        contentType="EVENT"
-        contentId={event.id}
-        zone="FOOTER"
-        slots={4}
-      />
-
-</section>
-
+          <SponsorZone
+            contentType="EVENT"
+            contentId={event.id}
+            zone="FOOTER"
+            slots={4}
+          />
+        </div>
+      </section>
     </main>
   );
 }
