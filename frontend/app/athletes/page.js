@@ -66,11 +66,13 @@ export default async function AthletesPage() {
                 className="bg-white border rounded-lg p-4 hover:shadow-md transition block"
               >
                 {a.headshotUrl && (
-                  <img
-                    src={resolveImage(a.headshotUrl)}
-                    alt={`${a.firstName} ${a.lastName}`}
-                    className="w-full aspect-square object-cover bg-gray-100 rounded mb-4"
-                  />
+                  <div className="w-full aspect-square bg-gray-100 rounded mb-4 overflow-hidden relative">
+                    <img
+                      src={resolveImage(a.headshotUrl)}
+                      alt={`${a.firstName} ${a.lastName}`}
+                      className="w-full h-full object-contain p-3"
+                    />
+                  </div>
                 )}
 
                 <h3 className="font-semibold text-base leading-tight">

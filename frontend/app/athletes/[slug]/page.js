@@ -64,13 +64,13 @@ export default async function AthleteDetailPage(props) {
         {/* Profile Section */}
         <section className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {athlete.headshotUrl && (
-            <div className="relative w-full aspect-square rounded-lg bg-white shadow-sm overflow-hidden">
+            <div className="relative w-full aspect-square rounded-lg bg-gray-100 shadow-sm overflow-hidden">
               <Image
                 src={resolveImage(athlete.headshotUrl)}
                 alt={`${athlete.firstName} ${athlete.lastName}`}
                 fill
                 unoptimized
-                className="object-cover"
+                className="object-contain p-3"
               />
             </div>
           )}
@@ -145,13 +145,13 @@ export default async function AthleteDetailPage(props) {
               In Action
             </h2>
 
-            <div className="relative w-full aspect-[16/9] rounded-lg overflow-hidden shadow-sm bg-white">
+            <div className="relative w-full aspect-[16/9] rounded-lg bg-gray-100 shadow-sm overflow-hidden">
               <Image
                 src={resolveImage(athlete.actionPhotoUrl)}
                 alt="Action shot"
                 fill
                 unoptimized
-                className="object-cover"
+                className="object-contain p-4"
               />
             </div>
           </section>
