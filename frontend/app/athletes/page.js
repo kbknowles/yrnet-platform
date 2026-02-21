@@ -1,6 +1,7 @@
+// filepath: frontend/app/athletes/page.js
+
 import Link from "next/link";
 import SponsorZone from "../../components/sponsorship/SponsorZone";
-
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -40,32 +41,35 @@ export default async function AthletesPage() {
     });
 
   return (
-    <main className="max-w-7xl mx-auto px-4 py-10 space-y-10">
-      <section className="max-w-3xl">
-        <h1 className="text-3xl font-bold">Athletes</h1>
-        <p className="mt-3 text-gray-700">
-          Athlete profiles provide colleges and sponsors with detailed
-          information about AHSRA athletes who choose to participate.
-        </p>
+    <main className="bg-gray-50">
+      {/* HERO */}
+      <section className="bg-ahsra-blue/95 text-white">
+        <div className="max-w-7xl mx-auto px-4 py-16 space-y-4">
+          <h1 className="text-4xl font-bold">Athletes</h1>
+          <p className="max-w-2xl text-white/90">
+            Athlete profiles provide colleges and sponsors with detailed
+            information about AHSRA athletes who choose to participate.
+          </p>
+        </div>
       </section>
 
- 
-
-      {activeAthletes.length === 0 ? (
-        <p>No athletes available.</p>
-      ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 items-start">
-          {activeAthletes.map((a, index) => (
-            <div key={a.slug} className="space-y-3">
+      {/* CONTENT */}
+      <section className="max-w-7xl mx-auto px-4 py-16 space-y-12">
+        {activeAthletes.length === 0 ? (
+          <p>No athletes available.</p>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+            {activeAthletes.map((a) => (
               <Link
+                key={a.slug}
                 href={`/athletes/${a.slug}`}
-                className="border bg-white p-3 hover:shadow transition space-y-3 block"
+                className="bg-white border rounded-lg p-4 hover:shadow-md transition block"
               >
                 {a.headshotUrl && (
                   <img
                     src={resolveImage(a.headshotUrl)}
                     alt={`${a.firstName} ${a.lastName}`}
-                    className="w-full h-auto object-contain bg-gray-100 rounded"
+                    className="w-full aspect-square object-cover bg-gray-100 rounded mb-4"
                   />
                 )}
 
@@ -73,7 +77,7 @@ export default async function AthletesPage() {
                   {a.firstName} {a.lastName}
                 </h3>
 
-                <div className="text-sm text-gray-700 space-y-1">
+                <div className="text-sm text-gray-700 mt-2 space-y-1">
                   {a.grade && <div>Grade {a.grade}</div>}
                   {a.events?.length > 0 && (
                     <div className="text-xs text-gray-600 leading-snug">
@@ -82,31 +86,30 @@ export default async function AthletesPage() {
                   )}
                 </div>
               </Link>
+            ))}
+          </div>
+        )}
 
-            </div>
-          ))}
-        </div>
-      )}
-
-      <section className="max-w-4xl pt-6 border-t">
-        <p className="text-sm text-gray-600">
+        <div className="max-w-4xl pt-6 border-t text-sm text-gray-600">
           Athlete profiles are optional and designed to support college
           recruiting and sponsorship visibility.
-        </p>
+        </div>
       </section>
 
-      <section>
-        <h2 className="text-xl font-semibold mb-4">
-              Thank you, Sponsors!
-      </h2>
-            
-     {/* Page-Level Sponsor Zone */}
-      <SponsorZone
-        contentType="ATHLETE"
-        contentId={null}
-        slots={4}      />
-    </section>
+      {/* SPONSORS */}
+      <section className="bg-gray-100 py-14">
+        <div className="max-w-7xl mx-auto px-4 space-y-6">
+          <h2 className="text-2xl font-semibold text-center">
+            Thank You to Our Sponsors
+          </h2>
 
+          <SponsorZone
+            contentType="ATHLETE"
+            contentId={null}
+            slots={4}
+          />
+        </div>
+      </section>
     </main>
   );
 }

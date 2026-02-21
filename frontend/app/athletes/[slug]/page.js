@@ -32,103 +32,131 @@ export default async function AthleteDetailPage(props) {
   }
 
   return (
-    <main className="max-w-5xl mx-auto px-4 py-10 space-y-12">
-      
-      {/* Breadcrumb */}
-      <nav className="text-sm">
-        <Link href="/athletes" className="text-blue-600 hover:underline">
-          Athletes
-        </Link>
-        <span className="mx-2">/</span>
-        <span className="text-gray-600">
-          {athlete.firstName} {athlete.lastName}
-        </span>
-      </nav>
+    <main className="bg-gray-50">
+      {/* HERO */}
+      <section className="bg-ahsra-blue/95 text-white">
+        <div className="max-w-5xl mx-auto px-4 py-16 space-y-3">
+          <nav className="text-sm text-white/80">
+            <Link href="/athletes" className="hover:underline">
+              Athletes
+            </Link>
+            <span className="mx-2">/</span>
+            <span>
+              {athlete.firstName} {athlete.lastName}
+            </span>
+          </nav>
 
-      {/* Header Section */}
-      <section className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {athlete.headshotUrl && (
-          <div className="relative w-full aspect-square border rounded bg-gray-100 overflow-hidden">
-            <Image
-              src={resolveImage(athlete.headshotUrl)}
-              alt={`${athlete.firstName} ${athlete.lastName}`}
-              fill
-              unoptimized
-              className="object-contain p-2"
-            />
-          </div>
-        )}
-
-        <div className="md:col-span-3 space-y-3">
-          <h1 className="text-3xl font-bold">
+          <h1 className="text-4xl font-bold">
             {athlete.firstName} {athlete.lastName}
           </h1>
 
           {athlete.school && (
-            <p><strong>School:</strong> {athlete.school}</p>
-          )}
-          {athlete.grade && (
-            <p><strong>Grade:</strong> {athlete.grade}</p>
-          )}
-          {athlete.hometown && (
-            <p><strong>Hometown:</strong> {athlete.hometown}</p>
-          )}
-
-          {athlete.events?.length > 0 && (
-            <p>
-              <strong>Events:</strong>{" "}
-              {athlete.events
-                .map((e) => e.replaceAll("_", " "))
-                .join(", ")}
+            <p className="text-white/90">
+              {athlete.school}
+              {athlete.grade && ` • Grade ${athlete.grade}`}
             </p>
           )}
         </div>
       </section>
 
-      {/* Athlete Sponsorship Zone */}
-      <section>
-        <h2 className="text-xl font-semibold mb-4">
-          Athlete Sponsors
-        </h2>
+      {/* CONTENT */}
+      <section className="max-w-5xl mx-auto px-4 py-16 space-y-12">
+        {/* Profile Section */}
+        <section className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          {athlete.headshotUrl && (
+            <div className="relative w-full aspect-square rounded-lg bg-white shadow-sm overflow-hidden">
+              <Image
+                src={resolveImage(athlete.headshotUrl)}
+                alt={`${athlete.firstName} ${athlete.lastName}`}
+                fill
+                unoptimized
+                className="object-cover"
+              />
+            </div>
+          )}
 
-        <SponsorZone
-          contentType="ATHLETE"
-          contentId={athlete.id}
-          slots={4}
-        />
-      </section>
+          <div className="md:col-span-3 space-y-4">
+            {athlete.hometown && (
+              <p>
+                <strong>Hometown:</strong> {athlete.hometown}
+              </p>
+            )}
 
-      {/* Bio */}
-      {athlete.bio && (
-        <section>
-          <h2 className="text-xl font-semibold mb-2">Athlete Bio</h2>
-          <p>{athlete.bio}</p>
-        </section>
-      )}
-
-      {/* Future Goals */}
-      {athlete.futureGoals && (
-        <section>
-          <h2 className="text-xl font-semibold mb-2">Future Goals</h2>
-          <p>{athlete.futureGoals}</p>
-        </section>
-      )}
-
-      {/* Action Photo */}
-      {athlete.actionPhotoUrl && (
-        <section>
-          <h2 className="text-xl font-semibold mb-3">In Action</h2>
-          <div className="relative w-full aspect-[16/9] border rounded bg-gray-100 overflow-hidden">
-            <Image
-              src={resolveImage(athlete.actionPhotoUrl)}
-              alt="Action shot"
-              fill
-              unoptimized
-              className="object-contain p-2"
-            />
+            {athlete.events?.length > 0 && (
+              <p>
+                <strong>Events:</strong>{" "}
+                {athlete.events
+                  .map((e) =>
+                    e
+                      .toLowerCase()
+                      .split("_")
+                      .map(
+                        (w) => w.charAt(0).toUpperCase() + w.slice(1)
+                      )
+                      .join(" ")
+                  )
+                  .join(", ")}
+              </p>
+            )}
           </div>
         </section>
-      )}
+
+        {/* Athlete Sponsors */}
+        <section className="bg-white border rounded-xl p-8 shadow-sm space-y-6">
+          <h2 className="text-2xl font-semibold">
+            Athlete Sponsors
+          </h2>
+
+          <SponsorZone
+            contentType="ATHLETE"
+            contentId={athlete.id}
+            slots={4}
+          />
+        </section>
+
+        {/* Bio */}
+        {athlete.bio && (
+          <section className="space-y-3">
+            <h2 className="text-2xl font-semibold">
+              Athlete Bio
+            </h2>
+            <p className="leading-relaxed">
+              {athlete.bio}
+            </p>
+          </section>
+        )}
+
+        {/* Future Goals */}
+        {athlete.futureGoals && (
+          <section className="space-y-3">
+            <h2 className="text-2xl font-semibold">
+              Future Goals
+            </h2>
+            <p className="leading-relaxed">
+              {athlete.futureGoals}
+            </p>
+          </section>
+        )}
+
+        {/* Action Photo */}
+        {athlete.actionPhotoUrl && (
+          <section className="space-y-4">
+            <h2 className="text-2xl font-semibold">
+              In Action
+            </h2>
+
+            <div className="relative w-full aspect-[16/9] rounded-lg overflow-hidden shadow-sm bg-white">
+              <Image
+                src={resolveImage(athlete.actionPhotoUrl)}
+                alt="Action shot"
+                fill
+                unoptimized
+                className="object-cover"
+              />
+            </div>
+          </section>
+        )}
+      </section>
     </main>
   );
 }

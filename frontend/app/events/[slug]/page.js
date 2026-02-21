@@ -60,7 +60,7 @@ export default async function EventPage({ params }) {
   return (
     <main className="bg-gray-50">
       {/* HERO */}
-      <section className="bg-gray-900 text-white">
+      <section className="bg-ahsra-blue/95 text-white">
         <div className="max-w-7xl mx-auto px-4 py-14 space-y-4">
           <h1 className="text-4xl font-bold">{event.name}</h1>
 
@@ -70,7 +70,7 @@ export default async function EventPage({ params }) {
           </p>
 
           {location?.name && (
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-gray-300">
               {location.name}
             </p>
           )}
@@ -90,7 +90,7 @@ export default async function EventPage({ params }) {
                 )}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="border border-gray-500 hover:border-white px-5 py-2 rounded-md text-sm font-medium"
+                className="border border-gray-300 hover:border-white px-5 py-2 rounded-md text-sm font-medium"
               >
                 Get Directions
               </a>

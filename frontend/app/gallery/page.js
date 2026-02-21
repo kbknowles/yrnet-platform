@@ -19,50 +19,80 @@ export default async function GalleryIndexPage() {
   const albums = await res.json();
 
   return (
-    <main className="max-w-6xl mx-auto px-4 py-10 space-y-10">
-      <section className="space-y-4">
-        <h1 className="text-2xl font-bold">Photo Gallery</h1>
+    <main className="bg-gray-50">
+      {/* HERO */}
+      <section className="bg-ahsra-blue/95 text-white">
+        <div className="max-w-6xl mx-auto px-4 py-16 text-center space-y-4">
+          <h1 className="text-4xl font-bold">
+            Photo Gallery
+          </h1>
+          <p className="max-w-2xl mx-auto text-white/90">
+            Explore highlights from rodeos across the season — athletes,
+            action shots, awards, and unforgettable moments.
+          </p>
+        </div>
+      </section>
 
-       </section>
+      {/* ALBUM GRID */}
+      <section className="max-w-6xl mx-auto px-4 py-16 space-y-12">
+        {albums.length === 0 ? (
+          <p className="text-center text-gray-600">
+            Gallery coming soon.
+          </p>
+        ) : (
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-8">
+            {albums.map((album) => {
+              const cover = album.images?.[0];
+              const imageCount = album.images?.length || 0;
 
-      <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
-        {albums.map((album) => {
-          const cover = album.images?.[0];
+              return (
+                <Link
+                  key={album.id}
+                  href={`/gallery/${album.slug}`}
+                  className="group relative block rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition"
+                >
+                  {/* Image */}
+                  <div className="relative h-56 bg-gray-200">
+                    {cover && (
+                      <Image
+                        src={`${API_BASE}${cover.imageUrl}`}
+                        alt={album.title}
+                        fill
+                        className="object-cover group-hover:scale-105 transition duration-300"
+                        unoptimized={isDev}
+                      />
+                    )}
 
-          return (
-            <Link
-              key={album.id}
-              href={`/gallery/${album.slug}`}
-              className="block bg-white border rounded-lg shadow-sm overflow-hidden hover:shadow-md transition"
-            >
-              <div className="relative h-48 bg-gray-100">
-                {cover && (
-                  <Image
-                    src={`${API_BASE}${cover.imageUrl}`}
-                    alt={album.title}
-                    fill
-                    className="object-cover"
-                    unoptimized={isDev}
-                  />
-                )}
-              </div>
+                    {/* Dark overlay */}
+                    <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition" />
 
-              <div className="p-4">
-                <h2 className="font-semibold text-sm truncate">
-                  {album.title}
-                </h2>
-              </div>
-            </Link>
-          );
-        })}
-      </div>
+                    {/* Title + Count */}
+                    <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+                      <h2 className="font-semibold text-lg truncate">
+                        {album.title}
+                      </h2>
+                      <p className="text-sm text-white/80">
+                        {imageCount} {imageCount === 1 ? "Photo" : "Photos"}
+                      </p>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </section>
 
-      {/* Footer Sponsor Zone */}
-      <SponsorZone
-        contentType="GALLERY"
-        zone="FOOTER"
-        slots={4}
-      />
+      {/* SPONSORS */}
+      <section className="bg-gray-100 py-14">
+        <div className="max-w-6xl mx-auto px-4">
+          <SponsorZone
+            contentType="GALLERY"
+            zone="FOOTER"
+            slots={4}
+          />
+        </div>
+      </section>
     </main>
   );
 }

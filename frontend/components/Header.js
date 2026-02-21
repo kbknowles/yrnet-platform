@@ -39,7 +39,7 @@ export default function Header() {
       className={`${
         isHome
           ? "absolute top-0 left-0 w-full bg-transparent"
-          : "bg-ahsra-blue"
+          : "bg-slate-900"
       } text-white z-50`}
     >
       <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
