@@ -44,9 +44,9 @@ export default async function AthletesPage() {
     <main className="bg-gray-50">
       {/* HERO */}
       <section className="bg-ahsra-blue/95 text-white">
-        <div className="max-w-7xl mx-auto px-4 py-16 space-y-4">
+        <div className="max-w-7xl mx-auto px-4 py-16 text-center space-y-4">
           <h1 className="text-4xl font-bold">Athletes</h1>
-          <p className="max-w-2xl text-white/90">
+          <p className="max-w-2xl mx-auto text-white/90">
             Athlete profiles provide colleges and sponsors with detailed
             information about AHSRA athletes who choose to participate.
           </p>
@@ -66,7 +66,7 @@ export default async function AthletesPage() {
                 className="bg-white border rounded-lg p-4 hover:shadow-md transition block"
               >
                 {a.headshotUrl && (
-                  <div className="w-full aspect-square bg-gray-100 rounded mb-4 overflow-hidden relative">
+                  <div className="w-full aspect-square bg-gray-100 rounded mb-4 overflow-hidden">
                     <img
                       src={resolveImage(a.headshotUrl)}
                       alt={`${a.firstName} ${a.lastName}`}
