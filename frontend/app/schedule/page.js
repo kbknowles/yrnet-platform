@@ -18,8 +18,14 @@ function formatMMDDYYYY(date) {
   return `${mm}/${dd}/${yyyy}`;
 }
 
+function startOfToday() {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+}
+
 function sortSchedule(events) {
   const now = new Date();
+  const today = startOfToday();
 
   return [...events].sort((a, b) => {
     const aStart = new Date(a.startDate);
@@ -27,8 +33,8 @@ function sortSchedule(events) {
     const bStart = new Date(b.startDate);
     const bEnd = new Date(b.endDate || b.startDate);
 
-    const aIsCurrent = aStart <= now && aEnd >= now;
-    const bIsCurrent = bStart <= now && bEnd >= now;
+    const aIsCurrent = aStart <= now && aEnd >= today;
+    const bIsCurrent = bStart <= now && bEnd >= today;
 
     if (aIsCurrent && !bIsCurrent) return -1;
     if (!aIsCurrent && bIsCurrent) return 1;
@@ -45,10 +51,11 @@ function sortSchedule(events) {
 
 function getStatus(e) {
   const now = new Date();
+  const today = startOfToday();
   const start = new Date(e.startDate);
   const end = new Date(e.endDate || e.startDate);
 
-  if (start <= now && end >= now) return "CURRENT";
+  if (start <= now && end >= today) return "CURRENT";
   if (start > now) return "UPCOMING";
   return "PAST";
 }
@@ -60,7 +67,17 @@ export default function SchedulePage() {
   useEffect(() => {
     fetch(`${API_BASE}/api/schedule`, { cache: "no-store" })
       .then((r) => r.json())
-      .then((data) => setEvents(sortSchedule(data)));
+      .then((data) => {
+        const today = startOfToday();
+
+        // 🔑 Visibility keyed off END DATE
+        const visible = data.filter(
+          (e) =>
+            new Date(e.endDate || e.startDate) >= today
+        );
+
+        setEvents(sortSchedule(visible));
+      });
   }, []);
 
   const nextEvent = events.find(
@@ -79,12 +96,11 @@ export default function SchedulePage() {
     <main className="bg-slate-50">
       {/* HERO */}
       <section className="bg-ahsra-blue/95 border-b-4 border-ahsra-red py-20 px-4 relative">
-        {/* subtle red accent bar */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-ahsra-blue" />
 
         <div className="max-w-5xl mx-auto text-center space-y-6">
           <h1 className="text-4xl md:text-5xl font-bold text-white/90 tracking-tight">
-            2026 Rodeo Schedule
+            2026 Schedule
           </h1>
 
           <p className="text-lg text-white opacity-90 max-w-2xl mx-auto">
