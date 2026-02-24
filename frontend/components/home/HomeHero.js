@@ -19,26 +19,31 @@ export default function HomeHero() {
       <div className="absolute inset-0 bg-black/50" />
 
       {/* Content */}
-      <div className="absolute inset-0 flex items-center justify-center text-center">
-        <div className="px-4 sm:px-6 max-w-4xl text-white">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-5xl font-semibold tracking-tight">
-            Alabama High School Rodeo Association
-          </h1>
+ <div className="absolute inset-0 flex items-center justify-center text-center">
+  <div className="px-4 sm:px-6 max-w-4xl text-white">
+    <h1 className="leading-tight">
+      <span className="block text-3xl sm:text-4xl md:text-5xl lg:text-5xl font-bold tracking-wide uppercase">
+        ALABAMA HIGH SCHOOL
+      </span>
+      <span className="block text-2xl sm:text-3xl md:text-4xl lg:text-4xl font-semibold mt-2">
+        Rodeo Association
+      </span>
+    </h1>
 
-          <p className="mt-3 sm:mt-4 text-md sm:text-lg md:text-xl lg:text-2xl font-normal text-white/90">
-            Built on tradition. Powered by youth.
-          </p>
+    <p className="mt-3 sm:mt-4 text-md sm:text-lg md:text-xl lg:text-2xl font-normal text-white/90">
+      Built on tradition. Powered by youth.
+    </p>
 
-          <div className="mt-6 sm:mt-8">
-            <Link
-              href="/learn-more"
-              className="inline-flex items-center justify-center rounded-md bg-white px-6 py-3 text-sm sm:text-base font-medium text-gray-900 hover:bg-gray-100 transition"
-            >
-              Learn More
-            </Link>
-          </div>
-        </div>
-      </div>
+    <div className="mt-6 sm:mt-8">
+      <Link
+        href="/learn-more"
+        className="inline-flex items-center justify-center rounded-md bg-white px-6 py-3 text-sm sm:text-base font-medium text-gray-900 hover:bg-gray-100 transition"
+      >
+        Learn More
+      </Link>
+    </div>
+  </div>
+</div>
     </section>
   );
 }

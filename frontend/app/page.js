@@ -66,7 +66,7 @@ export default async function HomePage() {
           </h2>
             <p className="text-center text-xl">Hit a banner to learn more about a sponsor</p> 
           <SponsorZone
-            contentType="SEASON"
+            contentType="GLOBAL"
             contentId={null}
             levels={["PREMIER", "FEATURED"]}
             slots={4}
