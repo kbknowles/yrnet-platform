@@ -25,17 +25,15 @@ async function getSponsors() {
 }
 
 export default async function SponsorsPage() {
+  // Backend now returns correctly ordered sponsorship rows
   const sponsors = await getSponsors();
-  const activeSponsors = sponsors.filter((s) => s.active);
 
   return (
     <main className="bg-gray-50">
       {/* HERO */}
       <section className="bg-ahsra-blue/95 text-white">
         <div className="max-w-6xl mx-auto px-4 py-16 text-center space-y-4">
-          <h1 className="text-4xl font-bold">
-            Our Sponsors
-          </h1>
+          <h1 className="text-4xl font-bold">Our Sponsors</h1>
           <p className="max-w-2xl mx-auto text-white/90">
             The Alabama High School Rodeo Association is proud to be supported
             by businesses and organizations that believe in youth,
@@ -46,24 +44,23 @@ export default async function SponsorsPage() {
 
       {/* CONTENT */}
       <section className="max-w-6xl mx-auto px-4 py-16 space-y-16">
-        {/* Sponsors Grid */}
         <section>
           <h2 className="text-2xl font-semibold text-center text-ahsra-blue mb-10">
             Support Our Sponsors
           </h2>
 
-          {activeSponsors.length === 0 ? (
+          {sponsors.length === 0 ? (
             <p className="text-center text-gray-600">
               Sponsor listings coming soon.
             </p>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-8 items-center">
-              {activeSponsors.map((s) => {
+              {sponsors.map((s) => {
                 const imageSrc = resolveImage(s.logoUrl || s.bannerUrl);
 
                 return (
                   <a
-                    key={s.id}
+                    key={s.sponsorshipId}
                     href={s.website || "#"}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -73,10 +70,10 @@ export default async function SponsorsPage() {
                       <Image
                         src={imageSrc}
                         alt={s.name}
-                        width={240}
-                        height={120}
+                        width={256}
+                        height={128}
                         unoptimized
-                        className="max-h-20 object-contain"
+                        className="max-h-28 object-contain"
                       />
                     ) : (
                       <span className="text-sm font-semibold text-center text-ahsra-blue">
