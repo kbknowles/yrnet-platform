@@ -16,21 +16,7 @@ export default function LearnMorePage() {
           competition, education, and community involvement.
         </p>
       </section>
- 
-     {/* Sponsors Section */}
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-6xl px-6">
-          <h2 className="text-xl font-semibold text-center">
-            Support our Sponsors!
-          </h2>
-          <SponsorZone
-            contentType="SEASON"
-            contentId={null}
-            levels={["PREMIER", "FEATURED"]}
-            slots={4}
-          />
-        </div>
-      </section>
+
 
       <div className="grid gap-10 md:grid-cols-2">
         {/* Members */}
@@ -62,6 +48,24 @@ export default function LearnMorePage() {
       <div className="pt-8 text-sm text-gray-500">
         More details coming soon.
       </div>
+
+            {/* SPONSORS */}
+                  <section className="bg-white/90 py-4">
+                    <div className="max-w-7xl mx-auto px-4 space-y-6">
+                      <h2 className="text-2xl font-semibold text-center">
+                        Thank You to Our Sponsors
+                      </h2>
+            
+                      <div className="border-t-2 border-rose-700 w-20 mx-auto" />
+            
+                     <SponsorZone
+                     contentType="SEASON"
+                     contentId={null}
+                     levels={["PREMIER", "FEATURED"]}
+                     slots={4}
+                     />
+                    </div>
+                  </section>
     </main>
   );
 }

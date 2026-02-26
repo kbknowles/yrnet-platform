@@ -104,7 +104,7 @@ export default function SchedulePage() {
   return (
     <main className="bg-slate-50">
       {/* HERO */}
-      <section className="bg-ahsra-blue/95 border-b-4 border-ahsra-red py-20 px-4 relative">
+      <section className="bg-ahsra-blue/95 border-b-4 border-ahsra-red py-14 px-4 relative">
         <div className="absolute top-0 left-0 right-0 h-1 bg-ahsra-blue" />
 
         <div className="max-w-5xl mx-auto text-center space-y-6">
@@ -261,6 +261,26 @@ export default function SchedulePage() {
           </div>
         </div>
       </div>
+
+
+                  {/* SPONSORS */}
+                        <section className="bg-white/90 py-4">
+                          <div className="max-w-7xl mx-auto px-4 space-y-6">
+                            <h2 className="text-2xl font-semibold text-center">
+                              Thank You to Our Sponsors
+                            </h2>
+                  
+                            <div className="border-t-2 border-rose-700 w-20 mx-auto" />
+                  
+                           <SponsorZone
+                           contentType="SEASON"
+                           contentId={null}
+                           levels={["PREMIER", "FEATURED"]}
+                           slots={4}
+                           />
+                          </div>
+                        </section>
+
     </main>
   );
 }

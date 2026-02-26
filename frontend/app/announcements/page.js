@@ -26,13 +26,6 @@ export default function AnnouncementsPage() {
     <main className="max-w-7xl mx-auto px-6 py-10 space-y-10">
       <h1 className="text-2xl font-semibold">Announcements</h1>
 
-      {/* Top Page-Level Sponsor Zone */}
-      <SponsorZone
-        contentType="ANNOUNCEMENT"
-        contentId={null}
-        slots={4}
-      />
-
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {announcements.map((a) => {
           const imageSrc = a.imageUrl
@@ -87,6 +80,27 @@ export default function AnnouncementsPage() {
           );
         })}
       </div>
+
+      {/* SPONSORS */}
+      <section className="bg-white/90 py-4">
+        <div className="max-w-7xl mx-auto px-4 space-y-6">
+          <h2 className="text-2xl font-semibold text-center">
+            Thank You to Our Sponsors
+          </h2>
+
+          <div className="border-t-2 border-rose-700 w-20 mx-auto" />
+
+         <SponsorZone
+         contentType="ANNOUNCEMENT"
+         contentId={null}
+         levels={["PREMIER", "FEATURED"]}
+         slots={4}
+         />
+        </div>
+      </section>
+
+
+
     </main>
   );
 }

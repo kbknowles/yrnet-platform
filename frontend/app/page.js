@@ -65,6 +65,7 @@ export default async function HomePage() {
             
           </h2>
             <p className="text-center text-xl">Hit a banner to learn more about a sponsor</p> 
+            
           <SponsorZone
             contentType="GLOBAL"
             contentId={null}

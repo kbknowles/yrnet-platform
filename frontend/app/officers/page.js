@@ -28,17 +28,8 @@ export default function OfficersPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-10 space-y-12">
-      <section className="space-y-6">
         <h1 className="text-2xl font-semibold">Officers</h1>
 
-        {/* Premier / Title Sponsor Zone */}
-        <SponsorZone
-          contentType={null}
-          contentId={null}
-          zone="HEADER"
-          slots={1}
-        />
-      </section>
 
       {officers.length === 0 ? (
         <p className="text-slate-600">No officers found.</p>
@@ -90,13 +81,23 @@ export default function OfficersPage() {
         </div>
       )}
 
-      {/* Footer Sponsor Zone */}
-      <SponsorZone
-        contentType={"SEASON"}
-        contentId={null}
-        zone="FOOTER"
-        slots={4}
-      />
+            {/* SPONSORS */}
+                  <section className="bg-white/90 py-4">
+                    <div className="max-w-7xl mx-auto px-4 space-y-6">
+                      <h2 className="text-2xl font-semibold text-center">
+                        Thank You to Our Sponsors
+                      </h2>
+            
+                      <div className="border-t-2 border-rose-700 w-20 mx-auto" />
+            
+                     <SponsorZone
+                     contentType="SEASON"
+                     contentId={null}
+                     levels={["PREMIER", "FEATURED"]}
+                     slots={4}
+                     />
+                    </div>
+                  </section>
     </div>
   );
 }

@@ -89,21 +89,25 @@ export default function GalleryView({ album, API_BASE, isDev }) {
         </div>
       )}
 
-      {/* SPONSORS */}
-      <section className="bg-gray-100 py-14">
-        <div className="max-w-6xl mx-auto px-4 space-y-6 text-center">
-          <h2 className="text-2xl font-semibold">
+
+   {/* SPONSORS */}
+      <section className="bg-white/90 py-4">
+        <div className="max-w-7xl mx-auto px-4 space-y-6">
+          <h2 className="text-2xl font-semibold text-center">
             Thank You to Our Sponsors
           </h2>
 
-          <SponsorZone
-            contentType="GALLERY"
-            contentId={album.id}
-            zone="FOOTER"
-            slots={4}
-          />
+          <div className="border-t-2 border-rose-700 w-20 mx-auto" />
+
+         <SponsorZone
+         contentType="SEASON"
+         contentId={null}
+         levels={["PREMIER", "FEATURED"]}
+         slots={4}
+         />
         </div>
       </section>
-    </main>
+
+     </main>
   );
 }

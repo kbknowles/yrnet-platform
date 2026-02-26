@@ -157,6 +157,24 @@ export default async function AthleteDetailPage(props) {
           </section>
         )}
       </section>
+
+          {/* SPONSORS */}
+            <section className="bg-white/90 py-4">
+              <div className="max-w-7xl mx-auto px-4 space-y-6">
+                <h2 className="text-2xl font-semibold text-center">
+                  Thank You to Our Sponsors
+                </h2>
+      
+                <div className="border-t-2 border-rose-700 w-20 mx-auto" />
+      
+               <SponsorZone
+               contentType="SEASON"
+               contentId={null}
+               levels={["PREMIER", "FEATURED"]}
+               slots={4}
+               />
+              </div>
+            </section>
     </main>
   );
 }

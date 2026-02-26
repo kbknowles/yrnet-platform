@@ -1,5 +1,7 @@
 // filepath: frontend/app/[slug]/page.js
 
+import SponsorZone from "../../components/sponsorship/SponsorZone";
+
 import { notFound } from "next/navigation";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
@@ -59,6 +61,25 @@ export default async function CustomPage({ params }) {
           />
         )}
       </section>
+
+            {/* SPONSORS */}
+            <section className="bg-white/90 py-4">
+              <div className="max-w-7xl mx-auto px-4 space-y-6">
+                <h2 className="text-2xl font-semibold text-center">
+                  Thank You to Our Sponsors
+                </h2>
+      
+                <div className="border-t-2 border-rose-700 w-20 mx-auto" />
+      
+               <SponsorZone
+               contentType="ANNOUNCEMENT"
+               contentId={null}
+               levels={["PREMIER", "FEATURED"]}
+               slots={4}
+               />
+              </div>
+            </section>
+      
     </main>
   );
 }

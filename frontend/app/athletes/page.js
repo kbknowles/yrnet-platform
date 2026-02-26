@@ -107,14 +107,16 @@ export default async function AthletesPage() {
       </section>
 
       {/* SPONSORS */}
-      <section className="bg-gray-100 py-14">
+      <section className="bg-white/90 py-4">
         <div className="max-w-7xl mx-auto px-4 space-y-6">
           <h2 className="text-2xl font-semibold text-center">
             Thank You to Our Sponsors
           </h2>
 
+          <div className="border-t-2 border-rose-700 w-20 mx-auto" />
+
           <SponsorZone
-            contentType="ATHLETE"
+            contentType="SEASON"
             contentId={null}
             slots={4}
           />

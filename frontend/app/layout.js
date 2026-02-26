@@ -9,7 +9,7 @@ export const metadata = {
   title: "Alabama High School Rodeo Association",
   description: "Official AHSRA website",
   icons: {
-    icon: "/favicon.png",
+    icon: "/favicon.ico",
   },
 };
 
