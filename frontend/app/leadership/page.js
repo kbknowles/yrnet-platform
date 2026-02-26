@@ -5,11 +5,6 @@ import {
   publicEmailForRole,
 } from "../../lib/officerDisplay";
 
-import {
-  RevealEmail,
-  RevealPhone,
-} from "../../components/OfficerContact";
-
 async function getOfficers() {
   try {
     const res = await fetch(
@@ -23,6 +18,20 @@ async function getOfficers() {
   }
 }
 
+function maskEmail(email) {
+  if (!email) return null;
+  const [name, domain] = email.split("@");
+  if (!name || !domain) return email;
+  return `${name.charAt(0)}***@${domain}`;
+}
+
+function maskPhone(phone) {
+  if (!phone) return null;
+  const digits = phone.replace(/\D/g, "");
+  if (digits.length < 4) return phone;
+  return `***-***-${digits.slice(-4)}`;
+}
+
 export default async function LeadershipPage() {
   const officers = await getOfficers();
 
@@ -34,34 +43,39 @@ export default async function LeadershipPage() {
     <main className="bg-gray-50">
       {/* HERO */}
       <section className="bg-ahsra-blue/95 text-white">
-        <div className="max-w-6xl mx-auto px-4 py-16 text-center space-y-4">
-          <h1 className="text-4xl font-bold">
+        <div className="max-w-6xl mx-auto px-4 py-16 text-center space-y-6">
+          
+          <h1 className="mb-4 text-4xl font-semibold tracking-tight text-heading md:text-5xl lg:text-6xl">
             Leadership
           </h1>
-          <p className="max-w-2xl mx-auto text-white/90">
-            Dedicated volunteers serving the Alabama High School Rodeo Association
-            for the current season.
+
+          <div className="w-24 h-1 bg-ahsra-red mx-auto" />
+
+          <p className="mx-auto text-white/90 mb-6 text-lg font-normal text-body lg:text-xl sm:px-16 xl:px-48">
+            <span className="block">
+              Dedicated volunteers serving the 
+            </span>
+            <span className="block">
+              Alabama High School Rodeo Association.
+            </span>
           </p>
         </div>
       </section>
 
       {/* CONTENT */}
       <section className="max-w-6xl mx-auto px-4 py-16 space-y-20">
-        {/* Executives */}
         <Section title="Executive Officers">
           {executives.map(o => (
             <OfficerCard key={o.id} officer={o} />
           ))}
         </Section>
 
-        {/* Directors */}
         <Section title="Board & Directors" compact>
           {directors.map(o => (
             <OfficerCompact key={o.id} officer={o} />
           ))}
         </Section>
 
-        {/* Students */}
         <Section title="Student Leadership" compact>
           {students.map(o => (
             <OfficerCompact key={o.id} officer={o} />
@@ -96,6 +110,8 @@ function Section({ title, children, compact }) {
 
 function OfficerCard({ officer }) {
   const email = publicEmailForRole(officer.role);
+  const maskedEmail = maskEmail(email);
+  const maskedPhone = maskPhone(officer.phone);
 
   return (
     <div className="rounded-xl border bg-white p-6 text-center space-y-3 shadow-sm">
@@ -109,8 +125,31 @@ function OfficerCard({ officer }) {
         {officer.name}
       </p>
 
-      <RevealEmail email={email} />
-      <RevealPhone phone={officer.phone} />
+      <div className="text-sm space-y-1">
+        {email && (
+          <div>
+            <span className="font-medium">Email: </span>
+            <a
+              href={`mailto:${email}`}
+              className="text-ahsra-blue hover:underline"
+            >
+              {maskedEmail}
+            </a>
+          </div>
+        )}
+
+        {officer.phone && (
+          <div>
+            <span className="font-medium">Phone: </span>
+            <a
+              href={`tel:${officer.phone}`}
+              className="text-ahsra-blue hover:underline"
+            >
+              {maskedPhone}
+            </a>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

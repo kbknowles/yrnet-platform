@@ -6,7 +6,7 @@ export default function LearnMorePage() {
   return (
     <main className="max-w-5xl mx-auto px-6 py-16 space-y-12">
       <section className="space-y-6">
-        <h1 className="text-3xl font-bold text-ahsra-blue">
+        <h1 className="text-3xl font-semibold text-ahsra-blue">
           Learn More About AHSRA
         </h1>
 

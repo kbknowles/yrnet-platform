@@ -44,11 +44,19 @@ export default async function AthletesPage() {
     <main className="bg-gray-50">
       {/* HERO */}
       <section className="bg-ahsra-blue/95 text-white">
-        <div className="max-w-7xl mx-auto px-4 py-16 text-center space-y-4">
-          <h1 className="text-4xl font-bold">Athletes</h1>
-          <p className="max-w-2xl mx-auto text-white/90">
-            Athlete profiles provide colleges and sponsors with detailed
-            information about AHSRA athletes who choose to participate.
+        <div className="max-w-6xl mx-auto px-4 py-16 text-center space-y-6">
+          
+          <h1 className="mb-4 text-4xl font-semibold tracking-tight text-heading md:text-5xl lg:text-6xl">
+            Athletes
+          </h1>
+
+          <div className="w-24 h-1 bg-ahsra-red mx-auto" />
+
+          <p className="mx-auto text-white/90 mb-6 text-lg font-normal text-body lg:text-xl sm:px-16 xl:px-48">
+            <span className="block">
+              Discover the student athletes building their rodeo legacy through AHSRA.
+            </span>
+           
           </p>
         </div>
       </section>

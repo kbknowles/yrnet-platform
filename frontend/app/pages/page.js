@@ -27,7 +27,7 @@ export default async function PagesIndex() {
   return (
     <main className="max-w-5xl mx-auto px-4 py-12 space-y-10">
       <section className="space-y-4">
-        <h1 className="text-3xl font-bold text-ahsra-blue">
+        <h1 className="text-3xl font-semibold text-ahsra-blue">
           Pages
         </h1>
 

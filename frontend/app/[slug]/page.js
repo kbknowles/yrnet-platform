@@ -15,7 +15,6 @@ async function getPage(slug) {
 }
 
 export default async function CustomPage({ params }) {
-  // ✅ REQUIRED in Next 16
   const { slug } = await params;
 
   if (!slug) notFound();
@@ -27,19 +26,39 @@ export default async function CustomPage({ params }) {
   }
 
   return (
-    <main className="flex-1 max-w-5xl mx-auto px-4 py-10">
-      <h1 className="text-3xl font-bold mb-6">{page.title}</h1>
+    <main className="flex-1">
+      {/* Hero Section */}
+      <section className="bg-ahsra-blue text-white py-16 px-4">
+        <div className="max-w-6xl mx-auto text-center space-y-6">
+          <h1 className="mb-4 text-4xl font-semibold tracking-tight md:text-5xl lg:text-6xl">
+            {page.title}
+          </h1>
 
-      {page.isPlaceholder ? (
-        <div className="flex items-center justify-center py-20 text-center">
-          <p className="text-gray-600">This page is coming soon.</p>
+          <div className="w-24 h-1 bg-ahsra-red mx-auto" />
+
+          {page.heroSubtitle && (
+            <p className="mx-auto text-white/90 text-lg font-normal lg:text-xl sm:px-16 xl:px-48">
+              {page.heroSubtitle}
+            </p>
+          )}
         </div>
-      ) : (
-        <div
-          className="prose max-w-none"
-          dangerouslySetInnerHTML={{ __html: page.content }}
-        />
-      )}
+      </section>
+
+      {/* Content Section */}
+      <section className="max-w-5xl mx-auto px-4 py-12">
+        {page.isPlaceholder ? (
+          <div className="flex items-center justify-center py-20 text-center">
+            <p className="text-gray-600">
+              This page is coming soon.
+            </p>
+          </div>
+        ) : (
+          <div
+            className="prose max-w-none"
+            dangerouslySetInnerHTML={{ __html: page.content }}
+          />
+        )}
+      </section>
     </main>
   );
 }

@@ -23,8 +23,36 @@ router.get("/", async (req, res) => {
 /* CREATE PAGE */
 /* ------------------------------ */
 router.post("/", async (req, res) => {
+  const {
+    title,
+    slug,
+    content,
+    status,
+    showInMenu,
+    showInFooter,
+    sortOrder,
+    isPlaceholder,
+    layoutType,
+    sections,
+    heroImage,
+    heroSubtitle,
+  } = req.body;
+
   const page = await prisma.customPage.create({
-    data: req.body,
+    data: {
+      title,
+      slug,
+      content,
+      status,
+      showInMenu: Boolean(showInMenu),
+      showInFooter: Boolean(showInFooter),
+      sortOrder: Number(sortOrder) || 0,
+      isPlaceholder: Boolean(isPlaceholder),
+      layoutType: layoutType || "standard",
+      sections,
+      heroImage,
+      heroSubtitle,
+    },
   });
 
   res.json(page);
@@ -34,9 +62,37 @@ router.post("/", async (req, res) => {
 /* UPDATE PAGE */
 /* ------------------------------ */
 router.put("/:id", async (req, res) => {
+  const {
+    title,
+    slug,
+    content,
+    status,
+    showInMenu,
+    showInFooter,
+    sortOrder,
+    isPlaceholder,
+    layoutType,
+    sections,
+    heroImage,
+    heroSubtitle,
+  } = req.body;
+
   const page = await prisma.customPage.update({
     where: { id: Number(req.params.id) },
-    data: req.body,
+    data: {
+      title,
+      slug,
+      content,
+      status,
+      showInMenu: Boolean(showInMenu),
+      showInFooter: Boolean(showInFooter),
+      sortOrder: Number(sortOrder) || 0,
+      isPlaceholder: Boolean(isPlaceholder),
+      layoutType,
+      sections,
+      heroImage,
+      heroSubtitle,
+    },
   });
 
   res.json(page);

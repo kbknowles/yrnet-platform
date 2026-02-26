@@ -112,7 +112,7 @@ export default function SchedulePage() {
         <div className="absolute top-0 left-0 right-0 h-1 bg-ahsra-blue" />
 
         <div className="max-w-5xl mx-auto text-center space-y-6">
-          <h1 className="text-4xl md:text-5xl font-bold text-white/90 tracking-tight">
+          <h1 className="text-4xl md:text-5xl font-semibold text-white/90 tracking-tight">
             2026 Schedule
           </h1>
 

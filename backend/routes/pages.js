@@ -15,6 +15,7 @@ router.get("/", async (req, res) => {
     select: {
       title: true,
       slug: true,
+      heroSubtitle: true,
       showInMenu: true,
       showInFooter: true,
       sortOrder: true,

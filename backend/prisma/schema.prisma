@@ -360,6 +360,7 @@ model GalleryImage {
 model CustomPage {
   id            Int      @id @default(autoincrement())
   title         String
+  heroSubtitle  String?
   slug          String   @unique
   content       String
   status        String

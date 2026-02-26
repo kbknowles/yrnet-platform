@@ -22,13 +22,17 @@ export default async function GalleryIndexPage() {
     <main className="bg-gray-50">
       {/* HERO */}
       <section className="bg-ahsra-blue/95 text-white">
-        <div className="max-w-6xl mx-auto px-4 py-16 text-center space-y-4">
-          <h1 className="text-4xl font-bold">
+        <div className="max-w-6xl mx-auto px-4 py-16 text-center space-y-6">
+          
+          <h1 className="mb-4 text-4xl font-semibold tracking-tight text-heading md:text-5xl lg:text-6xl">
             Photo Gallery
           </h1>
-          <p className="max-w-2xl mx-auto text-white/90">
-            Explore highlights from rodeos across the season — athletes,
-            action shots, awards, and unforgettable moments.
+
+          {/* Red underline */}
+          <div className="w-24 h-1 bg-ahsra-red mx-auto" />
+          <p className="mx-auto text-white/90 mb-6 text-lg font-normal text-body lg:text-xl sm:px-16 xl:px-48">
+            <span className="block">Explore highlights from Rodeos across the seasons  </span>
+            <span className="block">Athletes, Action shots, Awards, and Unforgettable moments. </span>
           </p>
         </div>
       </section>
@@ -51,7 +55,6 @@ export default async function GalleryIndexPage() {
                   href={`/gallery/${album.slug}`}
                   className="group relative block rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition"
                 >
-                  {/* Image */}
                   <div className="relative h-56 bg-gray-200">
                     {cover && (
                       <Image
@@ -63,10 +66,8 @@ export default async function GalleryIndexPage() {
                       />
                     )}
 
-                    {/* Dark overlay */}
                     <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition" />
 
-                    {/* Title + Count */}
                     <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
                       <h2 className="font-semibold text-lg truncate">
                         {album.title}

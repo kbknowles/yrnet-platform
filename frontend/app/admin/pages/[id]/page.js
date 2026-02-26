@@ -12,7 +12,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 ----------------------------- */
 function toParagraphs(text = "") {
   return text
-    .split(/\n\s*\n/) // split on blank lines
+    .split(/\n\s*\n/)
     .map((p) => p.trim())
     .filter(Boolean)
     .map((p) => `<p>${p.replace(/\n/g, "<br />")}</p>`)
@@ -36,7 +36,15 @@ export default function EditPage() {
       const pages = await res.json();
 
       const page = pages.find((p) => p.id === Number(id));
-      setForm(page || null);
+
+      if (page) {
+        setForm({
+          ...page,
+          heroSubtitle: page.heroSubtitle || "",
+        });
+      } else {
+        setForm(null);
+      }
 
       setLoading(false);
     }

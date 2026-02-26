@@ -76,6 +76,16 @@ export default function PageEditor({ title, form, setForm, onSave }) {
         }
       />
 
+      {/* Hero Subtitle */}
+      <input
+        className="w-full border p-3"
+        placeholder="Hero subtitle (optional)"
+        value={form.heroSubtitle || ""}
+        onChange={(e) =>
+          setForm({ ...form, heroSubtitle: e.target.value })
+        }
+      />
+
       {/* Slug */}
       <input
         className="w-full border p-3"
@@ -86,7 +96,7 @@ export default function PageEditor({ title, form, setForm, onSave }) {
         }
       />
 
-      {/* NAV TOGGLES — ADDED BACK */}
+      {/* NAV TOGGLES */}
       <div className="flex gap-6">
         <label className="flex items-center gap-2">
           <input

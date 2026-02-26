@@ -10,9 +10,11 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 export default function NewPage() {
   const router = useRouter();
+
   const [form, setForm] = useState({
     title: "",
     slug: "",
+    heroSubtitle: "",
     content: "",
     status: "draft",
     showInMenu: false,
