@@ -396,8 +396,10 @@ model Athlete {
 
   slug String @unique
 
-  headshotUrl    String?
-  actionPhotoUrl String?
+  headshotUrl  String?
+  actionPhotos String[] @default([])
+  videos       String[] @default([])
+
 
   seasonId Int
   season   Season? @relation(fields: [seasonId], references: [id])

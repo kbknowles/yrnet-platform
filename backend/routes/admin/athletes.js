@@ -1,3 +1,5 @@
+// filepath: backend/routes/admin/athletes.js
+
 import express from "express";
 import prisma from "../../prismaClient.mjs";
 import uploadImage from "../../middleware/uploadImage.js";
@@ -13,6 +15,18 @@ function slugify(firstName, lastName) {
     .trim()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
+}
+
+function safeParseJSON(value) {
+  if (!value) return undefined;
+  if (typeof value !== "string") return value;
+
+  try {
+    return JSON.parse(value);
+  } catch (err) {
+    console.error("JSON PARSE ERROR:", err);
+    return undefined;
+  }
 }
 
 /* ----------------------------
@@ -56,49 +70,75 @@ router.get("/:slug", async (req, res) => {
 /* ----------------------------
    CREATE (ADMIN)
 ----------------------------- */
-router.post("/", async (req, res) => {
-  try {
-    const activeSeason = await prisma.season.findFirst({
-      where: { active: true },
-    });
+router.post(
+  "/",
+  uploadImage.fields([
+    { name: "headshot", maxCount: 1 },
+    { name: "actionPhotos", maxCount: 4 },
+    { name: "videos", maxCount: 4 },
+  ]),
+  async (req, res) => {
+    try {
+      const activeSeason = await prisma.season.findFirst({
+        where: { active: true },
+      });
 
-    if (!activeSeason) {
-      return res.status(400).json({ error: "No active season found" });
+      if (!activeSeason) {
+        return res.status(400).json({ error: "No active season found" });
+      }
+
+      const { firstName, lastName } = req.body;
+
+      if (!firstName || !lastName) {
+        return res
+          .status(400)
+          .json({ error: "First and last name are required" });
+      }
+
+      const slug = slugify(firstName, lastName);
+
+      const actionPhotos =
+        req.files?.actionPhotos?.map(
+          (f) => `/uploads/images/${f.filename}`
+        ) || [];
+
+      const videos =
+        req.files?.videos?.map(
+          (f) => `/uploads/videos/${f.filename}`
+        ) || [];
+
+      const headshotUrl = req.files?.headshot?.[0]
+        ? `/uploads/images/${req.files.headshot[0].filename}`
+        : null;
+
+      const athlete = await prisma.athlete.create({
+        data: {
+          ...req.body,
+          slug,
+          seasonId: activeSeason.id,
+          headshotUrl,
+          actionPhotos,
+          videos,
+          events: safeParseJSON(req.body.events) || [],
+          socialLinks: safeParseJSON(req.body.socialLinks) || [],
+          awards: safeParseJSON(req.body.awards) || [],
+        },
+      });
+
+      res.json(athlete);
+    } catch (err) {
+      console.error("CREATE ATHLETE ERROR:", err);
+
+      if (err.code === "P2002") {
+        return res
+          .status(409)
+          .json({ error: "Athlete with this name already exists" });
+      }
+
+      res.status(500).json({ error: "Failed to create athlete" });
     }
-
-    const { firstName, lastName, ...rest } = req.body || {};
-
-    if (!firstName || !lastName) {
-      return res
-        .status(400)
-        .json({ error: "First and last name are required" });
-    }
-
-    const slug = slugify(firstName, lastName);
-
-    const athlete = await prisma.athlete.create({
-      data: {
-        firstName,
-        lastName,
-        slug,
-        seasonId: activeSeason.id,
-        ...rest,
-      },
-    });
-
-    res.json(athlete);
-  } catch (err) {
-    console.error("CREATE ATHLETE ERROR:", err);
-
-    if (err.code === "P2002") {
-      return res
-        .status(409)
-        .json({ error: "Athlete with this name already exists" });
-    }
-
-    res.status(500).json({ error: "Failed to create athlete" });
   }
-});
+);
 
 /* ----------------------------
    UPDATE BY SLUG (ADMIN)
@@ -107,7 +147,8 @@ router.put(
   "/:slug",
   uploadImage.fields([
     { name: "headshot", maxCount: 1 },
-    { name: "actionPhoto", maxCount: 1 },
+    { name: "actionPhotos", maxCount: 4 },
+    { name: "videos", maxCount: 4 },
   ]),
   async (req, res) => {
     try {
@@ -123,35 +164,42 @@ router.put(
 
       const updateData = {};
 
-      // ---- JSON fields ----
-      if (req.body.socialLinks) {
-        updateData.socialLinks = JSON.parse(req.body.socialLinks);
+      /* ---- JSON fields ---- */
+      const parsedSocialLinks = safeParseJSON(req.body.socialLinks);
+      if (parsedSocialLinks !== undefined) {
+        updateData.socialLinks = parsedSocialLinks;
       }
 
-      if (req.body.awards) {
-        updateData.awards = JSON.parse(req.body.awards);
+      const parsedAwards = safeParseJSON(req.body.awards);
+      if (parsedAwards !== undefined) {
+        updateData.awards = parsedAwards;
       }
 
-      // ---- Enum array ----
-      if (req.body.events) {
-        updateData.events = JSON.parse(req.body.events);
+      const parsedEvents = safeParseJSON(req.body.events);
+      if (parsedEvents !== undefined) {
+        updateData.events = parsedEvents;
       }
 
-      // ---- Boolean fields ----
+      /* ---- Boolean ---- */
       if (req.body.isActive !== undefined) {
-        updateData.isActive = req.body.isActive === "true";
+        updateData.isActive =
+          req.body.isActive === true || req.body.isActive === "true";
       }
 
       if (req.body.isFeatured !== undefined) {
-        updateData.isFeatured = req.body.isFeatured === "true";
+        updateData.isFeatured =
+          req.body.isFeatured === true || req.body.isFeatured === "true";
       }
 
-      // ---- Integer ----
-      if (req.body.sortOrder !== undefined) {
-        updateData.sortOrder = parseInt(req.body.sortOrder, 10);
+      /* ---- Integer ---- */
+      if (req.body.sortOrder !== undefined && req.body.sortOrder !== "") {
+        const parsedSort = parseInt(req.body.sortOrder, 10);
+        if (!isNaN(parsedSort)) {
+          updateData.sortOrder = parsedSort;
+        }
       }
 
-      // ---- Scalar fields ----
+      /* ---- Scalars ---- */
       [
         "firstName",
         "lastName",
@@ -167,15 +215,29 @@ router.put(
         }
       });
 
-      // ---- Image overwrites ----
+      /* ---- Media Handling ---- */
+
       if (req.files?.headshot?.[0]) {
         updateData.headshotUrl =
           `/uploads/images/${req.files.headshot[0].filename}`;
       }
 
-      if (req.files?.actionPhoto?.[0]) {
-        updateData.actionPhotoUrl =
-          `/uploads/images/${req.files.actionPhoto[0].filename}`;
+      if (req.files?.actionPhotos?.length) {
+        updateData.actionPhotos = [
+          ...(existing.actionPhotos || []),
+          ...req.files.actionPhotos.map(
+            (f) => `/uploads/images/${f.filename}`
+          ),
+        ];
+      }
+
+      if (req.files?.videos?.length) {
+        updateData.videos = [
+          ...(existing.videos || []),
+          ...req.files.videos.map(
+            (f) => `/uploads/videos/${f.filename}`
+          ),
+        ];
       }
 
       const updatedAthlete = await prisma.athlete.update({
@@ -192,7 +254,7 @@ router.put(
 );
 
 /* ----------------------------
-   DELETE BY SLUG (ADMIN)
+   DELETE
 ----------------------------- */
 router.delete("/:slug", async (req, res) => {
   try {

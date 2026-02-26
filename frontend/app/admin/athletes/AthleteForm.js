@@ -33,7 +33,8 @@ const EMPTY_FORM = {
   isFeatured: false,
   sortOrder: 0,
   headshotUrl: "",
-  actionPhotoUrl: "",
+  actionPhotos: [],
+  videos: [],
 };
 
 function resolveImage(url) {
@@ -45,8 +46,11 @@ function resolveImage(url) {
 
 export default function AthleteForm({ slug, mode = "create" }) {
   const [form, setForm] = useState(EMPTY_FORM);
+
   const [headshotFile, setHeadshotFile] = useState(null);
-  const [actionFile, setActionFile] = useState(null);
+  const [actionFiles, setActionFiles] = useState([]);
+  const [videoFiles, setVideoFiles] = useState([]);
+
   const [loading, setLoading] = useState(mode === "edit");
   const [saving, setSaving] = useState(false);
 
@@ -62,141 +66,115 @@ export default function AthleteForm({ slug, mode = "create" }) {
     if (mode !== "edit" || !slug) return;
 
     async function loadData() {
-      try {
-        const res = await fetch(
-          `${API_BASE}/api/admin/athletes/${slug}`,
-          { cache: "no-store" }
-        );
-
-        if (!res.ok) throw new Error();
-        const data = await res.json();
-
-        setForm({
-          ...EMPTY_FORM,
-          ...data,
-          events: data.events || [],
-          isActive: data.isActive ?? true,
-        });
-
-        setLinkedSponsors(data.athleteSponsors || []);
-
-        const sponsorRes = await fetch(`${API_BASE}/api/sponsors/active`);
-        const sponsorData = await sponsorRes.json();
-        setActiveSponsors(sponsorData);
-
-        setLoading(false);
-      } catch {
+      const res = await fetch(`${API_BASE}/api/admin/athletes/${slug}`);
+      if (!res.ok) {
         alert("Failed to load athlete");
+        return;
       }
+
+      const data = await res.json();
+
+      setForm({
+        ...EMPTY_FORM,
+        ...data,
+        events: data.events || [],
+        actionPhotos: data.actionPhotos || [],
+        videos: data.videos || [],
+      });
+
+      const sponsorRes = await fetch(`${API_BASE}/api/sponsors`);
+      const sponsorData = await sponsorRes.json();
+      setActiveSponsors(sponsorData);
+
+      setLoading(false);
     }
 
     loadData();
   }, [mode, slug]);
 
   async function attachSponsor() {
-    if (!selectedSponsor) return;
+    const sponsorId = parseInt(selectedSponsor, 10);
+    if (!sponsorId || isNaN(sponsorId)) return;
 
-    if (!form.id) {
-      alert("Save the athlete before attaching sponsors.");
+    if (linkedSponsors.length >= 4) return;
+
+    const res = await fetch(
+      `${API_BASE}/api/sponsors/${sponsorId}/attach-athlete/${form.id}`,
+      { method: "POST" }
+    );
+
+    if (!res.ok) {
+      alert("Attach failed");
       return;
     }
 
-    if (linkedSponsors.length >= 4) {
-      alert("Maximum of 4 sponsors allowed.");
-      return;
-    }
+    const sponsor = activeSponsors.find((s) => s.id === sponsorId);
+    setLinkedSponsors((prev) => [
+      ...prev,
+      { sponsorId: sponsor.id, sponsor },
+    ]);
 
-    const sponsorId = Number(selectedSponsor);
-
-    if (linkedSponsors.some((s) => s.sponsorId === sponsorId)) {
-      setSelectedSponsor("");
-      return;
-    }
-
-    try {
-      const res = await fetch(
-        `${API_BASE}/api/sponsors/${sponsorId}/attach-athlete/${form.id}`,
-        { method: "POST" }
-      );
-
-      if (!res.ok) throw new Error();
-
-      const sponsor = activeSponsors.find(
-        (s) => s.id === sponsorId
-      );
-
-      if (sponsor) {
-        setLinkedSponsors((prev) => [
-          ...prev,
-          {
-            sponsorId: sponsor.id,
-            sponsor: sponsor,
-          },
-        ]);
-      }
-
-      setSelectedSponsor("");
-    } catch {
-      alert("Failed to attach sponsor.");
-    }
+    setSelectedSponsor("");
   }
 
   async function removeSponsor(sponsorId) {
-    try {
-      await fetch(
-        `${API_BASE}/api/sponsors/${sponsorId}/remove-athlete/${form.id}`,
-        { method: "DELETE" }
-      );
+    await fetch(
+      `${API_BASE}/api/sponsors/${sponsorId}/remove-athlete/${form.id}`,
+      { method: "DELETE" }
+    );
 
-      setLinkedSponsors((prev) =>
-        prev.filter((s) => s.sponsorId !== sponsorId)
-      );
-    } catch {
-      alert("Failed to remove sponsor.");
-    }
+    setLinkedSponsors((prev) =>
+      prev.filter((s) => s.sponsorId !== sponsorId)
+    );
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
     setSaving(true);
 
-    try {
-      const formData = new FormData();
+    const formData = new FormData();
 
-      Object.entries(form).forEach(([key, value]) => {
-        if (Array.isArray(value)) {
-          formData.append(key, JSON.stringify(value));
-        } else {
-          formData.append(key, value ?? "");
-        }
-      });
+    Object.entries(form).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        formData.append(key, JSON.stringify(value));
+      } else {
+        formData.append(key, value ?? "");
+      }
+    });
 
-      if (headshotFile) formData.append("headshot", headshotFile);
-      if (actionFile) formData.append("actionPhoto", actionFile);
+    if (headshotFile) formData.append("headshot", headshotFile);
 
-      const res = await fetch(
-        `${API_BASE}/api/admin/athletes${mode === "edit" ? `/${slug}` : ""}`,
-        {
-          method: mode === "edit" ? "PUT" : "POST",
-          body: formData,
-        }
-      );
+    actionFiles.forEach((file) => {
+      formData.append("actionPhotos", file);
+    });
 
-      if (!res.ok) throw new Error();
+    videoFiles.forEach((file) => {
+      formData.append("videos", file);
+    });
 
-      window.location.href = "/admin/athletes";
-    } catch {
+    const res = await fetch(
+      `${API_BASE}/api/admin/athletes${mode === "edit" ? `/${slug}` : ""}`,
+      {
+        method: mode === "edit" ? "PUT" : "POST",
+        body: formData,
+      }
+    );
+
+    if (!res.ok) {
       alert("Save failed");
       setSaving(false);
+      return;
     }
+
+    window.location.href = "/admin/athletes";
   }
 
   if (loading) return <p className="p-6">Loading…</p>;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-10 p-6 max-w-6xl mx-auto">
+    <form onSubmit={handleSubmit} className="space-y-8 p-6 max-w-6xl mx-auto">
 
-      {/* Core Fields */}
+      {/* Basic Info */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <input required placeholder="First Name"
           value={form.firstName}
@@ -215,8 +193,9 @@ export default function AthleteForm({ slug, mode = "create" }) {
           onChange={(e) => update("hometown", e.target.value)} />
       </section>
 
-      {/* Upload Section */}
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      {/* Media */}
+      <section className="space-y-6">
+
         <div>
           <label className="font-semibold block mb-2">Headshot</label>
           {form.headshotUrl && (
@@ -227,91 +206,35 @@ export default function AthleteForm({ slug, mode = "create" }) {
           )}
           <input
             type="file"
-            accept="image/jpeg,image/png"
+            accept="image/jpeg,image/png,image/webp"
             onChange={(e) => setHeadshotFile(e.target.files?.[0])}
           />
         </div>
 
         <div>
-          <label className="font-semibold block mb-2">Action Photo</label>
-          {form.actionPhotoUrl && (
-            <img
-              src={resolveImage(form.actionPhotoUrl)}
-              className="max-h-40 mb-3 object-contain border rounded"
-            />
-          )}
+          <label className="font-semibold block mb-2">
+            Action Photos (Max 4)
+          </label>
           <input
             type="file"
-            accept="image/jpeg,image/png"
-            onChange={(e) => setActionFile(e.target.files?.[0])}
+            multiple
+            accept="image/jpeg,image/png,image/webp"
+            onChange={(e) => setActionFiles([...e.target.files])}
           />
         </div>
-      </section>
 
-      {/* Sponsor Section */}
-      {mode === "edit" && (
-        <section className="border-t pt-8">
-          <h2 className="text-xl font-semibold mb-4">
-            Athlete Sponsors (Max 4)
-          </h2>
+        <div>
+          <label className="font-semibold block mb-2">
+            Videos (Max 4)
+          </label>
+          <input
+            type="file"
+            multiple
+            accept="video/mp4,video/quicktime,video/webm"
+            onChange={(e) => setVideoFiles([...e.target.files])}
+          />
+        </div>
 
-          {linkedSponsors.length < 4 && (
-            <div className="flex gap-4 mb-6">
-              <select
-                value={selectedSponsor}
-                onChange={(e) => setSelectedSponsor(e.target.value)}
-                className="border p-2 rounded"
-              >
-                <option value="">Select Sponsor</option>
-                {activeSponsors.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
-                ))}
-              </select>
-
-              <button
-                type="button"
-                onClick={attachSponsor}
-                className="bg-black text-white px-4 py-2"
-              >
-                Attach
-              </button>
-            </div>
-          )}
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {linkedSponsors.map((link) => (
-              <div key={link.sponsor.id}
-                className="border p-3 rounded text-center space-y-2">
-                {link.sponsor.logoUrl && (
-                  <img
-                    src={resolveImage(link.sponsor.logoUrl)}
-                    className="max-h-16 mx-auto object-contain"
-                  />
-                )}
-                <div className="text-sm font-medium">
-                  {link.sponsor.name}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => removeSponsor(link.sponsorId)}
-                  className="text-xs text-red-600"
-                >
-                  Remove
-                </button>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Bio */}
-      <section>
-        <label className="font-semibold block mb-2">Athlete Bio</label>
-        <textarea className="w-full min-h-[200px]"
-          value={form.bio}
-          onChange={(e) => update("bio", e.target.value)} />
       </section>
 
       {/* Events */}
@@ -342,6 +265,7 @@ export default function AthleteForm({ slug, mode = "create" }) {
         className="bg-black text-white px-6 py-2">
         {saving ? "Saving…" : "Save Athlete"}
       </button>
+
     </form>
   );
 }

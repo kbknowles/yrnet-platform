@@ -1,40 +1,67 @@
+// filepath: backend/middleware/uploadImage.js
+
 import multer from "multer";
 import path from "path";
 import fs from "fs";
 
-const IMAGE_DIR = "/uploads/images";
+const rootUploadDir = path.join(process.cwd(), "uploads");
+const imageDir = path.join(rootUploadDir, "images");
+const videoDir = path.join(rootUploadDir, "videos");
 
-if (!fs.existsSync(IMAGE_DIR)) {
-  fs.mkdirSync(IMAGE_DIR, { recursive: true });
-}
+// Ensure directories exist
+[imageDir, videoDir].forEach((dir) => {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+});
+
+const allowedImageTypes = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+];
+
+const allowedVideoTypes = [
+  "video/mp4",
+  "video/quicktime", // .mov
+  "video/webm",
+];
 
 const storage = multer.diskStorage({
-  destination: (_, __, cb) => cb(null, IMAGE_DIR),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
-    const slug = req.params.slug;
-
-    if (!slug) {
-      return cb(new Error("Athlete slug is required for image upload"));
-    }
-
-    if (file.fieldname === "headshot") {
-      cb(null, `athlete-${slug}-headshot${ext}`);
-    } else if (file.fieldname === "actionPhoto") {
-      cb(null, `athlete-${slug}-action${ext}`);
+  destination: function (_req, file, cb) {
+    if (allowedImageTypes.includes(file.mimetype)) {
+      cb(null, imageDir);
+    } else if (allowedVideoTypes.includes(file.mimetype)) {
+      cb(null, videoDir);
     } else {
-      cb(new Error("Invalid image field name"));
+      cb(new Error("Unsupported file type"));
     }
+  },
+  filename: function (_req, file, cb) {
+    const ext = path.extname(file.originalname).toLowerCase();
+    const uniqueName = `${Date.now()}-${Math.round(
+      Math.random() * 1e9
+    )}${ext}`;
+    cb(null, uniqueName);
   },
 });
 
+function fileFilter(_req, file, cb) {
+  if (
+    allowedImageTypes.includes(file.mimetype) ||
+    allowedVideoTypes.includes(file.mimetype)
+  ) {
+    cb(null, true);
+  } else {
+    cb(new Error("Only images and short videos are allowed"));
+  }
+}
+
 const uploadImage = multer({
   storage,
-  fileFilter: (_, file, cb) => {
-    if (!file.mimetype.startsWith("image/")) {
-      return cb(new Error("Images only"));
-    }
-    cb(null, true);
+  fileFilter,
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB
   },
 });
 
