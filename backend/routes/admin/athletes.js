@@ -10,6 +10,7 @@ const router = express.Router();
 /* ----------------------------
    UTILS
 ----------------------------- */
+
 function slugify(firstName, lastName) {
   return `${firstName}-${lastName}`
     .toLowerCase()
@@ -29,17 +30,12 @@ function safeParseJSON(value) {
   }
 }
 
-function deleteFileIfExists(path) {
-  if (!path) return;
-  const fullPath = path.startsWith("/uploads")
-    ? path
-    : null;
-
-  if (!fullPath) return;
+function deleteFileIfExists(filePath) {
+  if (!filePath) return;
 
   try {
-    if (fs.existsSync(fullPath)) {
-      fs.unlinkSync(fullPath);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
     }
   } catch (err) {
     console.error("FILE DELETE ERROR:", err);
@@ -49,6 +45,7 @@ function deleteFileIfExists(path) {
 /* ----------------------------
    GET ALL
 ----------------------------- */
+
 router.get("/", async (_req, res) => {
   try {
     const athletes = await prisma.athlete.findMany({
@@ -66,6 +63,7 @@ router.get("/", async (_req, res) => {
 /* ----------------------------
    GET ONE
 ----------------------------- */
+
 router.get("/:slug", async (req, res) => {
   try {
     const athlete = await prisma.athlete.findUnique({
@@ -87,6 +85,7 @@ router.get("/:slug", async (req, res) => {
 /* ----------------------------
    CREATE
 ----------------------------- */
+
 router.post(
   "/",
   uploadImage.fields([
@@ -150,6 +149,7 @@ router.post(
 /* ----------------------------
    UPDATE
 ----------------------------- */
+
 router.put(
   "/:slug",
   uploadImage.fields([
@@ -208,7 +208,7 @@ router.put(
           req.body.isFeatured === true || req.body.isFeatured === "true";
       }
 
-      /* Headshot */
+      /* HEADSHOT */
       if (req.body.headshotUrl === "") {
         deleteFileIfExists(existing.headshotUrl);
         updateData.headshotUrl = null;
@@ -220,7 +220,7 @@ router.put(
           `/uploads/images/${req.files.headshot[0].filename}`;
       }
 
-      /* Action Photos */
+      /* ACTION PHOTOS — FULL OVERWRITE */
       const incomingPhotos = safeParseJSON(req.body.actionPhotos);
       if (incomingPhotos !== undefined) {
         existing.actionPhotos?.forEach((path) => {
@@ -233,15 +233,17 @@ router.put(
       }
 
       if (req.files?.actionPhotos?.length) {
+        const newPaths = req.files.actionPhotos.map(
+          (f) => `/uploads/images/${f.filename}`
+        );
+
         updateData.actionPhotos = [
-          ...(updateData.actionPhotos || existing.actionPhotos || []),
-          ...req.files.actionPhotos.map(
-            (f) => `/uploads/images/${f.filename}`
-          ),
+          ...(updateData.actionPhotos ?? existing.actionPhotos ?? []),
+          ...newPaths,
         ];
       }
 
-      /* Videos */
+      /* VIDEOS — FULL OVERWRITE */
       const incomingVideos = safeParseJSON(req.body.videos);
       if (incomingVideos !== undefined) {
         existing.videos?.forEach((path) => {
@@ -254,11 +256,13 @@ router.put(
       }
 
       if (req.files?.videos?.length) {
+        const newVideoPaths = req.files.videos.map(
+          (f) => `/uploads/videos/${f.filename}`
+        );
+
         updateData.videos = [
-          ...(updateData.videos || existing.videos || []),
-          ...req.files.videos.map(
-            (f) => `/uploads/videos/${f.filename}`
-          ),
+          ...(updateData.videos ?? existing.videos ?? []),
+          ...newVideoPaths,
         ];
       }
 
@@ -278,6 +282,7 @@ router.put(
 /* ----------------------------
    DELETE
 ----------------------------- */
+
 router.delete("/:slug", async (req, res) => {
   try {
     const existing = await prisma.athlete.findUnique({
