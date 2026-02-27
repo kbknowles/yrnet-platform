@@ -1,5 +1,3 @@
-// filepath: frontend/app/athletes/[slug]/AthleteView.js
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -18,25 +16,15 @@ function resolveMedia(API_BASE, url) {
 export default function AthleteView({ athlete, API_BASE }) {
   const [open, setOpen] = useState(false);
   const [startIndex, setStartIndex] = useState(0);
-  const [videoOpen, setVideoOpen] = useState(false);
-  const [activeVideo, setActiveVideo] = useState(null);
 
   const actionImages =
     athlete.actionPhotos?.map((p) =>
       resolveMedia(API_BASE, p)
     ) || [];
 
-  const videos =
-    athlete.videos
-      ?.slice(0, 4)
-      .map((v) => resolveMedia(API_BASE, v)) || [];
-
   useEffect(() => {
     function handleKey(e) {
-      if (e.key === "Escape") {
-        setOpen(false);
-        setVideoOpen(false);
-      }
+      if (e.key === "Escape") setOpen(false);
     }
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
@@ -180,37 +168,46 @@ export default function AthleteView({ athlete, API_BASE }) {
             slots={4}
           />
         </section>
+{/* Videos */}
+{videos.length > 0 && (
+  <section className="space-y-4">
+    <h2 className="text-2xl font-semibold">
+      Highlight Videos
+    </h2>
 
-        {/* Videos */}
-        {videos.length > 0 && (
-          <section className="space-y-4">
-            <h2 className="text-2xl font-semibold">
-              Highlight Videos
-            </h2>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {videos.map((video, idx) => (
+        <div
+          key={idx}
+          onClick={() => {
+            setActiveVideo(video);
+            setVideoOpen(true);
+          }}
+          className="relative aspect-[16/9] rounded-lg overflow-hidden cursor-pointer group bg-black"
+        >
+          {/* Native Preview Frame */}
+          <video
+            src={video}
+            preload="metadata"
+            muted
+            className="w-full h-full object-cover"
+          />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {videos.map((video, idx) => (
-                <div
-                  key={idx}
-                  onClick={() => {
-                    setActiveVideo(video);
-                    setVideoOpen(true);
-                  }}
-                  className="relative aspect-[16/9] rounded-lg bg-black overflow-hidden cursor-pointer group"
-                >
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/60 transition">
-                    <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center text-black text-2xl">
-                      ▶
-                    </div>
-                  </div>
-                </div>
-              ))}
+          {/* Overlay */}
+          <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/50 transition">
+            <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center text-black text-2xl shadow">
+              ▶
             </div>
-          </section>
-        )}
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+)}
+
       </section>
 
-      {/* PHOTO MODAL */}
+      {/* MODAL SLIDESHOW */}
       {open && (
         <div
           className="fixed inset-0 bg-black/95 flex items-center justify-center z-50"
@@ -232,33 +229,6 @@ export default function AthleteView({ athlete, API_BASE }) {
                 imageUrl: url,
               }))}
               initialIndex={startIndex}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* VIDEO MODAL */}
-      {videoOpen && activeVideo && (
-        <div
-          className="fixed inset-0 bg-black/95 flex items-center justify-center z-50"
-          onClick={() => setVideoOpen(false)}
-        >
-          <button
-            onClick={() => setVideoOpen(false)}
-            className="absolute top-6 right-6 text-white text-3xl"
-          >
-            ✕
-          </button>
-
-          <div
-            className="w-[95vw] max-w-5xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <video
-              src={activeVideo}
-              controls
-              autoPlay
-              className="w-full h-auto rounded"
             />
           </div>
         </div>
