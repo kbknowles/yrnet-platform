@@ -3,6 +3,7 @@
 import express from "express";
 import prisma from "../../prismaClient.mjs";
 import uploadImage from "../../middleware/uploadImage.js";
+import fs from "fs";
 
 const router = express.Router();
 
@@ -23,14 +24,30 @@ function safeParseJSON(value) {
 
   try {
     return JSON.parse(value);
-  } catch (err) {
-    console.error("JSON PARSE ERROR:", err);
+  } catch {
     return undefined;
   }
 }
 
+function deleteFileIfExists(path) {
+  if (!path) return;
+  const fullPath = path.startsWith("/uploads")
+    ? path
+    : null;
+
+  if (!fullPath) return;
+
+  try {
+    if (fs.existsSync(fullPath)) {
+      fs.unlinkSync(fullPath);
+    }
+  } catch (err) {
+    console.error("FILE DELETE ERROR:", err);
+  }
+}
+
 /* ----------------------------
-   GET ALL (ADMIN)
+   GET ALL
 ----------------------------- */
 router.get("/", async (_req, res) => {
   try {
@@ -47,7 +64,7 @@ router.get("/", async (_req, res) => {
 });
 
 /* ----------------------------
-   GET ONE BY SLUG (ADMIN)
+   GET ONE
 ----------------------------- */
 router.get("/:slug", async (req, res) => {
   try {
@@ -68,7 +85,7 @@ router.get("/:slug", async (req, res) => {
 });
 
 /* ----------------------------
-   CREATE (ADMIN)
+   CREATE
 ----------------------------- */
 router.post(
   "/",
@@ -88,14 +105,15 @@ router.post(
       }
 
       const { firstName, lastName } = req.body;
-
       if (!firstName || !lastName) {
-        return res
-          .status(400)
-          .json({ error: "First and last name are required" });
+        return res.status(400).json({ error: "Name required" });
       }
 
       const slug = slugify(firstName, lastName);
+
+      const headshotUrl = req.files?.headshot?.[0]
+        ? `/uploads/images/${req.files.headshot[0].filename}`
+        : null;
 
       const actionPhotos =
         req.files?.actionPhotos?.map(
@@ -106,10 +124,6 @@ router.post(
         req.files?.videos?.map(
           (f) => `/uploads/videos/${f.filename}`
         ) || [];
-
-      const headshotUrl = req.files?.headshot?.[0]
-        ? `/uploads/images/${req.files.headshot[0].filename}`
-        : null;
 
       const athlete = await prisma.athlete.create({
         data: {
@@ -127,21 +141,14 @@ router.post(
 
       res.json(athlete);
     } catch (err) {
-      console.error("CREATE ATHLETE ERROR:", err);
-
-      if (err.code === "P2002") {
-        return res
-          .status(409)
-          .json({ error: "Athlete with this name already exists" });
-      }
-
+      console.error("CREATE ERROR:", err);
       res.status(500).json({ error: "Failed to create athlete" });
     }
   }
 );
 
 /* ----------------------------
-   UPDATE BY SLUG (ADMIN)
+   UPDATE
 ----------------------------- */
 router.put(
   "/:slug",
@@ -164,42 +171,7 @@ router.put(
 
       const updateData = {};
 
-      /* ---- JSON fields ---- */
-      const parsedSocialLinks = safeParseJSON(req.body.socialLinks);
-      if (parsedSocialLinks !== undefined) {
-        updateData.socialLinks = parsedSocialLinks;
-      }
-
-      const parsedAwards = safeParseJSON(req.body.awards);
-      if (parsedAwards !== undefined) {
-        updateData.awards = parsedAwards;
-      }
-
-      const parsedEvents = safeParseJSON(req.body.events);
-      if (parsedEvents !== undefined) {
-        updateData.events = parsedEvents;
-      }
-
-      /* ---- Boolean ---- */
-      if (req.body.isActive !== undefined) {
-        updateData.isActive =
-          req.body.isActive === true || req.body.isActive === "true";
-      }
-
-      if (req.body.isFeatured !== undefined) {
-        updateData.isFeatured =
-          req.body.isFeatured === true || req.body.isFeatured === "true";
-      }
-
-      /* ---- Integer ---- */
-      if (req.body.sortOrder !== undefined && req.body.sortOrder !== "") {
-        const parsedSort = parseInt(req.body.sortOrder, 10);
-        if (!isNaN(parsedSort)) {
-          updateData.sortOrder = parsedSort;
-        }
-      }
-
-      /* ---- Scalars ---- */
+      /* Scalars */
       [
         "firstName",
         "lastName",
@@ -215,39 +187,89 @@ router.put(
         }
       });
 
-      /* ---- Media Handling ---- */
+      /* JSON */
+      const parsedEvents = safeParseJSON(req.body.events);
+      if (parsedEvents !== undefined) updateData.events = parsedEvents;
+
+      const parsedSocial = safeParseJSON(req.body.socialLinks);
+      if (parsedSocial !== undefined) updateData.socialLinks = parsedSocial;
+
+      const parsedAwards = safeParseJSON(req.body.awards);
+      if (parsedAwards !== undefined) updateData.awards = parsedAwards;
+
+      /* Boolean */
+      if (req.body.isActive !== undefined) {
+        updateData.isActive =
+          req.body.isActive === true || req.body.isActive === "true";
+      }
+
+      if (req.body.isFeatured !== undefined) {
+        updateData.isFeatured =
+          req.body.isFeatured === true || req.body.isFeatured === "true";
+      }
+
+      /* Headshot */
+      if (req.body.headshotUrl === "") {
+        deleteFileIfExists(existing.headshotUrl);
+        updateData.headshotUrl = null;
+      }
 
       if (req.files?.headshot?.[0]) {
+        deleteFileIfExists(existing.headshotUrl);
         updateData.headshotUrl =
           `/uploads/images/${req.files.headshot[0].filename}`;
       }
 
+      /* Action Photos */
+      const incomingPhotos = safeParseJSON(req.body.actionPhotos);
+      if (incomingPhotos !== undefined) {
+        existing.actionPhotos?.forEach((path) => {
+          if (!incomingPhotos.includes(path)) {
+            deleteFileIfExists(path);
+          }
+        });
+
+        updateData.actionPhotos = incomingPhotos;
+      }
+
       if (req.files?.actionPhotos?.length) {
         updateData.actionPhotos = [
-          ...(existing.actionPhotos || []),
+          ...(updateData.actionPhotos || existing.actionPhotos || []),
           ...req.files.actionPhotos.map(
             (f) => `/uploads/images/${f.filename}`
           ),
         ];
       }
 
+      /* Videos */
+      const incomingVideos = safeParseJSON(req.body.videos);
+      if (incomingVideos !== undefined) {
+        existing.videos?.forEach((path) => {
+          if (!incomingVideos.includes(path)) {
+            deleteFileIfExists(path);
+          }
+        });
+
+        updateData.videos = incomingVideos;
+      }
+
       if (req.files?.videos?.length) {
         updateData.videos = [
-          ...(existing.videos || []),
+          ...(updateData.videos || existing.videos || []),
           ...req.files.videos.map(
             (f) => `/uploads/videos/${f.filename}`
           ),
         ];
       }
 
-      const updatedAthlete = await prisma.athlete.update({
+      const updated = await prisma.athlete.update({
         where: { slug },
         data: updateData,
       });
 
-      res.json(updatedAthlete);
+      res.json(updated);
     } catch (err) {
-      console.error("UPDATE ATHLETE ERROR:", err);
+      console.error("UPDATE ERROR:", err);
       res.status(500).json({ error: "Failed to update athlete" });
     }
   }
@@ -258,13 +280,23 @@ router.put(
 ----------------------------- */
 router.delete("/:slug", async (req, res) => {
   try {
+    const existing = await prisma.athlete.findUnique({
+      where: { slug: req.params.slug },
+    });
+
+    if (existing) {
+      deleteFileIfExists(existing.headshotUrl);
+      existing.actionPhotos?.forEach(deleteFileIfExists);
+      existing.videos?.forEach(deleteFileIfExists);
+    }
+
     await prisma.athlete.delete({
       where: { slug: req.params.slug },
     });
 
     res.json({ ok: true });
   } catch (err) {
-    console.error("DELETE ATHLETE ERROR:", err);
+    console.error("DELETE ERROR:", err);
     res.status(500).json({ error: "Failed to delete athlete" });
   }
 });

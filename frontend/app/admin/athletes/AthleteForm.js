@@ -1,3 +1,5 @@
+// filepath: frontend/components/admin/AthleteForm.js
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -37,7 +39,7 @@ const EMPTY_FORM = {
   videos: [],
 };
 
-function resolveImage(url) {
+function resolveMedia(url) {
   if (!url) return null;
   if (url.startsWith("http")) return url;
   if (url.startsWith("/uploads")) return `${API_BASE}${url}`;
@@ -54,10 +56,6 @@ export default function AthleteForm({ slug, mode = "create" }) {
   const [loading, setLoading] = useState(mode === "edit");
   const [saving, setSaving] = useState(false);
 
-  const [activeSponsors, setActiveSponsors] = useState([]);
-  const [linkedSponsors, setLinkedSponsors] = useState([]);
-  const [selectedSponsor, setSelectedSponsor] = useState("");
-
   function update(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
@@ -65,7 +63,7 @@ export default function AthleteForm({ slug, mode = "create" }) {
   useEffect(() => {
     if (mode !== "edit" || !slug) return;
 
-    async function loadData() {
+    async function load() {
       const res = await fetch(`${API_BASE}/api/admin/athletes/${slug}`);
       if (!res.ok) {
         alert("Failed to load athlete");
@@ -82,50 +80,32 @@ export default function AthleteForm({ slug, mode = "create" }) {
         videos: data.videos || [],
       });
 
-      const sponsorRes = await fetch(`${API_BASE}/api/sponsors`);
-      const sponsorData = await sponsorRes.json();
-      setActiveSponsors(sponsorData);
-
       setLoading(false);
     }
 
-    loadData();
+    load();
   }, [mode, slug]);
 
-  async function attachSponsor() {
-    const sponsorId = parseInt(selectedSponsor, 10);
-    if (!sponsorId || isNaN(sponsorId)) return;
-
-    if (linkedSponsors.length >= 4) return;
-
-    const res = await fetch(
-      `${API_BASE}/api/sponsors/${sponsorId}/attach-athlete/${form.id}`,
-      { method: "POST" }
+  function removeExistingActionPhoto(index) {
+    update(
+      "actionPhotos",
+      form.actionPhotos.filter((_, i) => i !== index)
     );
-
-    if (!res.ok) {
-      alert("Attach failed");
-      return;
-    }
-
-    const sponsor = activeSponsors.find((s) => s.id === sponsorId);
-    setLinkedSponsors((prev) => [
-      ...prev,
-      { sponsorId: sponsor.id, sponsor },
-    ]);
-
-    setSelectedSponsor("");
   }
 
-  async function removeSponsor(sponsorId) {
-    await fetch(
-      `${API_BASE}/api/sponsors/${sponsorId}/remove-athlete/${form.id}`,
-      { method: "DELETE" }
+  function removeExistingVideo(index) {
+    update(
+      "videos",
+      form.videos.filter((_, i) => i !== index)
     );
+  }
 
-    setLinkedSponsors((prev) =>
-      prev.filter((s) => s.sponsorId !== sponsorId)
-    );
+  function removeNewActionFile(index) {
+    setActionFiles((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function removeNewVideoFile(index) {
+    setVideoFiles((prev) => prev.filter((_, i) => i !== index));
   }
 
   async function handleSubmit(e) {
@@ -172,9 +152,9 @@ export default function AthleteForm({ slug, mode = "create" }) {
   if (loading) return <p className="p-6">Loading…</p>;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8 p-6 max-w-6xl mx-auto">
+    <form onSubmit={handleSubmit} className="space-y-10 p-6 max-w-6xl mx-auto">
 
-      {/* Basic Info */}
+      {/* BASIC INFO */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <input required placeholder="First Name"
           value={form.firstName}
@@ -193,17 +173,45 @@ export default function AthleteForm({ slug, mode = "create" }) {
           onChange={(e) => update("hometown", e.target.value)} />
       </section>
 
-      {/* Media */}
-      <section className="space-y-6">
+      {/* MEDIA */}
+      <section className="space-y-10">
 
+        {/* HEADSHOT */}
         <div>
           <label className="font-semibold block mb-2">Headshot</label>
+
           {form.headshotUrl && (
-            <img
-              src={resolveImage(form.headshotUrl)}
-              className="max-h-40 mb-3 object-contain border rounded"
-            />
+            <div className="relative inline-block mb-3">
+              <img
+                src={resolveMedia(form.headshotUrl)}
+                className="max-h-40 object-contain border rounded"
+              />
+              <button
+                type="button"
+                onClick={() => update("headshotUrl", "")}
+                className="absolute top-1 right-1 bg-red-600 text-white text-xs px-2 py-1 rounded"
+              >
+                Delete
+              </button>
+            </div>
           )}
+
+          {headshotFile && (
+            <div className="relative inline-block mb-3">
+              <img
+                src={URL.createObjectURL(headshotFile)}
+                className="max-h-40 object-contain border rounded"
+              />
+              <button
+                type="button"
+                onClick={() => setHeadshotFile(null)}
+                className="absolute top-1 right-1 bg-red-600 text-white text-xs px-2 py-1 rounded"
+              >
+                Remove
+              </button>
+            </div>
+          )}
+
           <input
             type="file"
             accept="image/jpeg,image/png,image/webp"
@@ -211,33 +219,115 @@ export default function AthleteForm({ slug, mode = "create" }) {
           />
         </div>
 
+        {/* ACTION PHOTOS */}
         <div>
           <label className="font-semibold block mb-2">
             Action Photos (Max 4)
           </label>
-          <input
-            type="file"
-            multiple
-            accept="image/jpeg,image/png,image/webp"
-            onChange={(e) => setActionFiles([...e.target.files])}
-          />
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+            {form.actionPhotos.map((photo, idx) => (
+              <div key={idx} className="relative">
+                <img
+                  src={resolveMedia(photo)}
+                  className="h-32 w-full object-contain border rounded"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeExistingActionPhoto(idx)}
+                  className="absolute top-1 right-1 bg-red-600 text-white text-xs px-2 py-1 rounded"
+                >
+                  Delete
+                </button>
+              </div>
+            ))}
+
+            {actionFiles.map((file, idx) => (
+              <div key={`new-${idx}`} className="relative">
+                <img
+                  src={URL.createObjectURL(file)}
+                  className="h-32 w-full object-contain border rounded"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeNewActionFile(idx)}
+                  className="absolute top-1 right-1 bg-red-600 text-white text-xs px-2 py-1 rounded"
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {(form.actionPhotos.length + actionFiles.length) < 4 && (
+            <input
+              type="file"
+              multiple
+              accept="image/jpeg,image/png,image/webp"
+              onChange={(e) =>
+                setActionFiles([...actionFiles, ...e.target.files])
+              }
+            />
+          )}
         </div>
 
+        {/* VIDEOS */}
         <div>
           <label className="font-semibold block mb-2">
             Videos (Max 4)
           </label>
-          <input
-            type="file"
-            multiple
-            accept="video/mp4,video/quicktime,video/webm"
-            onChange={(e) => setVideoFiles([...e.target.files])}
-          />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            {form.videos.map((video, idx) => (
+              <div key={idx} className="relative">
+                <video
+                  src={resolveMedia(video)}
+                  controls
+                  className="w-full border rounded"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeExistingVideo(idx)}
+                  className="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-1 rounded"
+                >
+                  Delete
+                </button>
+              </div>
+            ))}
+
+            {videoFiles.map((file, idx) => (
+              <div key={`new-video-${idx}`} className="relative">
+                <video
+                  src={URL.createObjectURL(file)}
+                  controls
+                  className="w-full border rounded"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeNewVideoFile(idx)}
+                  className="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-1 rounded"
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {(form.videos.length + videoFiles.length) < 4 && (
+            <input
+              type="file"
+              multiple
+              accept="video/mp4,video/quicktime,video/webm"
+              onChange={(e) =>
+                setVideoFiles([...videoFiles, ...e.target.files])
+              }
+            />
+          )}
         </div>
 
       </section>
 
-      {/* Events */}
+      {/* EVENTS */}
       <section>
         <label className="font-semibold block mb-2">Events</label>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
@@ -261,8 +351,11 @@ export default function AthleteForm({ slug, mode = "create" }) {
         </div>
       </section>
 
-      <button type="submit" disabled={saving}
-        className="bg-black text-white px-6 py-2">
+      <button
+        type="submit"
+        disabled={saving}
+        className="bg-black text-white px-6 py-2"
+      >
         {saving ? "Saving…" : "Save Athlete"}
       </button>
 
