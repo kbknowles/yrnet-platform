@@ -104,7 +104,7 @@ export default function SchedulePage() {
   return (
     <main className="bg-slate-50">
       {/* HERO */}
-      <section className="bg-ahsra-blue/95 border-b-4 border-ahsra-red py-14 px-4 relative">
+      <section className="bg-ahsra-blue/95  py-14 px-4 relative">
         <div className="absolute top-0 left-0 right-0 h-1 bg-ahsra-blue" />
 
         <div className="max-w-5xl mx-auto text-center space-y-6">

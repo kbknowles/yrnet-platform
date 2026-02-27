@@ -18,7 +18,6 @@ export default function GalleryView({ album, API_BASE, isDev }) {
 
   const imageCount = images.length;
 
-  // ESC to close
   useEffect(() => {
     function handleKey(e) {
       if (e.key === "Escape") setOpen(false);
@@ -30,10 +29,16 @@ export default function GalleryView({ album, API_BASE, isDev }) {
   return (
     <main className="bg-gray-50">
       {/* HERO */}
-      <section className="bg-ahsra-blue/95 text-white">
-        <div className="max-w-6xl mx-auto px-4 py-16 text-center space-y-3">
-          <h1 className="text-4xl font-bold">{album.title}</h1>
-          <p className="text-white/90">
+      <section className="bg-ahsra-blue text-white">
+        <div className="max-w-6xl mx-auto px-4 py-20 text-center">
+          <h1 className="text-4xl md:text-5xl font-semibold tracking-tight">
+            {album.title}
+          </h1>
+
+          {/* Accent Bar — directly under title */}
+          <div className="w-24 h-1 bg-rose-700 mx-auto mt-4 mb-6" />
+
+          <p className="text-gray-300 text-lg">
             {imageCount} {imageCount === 1 ? "Photo" : "Photos"}
           </p>
         </div>
@@ -67,7 +72,7 @@ export default function GalleryView({ album, API_BASE, isDev }) {
       {/* MODAL */}
       {open && (
         <div
-          className="fixed inset-0 bg-black/90 flex items-center justify-center z-50"
+          className="fixed inset-0 bg-black/95 flex items-center justify-center z-50"
           onClick={() => setOpen(false)}
         >
           <button
@@ -89,25 +94,23 @@ export default function GalleryView({ album, API_BASE, isDev }) {
         </div>
       )}
 
-
-   {/* SPONSORS */}
-      <section className="bg-white/90 py-4">
-        <div className="max-w-7xl mx-auto px-4 space-y-6">
-          <h2 className="text-2xl font-semibold text-center">
+      {/* SPONSORS */}
+      <section className="bg-white py-16">
+        <div className="max-w-7xl mx-auto px-4 text-center space-y-6">
+          <h2 className="text-2xl font-bold">
             Thank You to Our Sponsors
           </h2>
 
-          <div className="border-t-2 border-rose-700 w-20 mx-auto" />
+          <div className="w-20 h-1 bg-rose-700 mx-auto" />
 
-         <SponsorZone
-         contentType="SEASON"
-         contentId={null}
-         levels={["PREMIER", "FEATURED"]}
-         slots={4}
-         />
+          <SponsorZone
+            contentType="SEASON"
+            contentId={null}
+            levels={["PREMIER", "FEATURED"]}
+            slots={4}
+          />
         </div>
       </section>
-
-     </main>
+    </main>
   );
 }
