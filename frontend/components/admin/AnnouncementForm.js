@@ -1,14 +1,39 @@
+// filepath: frontend/components/AnnouncementForm.js
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 export default function AnnouncementForm({ onCreated }) {
-const API_BASE= process.env.NEXT_PUBLIC_API_URL;
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [type, setType] = useState("general");
+  const [published, setPublished] = useState(false);
+  const [eventId, setEventId] = useState("");
+  const [seasonId, setSeasonId] = useState("");
+
+  const [events, setEvents] = useState([]);
+  const [seasons, setSeasons] = useState([]);
+
+  useEffect(() => {
+    async function load() {
+      const [eRes, sRes] = await Promise.all([
+        fetch(`${API_BASE}/api/admin/events`),
+        fetch(`${API_BASE}/api/admin/seasons`),
+      ]);
+
+      const [eData, sData] = await Promise.all([
+        eRes.json(),
+        sRes.json(),
+      ]);
+
+      setEvents(eData || []);
+      setSeasons(sData || []);
+    }
+
+    load();
+  }, []);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -20,19 +45,27 @@ const API_BASE= process.env.NEXT_PUBLIC_API_URL;
         title,
         content,
         type,
-        published: false,
+        published,
+        eventId: eventId || null,
+        seasonId: seasonId || null,
       }),
     });
 
     setTitle("");
     setContent("");
     setType("general");
+    setPublished(false);
+    setEventId("");
+    setSeasonId("");
 
-    onCreated();
+    onCreated?.();
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 bg-white p-4 rounded border">
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-4 bg-white p-4 rounded border"
+    >
       <h2 className="font-semibold">New Announcement</h2>
 
       <input
@@ -45,8 +78,8 @@ const API_BASE= process.env.NEXT_PUBLIC_API_URL;
 
       <textarea
         className="w-full border rounded p-2"
-        placeholder="Content"
-        rows={4}
+        placeholder="Content (HTML allowed — use <a href=''> links)"
+        rows={6}
         value={content}
         onChange={(e) => setContent(e.target.value)}
         required
@@ -62,6 +95,41 @@ const API_BASE= process.env.NEXT_PUBLIC_API_URL;
         <option value="stall">Stall</option>
         <option value="reminder">Reminder</option>
       </select>
+
+      <select
+        className="w-full border rounded p-2"
+        value={eventId}
+        onChange={(e) => setEventId(e.target.value)}
+      >
+        <option value="">All Events</option>
+        {events.map((e) => (
+          <option key={e.id} value={e.id}>
+            {e.name || e.title}
+          </option>
+        ))}
+      </select>
+
+      <select
+        className="w-full border rounded p-2"
+        value={seasonId}
+        onChange={(e) => setSeasonId(e.target.value)}
+      >
+        <option value="">All Seasons</option>
+        {seasons.map((s) => (
+          <option key={s.id} value={s.id}>
+            {s.year ?? `${s.startDate?.slice(0,4)}-${s.endDate?.slice(0,4)}`}
+          </option>
+        ))}
+      </select>
+
+      <label className="flex items-center gap-2 text-sm">
+        <input
+          type="checkbox"
+          checked={published}
+          onChange={(e) => setPublished(e.target.checked)}
+        />
+        Published
+      </label>
 
       <button
         type="submit"

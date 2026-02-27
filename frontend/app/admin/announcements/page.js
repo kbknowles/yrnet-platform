@@ -1,3 +1,4 @@
+// filepath: frontend/app/admin/announcements/page.js
 "use client";
 
 import { useEffect, useState } from "react";
@@ -26,7 +27,6 @@ export default function AdminAnnouncementsPage() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
 
-  /* ---------------- LOAD ---------------- */
   async function loadAll() {
     setLoading(true);
     const [a, e, s] = await Promise.all([
@@ -44,14 +44,13 @@ export default function AdminAnnouncementsPage() {
     loadAll();
   }, []);
 
-  /* ---------------- SAVE ---------------- */
   async function save() {
     const payload = {
       ...active,
       eventId: active.eventId ? Number(active.eventId) : null,
       seasonId: active.seasonId ? Number(active.seasonId) : null,
       sortOrder: Number(active.sortOrder) || 0,
-      content: active.content || "",
+      content: active.content || "", // HTML supported
       published: Boolean(active.published),
       publishAt: active.publishAt ? new Date(active.publishAt) : null,
       expireAt: active.expireAt ? new Date(active.expireAt) : null,
@@ -76,7 +75,6 @@ export default function AdminAnnouncementsPage() {
     loadAll();
   }
 
-  /* ---------------- DELETE ---------------- */
   async function remove(id) {
     if (!id) return;
     if (!confirm("Delete this announcement?")) return;
@@ -89,7 +87,6 @@ export default function AdminAnnouncementsPage() {
     loadAll();
   }
 
-  /* ---------------- POSTER UPLOAD ---------------- */
   async function uploadPoster(file) {
     if (!file) return;
 
@@ -149,7 +146,6 @@ export default function AdminAnnouncementsPage() {
         </button>
       </div>
 
-      {/* LIST */}
       <table className="w-full bg-white text-sm border">
         <thead className="bg-slate-100">
           <tr>
@@ -195,7 +191,6 @@ export default function AdminAnnouncementsPage() {
         </tbody>
       </table>
 
-      {/* MODAL */}
       {active && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white w-full max-w-3xl rounded p-6 space-y-4">
@@ -240,8 +235,8 @@ export default function AdminAnnouncementsPage() {
               rows={4}
               placeholder={
                 active.mode === "POSTER"
-                  ? "Internal description (not publicly shown)"
-                  : "Content"
+                  ? "Internal description"
+                  : "Content (HTML allowed for links)"
               }
               value={active.content}
               onChange={(e) =>
@@ -291,7 +286,7 @@ export default function AdminAnnouncementsPage() {
                 <option value="">All Seasons</option>
                 {seasons.map((s) => (
                   <option key={s.id} value={s.id}>
-                    {s.name}
+                    {s.year}
                   </option>
                 ))}
               </select>

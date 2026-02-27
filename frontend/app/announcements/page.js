@@ -1,3 +1,4 @@
+// filepath: frontend/app/announcements/page.js
 "use client";
 
 import { useEffect, useState } from "react";
@@ -39,12 +40,12 @@ export default function AnnouncementsPage() {
             eventHref ? (
               <Link
                 href={eventHref}
-                className=" border rounded shadow-sm overflow-hidden flex flex-col hover:shadow-md transition"
+                className="border rounded shadow-sm overflow-hidden flex flex-col hover:shadow-md transition"
               >
                 {children}
               </Link>
             ) : (
-              <div className=" border rounded shadow-sm overflow-hidden flex flex-col">
+              <div className="border rounded shadow-sm overflow-hidden flex flex-col">
                 {children}
               </div>
             );
@@ -64,9 +65,10 @@ export default function AnnouncementsPage() {
               )}
 
               {a.content && (
-                <div className="p-4 text-sm whitespace-pre-line text-slate-800 flex-1">
-                  {a.content}
-                </div>
+                <div
+                  className="p-4 text-sm text-slate-800 flex-1"
+                  dangerouslySetInnerHTML={{ __html: a.content }}
+                />
               )}
 
               {eventHref && (
@@ -74,14 +76,11 @@ export default function AnnouncementsPage() {
                   View event details →
                 </div>
               )}
-
- 
             </Wrapper>
           );
         })}
       </div>
 
-      {/* SPONSORS */}
       <section className="bg-white/90 py-4">
         <div className="max-w-7xl mx-auto px-4 space-y-6">
           <h2 className="text-2xl font-semibold text-center">
@@ -90,17 +89,14 @@ export default function AnnouncementsPage() {
 
           <div className="border-t-2 border-rose-700 w-20 mx-auto" />
 
-         <SponsorZone
-         contentType="ANNOUNCEMENT"
-         contentId={null}
-         levels={["PREMIER", "FEATURED"]}
-         slots={4}
-         />
+          <SponsorZone
+            contentType="ANNOUNCEMENT"
+            contentId={null}
+            levels={["PREMIER", "FEATURED"]}
+            slots={4}
+          />
         </div>
       </section>
-
-
-
     </main>
   );
 }

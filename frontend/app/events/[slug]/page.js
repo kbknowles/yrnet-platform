@@ -14,6 +14,17 @@ function resolveImage(url) {
   return url;
 }
 
+/* -------- AUTO LINK HELPER -------- */
+function autoLink(text) {
+  if (!text) return "";
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  return text.replace(
+    urlRegex,
+    (url) =>
+      `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-rose-700 underline break-all">${url}</a>`
+  );
+}
+
 async function getEvent(slug) {
   if (!slug) return null;
 
@@ -109,9 +120,12 @@ export default async function EventPage({ params }) {
                 <h2 className="text-lg font-semibold mb-3 border-l-4 border-rose-700 pl-3">
                   General Information
                 </h2>
-                <p className="whitespace-pre-line text-sm leading-relaxed">
-                  {event.generalInfo}
-                </p>
+                <div
+                  className="text-sm leading-relaxed"
+                  dangerouslySetInnerHTML={{
+                    __html: autoLink(event.generalInfo),
+                  }}
+                />
               </div>
             )}
 
@@ -181,10 +195,14 @@ export default async function EventPage({ params }) {
                         {a.title}
                       </div>
                     )}
+
                     {a.content && (
-                      <div className="text-sm whitespace-pre-line leading-relaxed">
-                        {a.content}
-                      </div>
+                      <div
+                        className="text-sm leading-relaxed whitespace-pre-line"
+                        dangerouslySetInnerHTML={{
+                          __html: autoLink(a.content),
+                        }}
+                      />
                     )}
                   </div>
                 ))}

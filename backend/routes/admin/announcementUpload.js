@@ -1,9 +1,23 @@
+// filepath: backend/routes/admin/announcementUploads.mjs
+
 import express from "express";
 import multer from "multer";
 import fs from "fs";
 import path from "path";
 
 const router = express.Router();
+
+/*
+  IMPORTANT:
+  In Render, set:
+  UPLOAD_ROOT=/uploads
+  and mount persistent disk there.
+
+  For local dev:
+  create /uploads folder at project root.
+*/
+
+const UPLOAD_ROOT = process.env.UPLOAD_ROOT || path.resolve("uploads");
 
 const ALLOWED_TYPES = [
   "image/png",
@@ -12,15 +26,22 @@ const ALLOWED_TYPES = [
 ];
 
 /* =============================
-   STORAGE (RENDER DISK)
-   Mounted at: /uploads
+   STORAGE (RENDER DISK SAFE)
 ============================= */
 
 const storage = multer.diskStorage({
   destination(req, file, cb) {
     const { id } = req.params;
 
-    const dir = `/uploads/announcements/${id}`;
+    if (!id) {
+      return cb(new Error("Missing announcement id"));
+    }
+
+    const dir = path.join(
+      UPLOAD_ROOT,
+      "announcements",
+      String(id)
+    );
 
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
@@ -31,9 +52,7 @@ const storage = multer.diskStorage({
 
   filename(req, file, cb) {
     const ext = path.extname(file.originalname).toLowerCase();
-
-    // Always overwrite poster file
-    cb(null, `poster${ext}`);
+    cb(null, `poster${ext}`); // overwrite
   },
 });
 
