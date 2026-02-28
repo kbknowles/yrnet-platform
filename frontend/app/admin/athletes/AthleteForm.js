@@ -28,8 +28,8 @@ const EMPTY_FORM = {
   grade: "",
   hometown: "",
   bio: "",
-  events: [],
   futureGoals: "",
+  events: [],
   socialLinks: [],
   isActive: true,
   isFeatured: false,
@@ -87,17 +87,11 @@ export default function AthleteForm({ slug, mode = "create" }) {
   }, [mode, slug]);
 
   function removeExistingActionPhoto(index) {
-    update(
-      "actionPhotos",
-      form.actionPhotos.filter((_, i) => i !== index)
-    );
+    update("actionPhotos", form.actionPhotos.filter((_, i) => i !== index));
   }
 
   function removeExistingVideo(index) {
-    update(
-      "videos",
-      form.videos.filter((_, i) => i !== index)
-    );
+    update("videos", form.videos.filter((_, i) => i !== index));
   }
 
   function removeNewActionFile(index) {
@@ -123,14 +117,8 @@ export default function AthleteForm({ slug, mode = "create" }) {
     });
 
     if (headshotFile) formData.append("headshot", headshotFile);
-
-    actionFiles.forEach((file) => {
-      formData.append("actionPhotos", file);
-    });
-
-    videoFiles.forEach((file) => {
-      formData.append("videos", file);
-    });
+    actionFiles.forEach((file) => formData.append("actionPhotos", file));
+    videoFiles.forEach((file) => formData.append("videos", file));
 
     const res = await fetch(
       `${API_BASE}/api/admin/athletes${mode === "edit" ? `/${slug}` : ""}`,
@@ -159,22 +147,46 @@ export default function AthleteForm({ slug, mode = "create" }) {
         <input required placeholder="First Name"
           value={form.firstName}
           onChange={(e) => update("firstName", e.target.value)} />
+
         <input required placeholder="Last Name"
           value={form.lastName}
           onChange={(e) => update("lastName", e.target.value)} />
+
         <input placeholder="School"
           value={form.school}
           onChange={(e) => update("school", e.target.value)} />
+
         <input placeholder="Grade"
           value={form.grade}
           onChange={(e) => update("grade", e.target.value)} />
+
         <input placeholder="Hometown"
           value={form.hometown}
           onChange={(e) => update("hometown", e.target.value)} />
       </section>
 
+      {/* BIO */}
+      <section>
+        <label className="font-semibold block mb-2">Bio</label>
+        <textarea
+          className="w-full border rounded p-2 min-h-[120px]"
+          value={form.bio}
+          onChange={(e) => update("bio", e.target.value)}
+        />
+      </section>
+
+      {/* FUTURE GOALS */}
+      <section>
+        <label className="font-semibold block mb-2">Future Goals</label>
+        <textarea
+          className="w-full border rounded p-2 min-h-[120px]"
+          value={form.futureGoals}
+          onChange={(e) => update("futureGoals", e.target.value)}
+        />
+      </section>
+
       {/* MEDIA */}
-      <section className="space-y-10">
+      <section className="space-y-8">
 
         {/* HEADSHOT */}
         <div>
@@ -196,22 +208,6 @@ export default function AthleteForm({ slug, mode = "create" }) {
             </div>
           )}
 
-          {headshotFile && (
-            <div className="relative inline-block mb-3">
-              <img
-                src={URL.createObjectURL(headshotFile)}
-                className="max-h-40 object-contain border rounded"
-              />
-              <button
-                type="button"
-                onClick={() => setHeadshotFile(null)}
-                className="absolute top-1 right-1 bg-red-600 text-white text-xs px-2 py-1 rounded"
-              >
-                Remove
-              </button>
-            </div>
-          )}
-
           <input
             type="file"
             accept="image/jpeg,image/png,image/webp"
@@ -221,9 +217,7 @@ export default function AthleteForm({ slug, mode = "create" }) {
 
         {/* ACTION PHOTOS */}
         <div>
-          <label className="font-semibold block mb-2">
-            Action Photos (Max 4)
-          </label>
+          <label className="font-semibold block mb-2">Action Photos</label>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
             {form.actionPhotos.map((photo, idx) => (
@@ -241,41 +235,19 @@ export default function AthleteForm({ slug, mode = "create" }) {
                 </button>
               </div>
             ))}
-
-            {actionFiles.map((file, idx) => (
-              <div key={`new-${idx}`} className="relative">
-                <img
-                  src={URL.createObjectURL(file)}
-                  className="h-32 w-full object-contain border rounded"
-                />
-                <button
-                  type="button"
-                  onClick={() => removeNewActionFile(idx)}
-                  className="absolute top-1 right-1 bg-red-600 text-white text-xs px-2 py-1 rounded"
-                >
-                  Remove
-                </button>
-              </div>
-            ))}
           </div>
 
-          {(form.actionPhotos.length + actionFiles.length) < 4 && (
-            <input
-              type="file"
-              multiple
-              accept="image/jpeg,image/png,image/webp"
-              onChange={(e) =>
-                setActionFiles([...actionFiles, ...e.target.files])
-              }
-            />
-          )}
+          <input
+            type="file"
+            multiple
+            accept="image/jpeg,image/png,image/webp"
+            onChange={(e) => setActionFiles([...e.target.files])}
+          />
         </div>
 
         {/* VIDEOS */}
         <div>
-          <label className="font-semibold block mb-2">
-            Videos (Max 4)
-          </label>
+          <label className="font-semibold block mb-2">Videos</label>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             {form.videos.map((video, idx) => (
@@ -294,35 +266,14 @@ export default function AthleteForm({ slug, mode = "create" }) {
                 </button>
               </div>
             ))}
-
-            {videoFiles.map((file, idx) => (
-              <div key={`new-video-${idx}`} className="relative">
-                <video
-                  src={URL.createObjectURL(file)}
-                  controls
-                  className="w-full border rounded"
-                />
-                <button
-                  type="button"
-                  onClick={() => removeNewVideoFile(idx)}
-                  className="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-1 rounded"
-                >
-                  Remove
-                </button>
-              </div>
-            ))}
           </div>
 
-          {(form.videos.length + videoFiles.length) < 4 && (
-            <input
-              type="file"
-              multiple
-              accept="video/mp4,video/quicktime,video/webm"
-              onChange={(e) =>
-                setVideoFiles([...videoFiles, ...e.target.files])
-              }
-            />
-          )}
+          <input
+            type="file"
+            multiple
+            accept="video/mp4,video/quicktime,video/webm"
+            onChange={(e) => setVideoFiles([...e.target.files])}
+          />
         </div>
 
       </section>
