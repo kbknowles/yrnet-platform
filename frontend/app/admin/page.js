@@ -2,105 +2,146 @@
 
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+
 export default function AdminIndexPage() {
+  const [stats, setStats] = useState({
+    activeSeason: "—",
+    upcomingEvent: "—",
+    sponsors: 0,
+    athletes: 0,
+  });
+
+  useEffect(() => {
+    async function loadStats() {
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/dashboard`, {
+          cache: "no-store",
+        });
+        if (!res.ok) return;
+
+        const data = await res.json();
+
+        setStats({
+          activeSeason: data.activeSeason || "—",
+          upcomingEvent: data.upcomingEvent || "—",
+          sponsors: data.sponsorCount || 0,
+          athletes: data.athleteCount || 0,
+        });
+      } catch {
+        // silent fail
+      }
+    }
+
+    loadStats();
+  }, []);
+
   return (
-    <main className="max-w-6xl mx-auto px-4 py-12 space-y-10">
-      <header className="space-y-2">
+    <main className="max-w-6xl mx-auto px-4 py-10 space-y-8">
+      {/* Header */}
+      <header>
         <h1 className="text-3xl font-bold text-ahsra-blue">
-          AHSRA Admin Dashboard
+          Admin Dashboard
         </h1>
-        <p className="text-gray-700">
-          Manage site content, schedules, and association data.
-        </p>
       </header>
 
-      {/* CONTENT MANAGEMENT */}
-      <AdminSection title="Content">
-        <AdminCard
-          title="Pages & Navigation"
-          href="/admin/pages"
-          description="Control menu items, order, and placeholder pages"
-        />
-        <AdminCard
-          title="Announcements"
-          href="/admin/announcements"
-          description="Post important notices and updates"
-        />
-        <AdminCard
-          title="Gallery"
-          href="/admin/gallery"
-          description="Albums and photo uploads"
-        />
-      </AdminSection>
+      {/* Command Strip */}
+      <section className="text-sm text-gray-700 border-b pb-4 flex flex-wrap gap-6">
+        <div>
+          <span className="font-semibold text-gray-900">Active Season:</span>{" "}
+          {stats.activeSeason}
+        </div>
+        <div>
+          <span className="font-semibold text-gray-900">Next Rodeo:</span>{" "}
+          {stats.upcomingEvent}
+        </div>
+        <div>
+          <span className="font-semibold text-gray-900">Athletes:</span>{" "}
+          {stats.athletes}
+        </div>
+        <div>
+          <span className="font-semibold text-gray-900">Sponsors:</span>{" "}
+          {stats.sponsors}
+        </div>
+      </section>
 
-      {/* EVENTS & SCHEDULE */}
-      <AdminSection title="Schedule">
-        <AdminCard
-          title="Seasons"
-          href="/admin/seasons"
-          description="Manage active rodeo seasons"
-        />
-        <AdminCard
-          title="Events & Rodeos"
-          href="/admin/events"
-          description="Public schedule and event details"
-        />
-        <AdminCard
-          title="Locations"
-          href="/admin/locations"
-          description="Rodeo venues and facilities"
-        />
-      </AdminSection>
+      {/* Two Column Layout */}
+      <section className="grid md:grid-cols-3 gap-10">
+        {/* LEFT COLUMN */}
+        <div className="md:col-span-2 space-y-8">
 
-      {/* PEOPLE */}
-      <AdminSection title="People">
-        <AdminCard
-          title="Athletes"
-          href="/admin/athletes"
-          description="Manage athlete profiles and spotlight participation"
-        />
-        <AdminCard
-          title="Officers"
-          href="/admin/officers"
-          description="Board members and leadership"
-        />
-        <AdminCard
-          title="Sponsors"
-          href="/admin/sponsors"
-          description="Sponsors and partners"
-        />
-      </AdminSection>
+          <AdminGroup title="Season">
+            <AdminItem href="/admin/seasons" label="Rodeo Season" />
+            <AdminItem href="/admin/events" label="Events" />
+            <AdminItem href="/admin/locations" label="Locations" />
+          </AdminGroup>
+
+          <AdminGroup title="People">
+            <AdminItem href="/admin/athletes" label="Athletes" />
+            <AdminItem href="/admin/officers" label="Officers" />
+            <AdminItem href="/admin/sponsors" label="Sponsors" />
+          </AdminGroup>
+
+          <AdminGroup title="Website">
+            <AdminItem href="/admin/announcements" label="Announcements" />
+            <AdminItem href="/admin/gallery" label="Gallery" />
+            <AdminItem href="/admin/pages" label="Pages" />
+          </AdminGroup>
+
+        </div>
+
+        {/* RIGHT COLUMN */}
+        <aside className="bg-gray-50 border rounded-lg p-6 space-y-4">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-600">
+            Quick Actions
+          </h2>
+
+          <div className="space-y-3 text-sm">
+            <Link href="/" className="block text-ahsra-blue hover:underline">
+              View Website
+            </Link>
+            <Link href="/admin/announcements/new" className="block text-ahsra-blue hover:underline">
+              Add Announcement
+            </Link>
+            <Link href="/admin/events/new" className="block text-ahsra-blue hover:underline">
+              Add Event
+            </Link>
+            <Link href="/admin/athletes/new" className="block text-ahsra-blue hover:underline">
+              Add Athlete
+            </Link>
+            <Link href="/admin/sponsors/new" className="block text-ahsra-blue hover:underline">
+              Add Sponsor
+            </Link>
+          </div>
+        </aside>
+      </section>
     </main>
   );
 }
 
-function AdminSection({ title, children }) {
+function AdminGroup({ title, children }) {
   return (
-    <section className="space-y-4">
-      <h2 className="text-xl font-semibold text-gray-800">
+    <div>
+      <h2 className="text-lg font-semibold text-ahsra-blue mb-3">
         {title}
       </h2>
-      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+      <div className="space-y-2 text-sm border-l pl-4">
         {children}
       </div>
-    </section>
+    </div>
   );
 }
 
-function AdminCard({ title, href, description }) {
+function AdminItem({ href, label }) {
   return (
     <Link
       href={href}
-      className="block rounded-lg border bg-white p-6 hover:shadow-md transition"
+      className="block text-gray-800 hover:text-ahsra-blue transition"
     >
-      <h3 className="text-lg font-semibold text-ahsra-blue">
-        {title}
-      </h3>
-      <p className="mt-2 text-sm text-gray-600">
-        {description}
-      </p>
+      {label}
     </Link>
   );
 }

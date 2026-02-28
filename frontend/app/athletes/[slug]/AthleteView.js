@@ -81,13 +81,13 @@ export default function AthleteView({ athlete, API_BASE }) {
         {/* Profile */}
         <section className="grid grid-cols-1 md:grid-cols-5 gap-10">
           {athlete.headshotUrl && (
-            <div className="relative w-full aspect-square rounded-xl bg-gray-100 shadow-md overflow-hidden md:col-span-2">
+            <div className="relative w-full aspect-square rounded-xl bg-gray-100 shadow-md overflow-hidden md:col-span-2 flex items-center justify-center p-4">
               <Image
                 src={resolveMedia(API_BASE, athlete.headshotUrl)}
                 alt={`${athlete.firstName} ${athlete.lastName}`}
                 fill
                 unoptimized
-                className="object-cover"
+                className="object-contain"
               />
             </div>
           )}
@@ -118,14 +118,12 @@ export default function AthleteView({ athlete, API_BASE }) {
                     .join(", ")}
                 </p>
 
-                {/* Awards */}
                 {awards.length > 0 && (
                   <p className="mt-2">
                     <strong>Awards:</strong> {awards.join(", ")}
                   </p>
                 )}
 
-                {/* Social Links */}
                 {socialLinks.length > 0 && (
                   <div className="mt-2">
                     <strong>Connect:</strong>{" "}
