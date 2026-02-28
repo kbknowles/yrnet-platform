@@ -31,6 +31,12 @@ export default function AthleteView({ athlete, API_BASE }) {
       ?.slice(0, 4)
       .map((v) => resolveMedia(API_BASE, v)) || [];
 
+  const awards =
+    athlete.awards?.filter((a) => a && a.trim() !== "") || [];
+
+  const socialLinks =
+    athlete.socialLinks?.filter((s) => s && s.trim() !== "") || [];
+
   useEffect(() => {
     function handleKey(e) {
       if (e.key === "Escape") {
@@ -73,15 +79,15 @@ export default function AthleteView({ athlete, API_BASE }) {
       <section className="max-w-5xl mx-auto px-4 py-16 space-y-12">
 
         {/* Profile */}
-        <section className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <section className="grid grid-cols-1 md:grid-cols-5 gap-10">
           {athlete.headshotUrl && (
-            <div className="relative w-full aspect-square rounded-lg bg-gray-100 shadow-sm overflow-hidden">
+            <div className="relative w-full aspect-square rounded-xl bg-gray-100 shadow-md overflow-hidden md:col-span-2">
               <Image
                 src={resolveMedia(API_BASE, athlete.headshotUrl)}
                 alt={`${athlete.firstName} ${athlete.lastName}`}
                 fill
                 unoptimized
-                className="object-contain p-3"
+                className="object-cover"
               />
             </div>
           )}
@@ -94,22 +100,49 @@ export default function AthleteView({ athlete, API_BASE }) {
             )}
 
             {athlete.events?.length > 0 && (
-              <p>
-                <strong>Events:</strong>{" "}
-                {athlete.events
-                  .map((e) =>
-                    e
-                      .toLowerCase()
-                      .split("_")
-                      .map(
-                        (w) =>
-                          w.charAt(0).toUpperCase() +
-                          w.slice(1)
-                      )
-                      .join(" ")
-                  )
-                  .join(", ")}
-              </p>
+              <div>
+                <p>
+                  <strong>Events:</strong>{" "}
+                  {athlete.events
+                    .map((e) =>
+                      e
+                        .toLowerCase()
+                        .split("_")
+                        .map(
+                          (w) =>
+                            w.charAt(0).toUpperCase() +
+                            w.slice(1)
+                        )
+                        .join(" ")
+                    )
+                    .join(", ")}
+                </p>
+
+                {/* Awards */}
+                {awards.length > 0 && (
+                  <p className="mt-2">
+                    <strong>Awards:</strong> {awards.join(", ")}
+                  </p>
+                )}
+
+                {/* Social Links */}
+                {socialLinks.length > 0 && (
+                  <div className="mt-2">
+                    <strong>Connect:</strong>{" "}
+                    {socialLinks.map((link, idx) => (
+                      <a
+                        key={idx}
+                        href={link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-ahsra-blue hover:underline mr-3"
+                      >
+                        Link {idx + 1}
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </section>
@@ -198,7 +231,6 @@ export default function AthleteView({ athlete, API_BASE }) {
                   }}
                   className="relative aspect-[16/9] rounded-lg overflow-hidden cursor-pointer group bg-black"
                 >
-                  {/* Native preview frame */}
                   <video
                     src={video}
                     preload="metadata"
@@ -206,7 +238,6 @@ export default function AthleteView({ athlete, API_BASE }) {
                     className="w-full h-full object-cover"
                   />
 
-                  {/* Play overlay */}
                   <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/50 transition">
                     <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center text-black text-2xl shadow">
                       ▶
