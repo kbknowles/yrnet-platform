@@ -8,7 +8,7 @@ const LEVELS = ["PREMIER", "FEATURED", "STANDARD", "SUPPORTER"];
 
 const CONTENT_TYPES = [
   "SEASON",
-  "RODEO",
+  "EVENT",
   "ATHLETE",
   "LOCATION",
   "GALLERY",
@@ -156,6 +156,7 @@ export default function SponsorshipForm({
 
       <form onSubmit={handleSubmit} className="space-y-5">
 
+        {/* Sponsor + Level + Priority */}
         <div className="grid md:grid-cols-3 gap-4">
           <select
             required
@@ -192,6 +193,7 @@ export default function SponsorshipForm({
           />
         </div>
 
+        {/* Placement */}
         <div className="grid md:grid-cols-2 gap-4">
           <select
             className="border rounded p-2 text-sm"
@@ -215,6 +217,7 @@ export default function SponsorshipForm({
           />
         </div>
 
+        {/* Dates */}
         <div className="grid md:grid-cols-2 gap-4">
           <input
             required
@@ -232,6 +235,7 @@ export default function SponsorshipForm({
           />
         </div>
 
+        {/* Active */}
         <label className="flex items-center gap-2 text-sm">
           <input
             type="checkbox"
@@ -241,6 +245,7 @@ export default function SponsorshipForm({
           Active
         </label>
 
+        {/* Sponsor Preview */}
         {selectedSponsor && (
           <div className="border-t pt-4 space-y-3">
             <div className="text-sm font-medium">Sponsor Preview</div>
@@ -263,6 +268,7 @@ export default function SponsorshipForm({
           </div>
         )}
 
+        {/* Buttons */}
         <div className="flex gap-3 pt-4">
           <button
             type="submit"

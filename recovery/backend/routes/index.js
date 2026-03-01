@@ -6,9 +6,9 @@ import express from "express";
 
 import adminSeasonsRouter from "./admin/seasons.js";
 import adminLocationsRouter from "./admin/locations.js";
-import adminRodeosRouter from "./admin/rodeos.js";
-import adminRodeoScheduleItemsRouter from "./admin/rodeoScheduleItems.js";
-import adminRodeoContactsRouter from "./admin/rodeoContacts.js";
+import adminEventsRouter from "./admin/events.js";
+import adminEventScheduleItemsRouter from "./admin/eventScheduleItems.js";
+import adminEventContactsRouter from "./admin/eventContacts.js";
 import adminAnnouncementsRouter from "./admin/announcements.js";
 import adminAnnouncementUploadRouter from "./admin/announcementUpload.js";
 import adminOfficersRouter from "./admin/officers.js";
@@ -23,7 +23,7 @@ import adminAthletesRouter from "./admin/athletes.js";
    PUBLIC ROUTES
    ========================= */
 
-import rodeosRouter from "./rodeos.js";
+import eventsRouter from "./events.js";
 import scheduleRouter from "./schedule.js";
 import announcementsRouter from "./announcements.js";
 import sponsorsRouter from "./sponsors.js";
@@ -41,9 +41,9 @@ const router = express.Router();
 /* ---------- Admin ---------- */
 router.use("/admin/seasons", adminSeasonsRouter);
 router.use("/admin/locations", adminLocationsRouter);
-router.use("/admin/rodeos", adminRodeosRouter);
-router.use("/admin/rodeo-schedule-items", adminRodeoScheduleItemsRouter);
-router.use("/admin/rodeo-contacts", adminRodeoContactsRouter);
+router.use("/admin/events", adminEventsRouter);
+router.use("/admin/event-schedule-items", adminEventScheduleItemsRouter);
+router.use("/admin/event-contacts", adminEventContactsRouter);
 router.use("/admin/announcements", adminAnnouncementsRouter);
 router.use("/admin/announcements/upload", adminAnnouncementUploadRouter);
 router.use("/admin/officers", adminOfficersRouter);
@@ -55,7 +55,7 @@ router.use("/admin/uploads", adminUploadsRouter);
 router.use("/admin/athletes", adminAthletesRouter);
 
 /* ---------- Public ---------- */
-router.use("/rodeos", rodeosRouter);
+router.use("/events", eventsRouter);
 router.use("/schedule", scheduleRouter);
 router.use("/announcements", announcementsRouter);
 router.use("/sponsors", sponsorsRouter);

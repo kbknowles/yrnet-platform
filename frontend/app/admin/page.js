@@ -75,7 +75,7 @@ export default function AdminIndexPage() {
 
           <AdminGroup title="Season">
             <AdminItem href="/admin/seasons" label="Rodeo Season" />
-            <AdminItem href="/admin/events" label="Events" />
+            <AdminItem href="/admin/rodeos" label="Rodeos" />
             <AdminItem href="/admin/locations" label="Locations" />
           </AdminGroup>
 

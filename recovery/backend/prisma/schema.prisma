@@ -12,7 +12,7 @@ datasource db {
 enum OfficerRole {
   PRESIDENT
   VICE_PRESIDENT
-  SECOND_VICE_PRESIDENT
+  SECOND_VICE_PESIDENT
   SECRETARY
   TREASURER
   POINTS_SECRETARY
@@ -66,7 +66,7 @@ enum PlacementZone {
 
 enum ContentType {
   ATHLETE
-  RODEO
+  EVENT
   LOCATION
   GALLERY
   ANNOUNCEMENT
@@ -85,16 +85,16 @@ model Tenant {
   logoUrl      String?
   active       Boolean  @default(true)
 
-  seasons        Season[]
-  locations      Location[]
+  seasons       Season[]
+  locations     Location[]
   callInPolicies CallInPolicy[]
-  rodeos         Rodeo[]
-  officers       Officer[]
-  sponsors       Sponsor[]
-  announcements  Announcement[]
-  galleryAlbums  GalleryAlbum[]
-  customPages    CustomPage[]
-  athletes       Athlete[]
+  events        Event[]
+  officers      Officer[]
+  sponsors      Sponsor[]
+  announcements Announcement[]
+  galleryAlbums GalleryAlbum[]
+  customPages   CustomPage[]
+  athletes      Athlete[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -112,7 +112,7 @@ model Season {
   tenantId Int
   tenant   Tenant @relation(fields: [tenantId], references: [id])
 
-  rodeos        Rodeo[]
+  events        Event[]
   officers      Officer[]
   announcements Announcement[]
   gallery       GalleryAlbum[]
@@ -137,7 +137,7 @@ model Location {
   tenantId Int
   tenant   Tenant @relation(fields: [tenantId], references: [id])
 
-  rodeos   Rodeo[]
+  events    Event[]
   createdAt DateTime @default(now())
 }
 
@@ -156,13 +156,13 @@ model CallInPolicy {
   tenantId Int
   tenant   Tenant @relation(fields: [tenantId], references: [id])
 
-  rodeos  Rodeo[]
+  events Event[]
   createdAt DateTime @default(now())
 }
 
-/* ================= RODEO ================= */
+/* ================= EVENT ================= */
 
-model Rodeo {
+model Event {
   id   Int    @id @default(autoincrement())
   name String
   slug String
@@ -187,8 +187,8 @@ model Rodeo {
   location     Location      @relation(fields: [locationId], references: [id])
   callInPolicy CallInPolicy? @relation(fields: [callInPolicyId], references: [id])
 
-  scheduleItems RodeoScheduleItem[]
-  contacts      RodeoContact[]
+  scheduleItems EventScheduleItem[]
+  contacts      EventContact[]
   announcements Announcement[]
 
   createdAt DateTime @default(now())
@@ -196,31 +196,31 @@ model Rodeo {
   @@unique([slug, tenantId])
 }
 
-/* ================= RODEO SCHEDULE ================= */
+/* ================= EVENT SCHEDULE ================= */
 
-model RodeoScheduleItem {
-  id       Int @id @default(autoincrement())
-  rodeoId  Int
+model EventScheduleItem {
+  id      Int @id @default(autoincrement())
+  eventId Int
 
   label     String
   date      DateTime
   startTime String?
   notes     String?
 
-  rodeo Rodeo @relation(fields: [rodeoId], references: [id])
+  event Event @relation(fields: [eventId], references: [id])
   createdAt DateTime @default(now())
 }
 
-/* ================= RODEO CONTACT ================= */
+/* ================= EVENT CONTACT ================= */
 
-model RodeoContact {
-  id       Int @id @default(autoincrement())
-  rodeoId  Int
+model EventContact {
+  id      Int @id @default(autoincrement())
+  eventId Int
 
   contactRole String
   officerRole String
 
-  rodeo Rodeo @relation(fields: [rodeoId], references: [id])
+  event Event @relation(fields: [eventId], references: [id])
   createdAt DateTime @default(now())
 }
 
@@ -304,7 +304,7 @@ model Announcement {
   tenantId Int
   tenant   Tenant @relation(fields: [tenantId], references: [id])
 
-  rodeoId  Int?
+  eventId  Int?
   seasonId Int?
 
   title   String
@@ -320,7 +320,7 @@ model Announcement {
   publishAt DateTime?
   expireAt  DateTime?
 
-  rodeo  Rodeo? @relation(fields: [rodeoId], references: [id], onDelete: Cascade)
+  event  Event?  @relation(fields: [eventId], references: [id], onDelete: Cascade)
   season Season? @relation(fields: [seasonId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
@@ -363,7 +363,6 @@ model GalleryImage {
 model CustomPage {
   id      Int @id @default(autoincrement())
   title   String
-  heroSubtitle String?
   slug    String
   content String
   status  String
@@ -400,9 +399,8 @@ model Athlete {
 
   slug String
 
-  headshotUrl  String?
-  actionPhotos String[] @default([])
-  videos       String[] @default([])
+  headshotUrl    String?
+  actionPhotoUrl String?
 
   tenantId Int
   tenant   Tenant @relation(fields: [tenantId], references: [id])
@@ -410,11 +408,11 @@ model Athlete {
   seasonId Int
   season   Season @relation(fields: [seasonId], references: [id])
 
-  events      AthleteEvent[]
-  standings   String?
-  awards      Json?
-  futureGoals String?
-  socialLinks Json?
+  events       AthleteEvent[]
+  standings    String?
+  awards       Json?
+  futureGoals  String?
+  socialLinks  Json?
 
   isActive   Boolean @default(true)
   isFeatured Boolean @default(false)

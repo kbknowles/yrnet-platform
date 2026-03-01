@@ -10,7 +10,7 @@ const router = express.Router();
  *
  * Hierarchy:
  * ContentType order:
- *   GLOBAL(null) → SEASON → EVENT → ATHLETE
+ *   GLOBAL(null) → SEASON → RODEO → ATHLETE
  *
  * Level order:
  *   PREMIER → FEATURED → STANDARD → SUPPORTER
@@ -39,7 +39,7 @@ router.get("/resolve", async (req, res) => {
     const normalizedType =
       contentType === "GLOBAL" ? null : contentType;
 
-    const contentHierarchy = [null, "SEASON", "EVENT", "ATHLETE"];
+    const contentHierarchy = [null, "SEASON", "RODEO", "ATHLETE"];
     const levelHierarchy = ["PREMIER", "FEATURED", "STANDARD", "SUPPORTER"];
 
     const collected = [];
