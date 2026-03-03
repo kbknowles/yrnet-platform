@@ -2,38 +2,35 @@
 
 import express from "express";
 import prisma from "../../prismaClient.mjs";
+import { resolveTenant } from "../../middleware/resolveTenant.js";
 
 const router = express.Router();
 
 /* ---------------- */
-/* GET ALL LOCATIONS */
+/* GET ALL LOCATIONS (Tenant Scoped) */
+/* GET /api/:tenantSlug/admin/locations */
 /* ---------------- */
-router.get("/", async (req, res) => {
+router.get("/:tenantSlug", resolveTenant, async (req, res) => {
   try {
     const locations = await prisma.location.findMany({
+      where: { tenantId: req.tenantId },
       orderBy: { name: "asc" },
     });
 
-    res.json(locations);
+    return res.json(locations || []);
   } catch (err) {
-    console.error("GET /locations failed", err);
-    res.status(500).json({ error: "Failed to load locations" });
+    console.error("ADMIN_LOCATIONS_GET_ALL_ERROR", err);
+    return res.status(500).json({ error: "Failed to load locations" });
   }
 });
 
 /* ---------------- */
-/* CREATE LOCATION  */
+/* CREATE LOCATION (Tenant Scoped) */
+/* POST /api/:tenantSlug/admin/locations */
 /* ---------------- */
-router.post("/", async (req, res) => {
+router.post("/:tenantSlug", resolveTenant, async (req, res) => {
   try {
-    const {
-      name,
-      streetAddress,
-      city,
-      state,
-      zip,
-      venueInfo,
-    } = req.body;
+    const { name, streetAddress, city, state, zip, venueInfo } = req.body;
 
     if (!name) {
       return res.status(400).json({ error: "Name is required" });
@@ -41,6 +38,7 @@ router.post("/", async (req, res) => {
 
     const location = await prisma.location.create({
       data: {
+        tenantId: req.tenantId,
         name,
         streetAddress: streetAddress || null,
         city: city || null,
@@ -50,30 +48,32 @@ router.post("/", async (req, res) => {
       },
     });
 
-    res.json(location);
+    return res.json(location);
   } catch (err) {
-    console.error("POST /locations failed", err);
-    res.status(500).json({ error: "Failed to create location" });
+    console.error("ADMIN_LOCATIONS_CREATE_ERROR", err);
+    return res.status(500).json({ error: "Failed to create location" });
   }
 });
 
 /* ---------------- */
-/* UPDATE LOCATION  */
+/* UPDATE LOCATION (Tenant Scoped) */
+/* PUT /api/:tenantSlug/admin/locations/:id */
 /* ---------------- */
-router.put("/:id", async (req, res) => {
+router.put("/:tenantSlug/:id", resolveTenant, async (req, res) => {
   try {
     const id = Number(req.params.id);
-    const {
-      name,
-      streetAddress,
-      city,
-      state,
-      zip,
-      venueInfo,
-    } = req.body;
+    const { name, streetAddress, city, state, zip, venueInfo } = req.body;
 
     if (!name) {
       return res.status(400).json({ error: "Name is required" });
+    }
+
+    const existing = await prisma.location.findFirst({
+      where: { id, tenantId: req.tenantId },
+    });
+
+    if (!existing) {
+      return res.status(404).json({ error: "Location not found" });
     }
 
     const location = await prisma.location.update({
@@ -88,27 +88,37 @@ router.put("/:id", async (req, res) => {
       },
     });
 
-    res.json(location);
+    return res.json(location);
   } catch (err) {
-    console.error("PUT /locations failed", err);
-    res.status(500).json({ error: "Failed to update location" });
+    console.error("ADMIN_LOCATIONS_UPDATE_ERROR", err);
+    return res.status(500).json({ error: "Failed to update location" });
   }
 });
 
 /* ---------------- */
-/* DELETE LOCATION  */
+/* DELETE LOCATION (Tenant Scoped) */
+/* DELETE /api/:tenantSlug/admin/locations/:id */
 /* ---------------- */
-router.delete("/:id", async (req, res) => {
+router.delete("/:tenantSlug/:id", resolveTenant, async (req, res) => {
   try {
     const id = Number(req.params.id);
 
-    const eventCount = await prisma.event.count({
-      where: { locationId: id },
+    const existing = await prisma.location.findFirst({
+      where: { id, tenantId: req.tenantId },
     });
 
-    if (eventCount > 0) {
+    if (!existing) {
+      return res.status(404).json({ error: "Location not found" });
+    }
+
+    const rodeoCount = await prisma.rodeo.count({
+      where: { locationId: id, tenantId: req.tenantId },
+    });
+
+    if (rodeoCount > 0) {
       return res.status(409).json({
-        error: "This location cannot be deleted because it is assigned to one or more events.",
+        error:
+          "This location cannot be deleted because it is assigned to one or more rodeos.",
       });
     }
 
@@ -116,10 +126,10 @@ router.delete("/:id", async (req, res) => {
       where: { id },
     });
 
-    res.json({ success: true });
+    return res.json({ success: true });
   } catch (err) {
-    console.error("DELETE /locations failed", err);
-    res.status(500).json({ error: "Failed to delete location" });
+    console.error("ADMIN_LOCATIONS_DELETE_ERROR", err);
+    return res.status(500).json({ error: "Failed to delete location" });
   }
 });
 

@@ -2,15 +2,18 @@
 
 import express from "express";
 import prisma from "../../prismaClient.mjs";
+import { resolveTenant } from "../../middleware/resolveTenant.js";
 
 const router = express.Router();
 
 /* ---------------- */
-/* GET ALL SEASONS  */
+/* GET ALL SEASONS (Tenant Scoped) */
+/* GET /api/:tenantSlug/admin/seasons */
 /* ---------------- */
-router.get("/", async (req, res) => {
+router.get("/:tenantSlug", resolveTenant, async (req, res) => {
   try {
     const seasons = await prisma.season.findMany({
+      where: { tenantId: req.tenantId },
       orderBy: { startDate: "desc" },
     });
 
@@ -22,9 +25,10 @@ router.get("/", async (req, res) => {
 });
 
 /* ---------------- */
-/* CREATE SEASON    */
+/* CREATE SEASON (Tenant Scoped) */
+/* POST /api/:tenantSlug/admin/seasons */
 /* ---------------- */
-router.post("/", async (req, res) => {
+router.post("/:tenantSlug", resolveTenant, async (req, res) => {
   try {
     const { year, startDate, endDate, active } = req.body;
 
@@ -34,6 +38,7 @@ router.post("/", async (req, res) => {
 
     const season = await prisma.season.create({
       data: {
+        tenantId: req.tenantId,
         year,
         startDate: new Date(startDate),
         endDate: new Date(endDate),
@@ -49,12 +54,21 @@ router.post("/", async (req, res) => {
 });
 
 /* ---------------- */
-/* UPDATE SEASON    */
+/* UPDATE SEASON (Tenant Scoped) */
+/* PUT /api/:tenantSlug/admin/seasons/:id */
 /* ---------------- */
-router.put("/:id", async (req, res) => {
+router.put("/:tenantSlug/:id", resolveTenant, async (req, res) => {
   try {
     const id = Number(req.params.id);
     const { year, startDate, endDate, active } = req.body;
+
+    const existing = await prisma.season.findFirst({
+      where: { id, tenantId: req.tenantId },
+    });
+
+    if (!existing) {
+      return res.status(404).json({ error: "Season not found" });
+    }
 
     const season = await prisma.season.update({
       where: { id },
@@ -74,23 +88,33 @@ router.put("/:id", async (req, res) => {
 });
 
 /* ---------------- */
-/* DELETE SEASON    */
+/* DELETE SEASON (Tenant Scoped) */
+/* DELETE /api/:tenantSlug/admin/seasons/:id */
 /* ---------------- */
-router.delete("/:id", async (req, res) => {
+router.delete("/:tenantSlug/:id", resolveTenant, async (req, res) => {
   try {
     const id = Number(req.params.id);
 
-    const eventCount = await prisma.event.count({
-      where: { seasonId: id },
+    const existing = await prisma.season.findFirst({
+      where: { id, tenantId: req.tenantId },
     });
 
-    if (eventCount > 0) {
+    if (!existing) {
+      return res.status(404).json({ error: "Season not found" });
+    }
+
+    const rodeoCount = await prisma.rodeo.count({
+      where: { seasonId: id, tenantId: req.tenantId },
+    });
+
+    if (rodeoCount > 0) {
       return res.status(409).json({
-        error: "Cannot delete season with linked events",
+        error: "Cannot delete season with linked rodeos",
       });
     }
 
     await prisma.season.delete({ where: { id } });
+
     res.json({ success: true });
   } catch (err) {
     console.error("DELETE /seasons failed", err);

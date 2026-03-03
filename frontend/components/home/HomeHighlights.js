@@ -1,9 +1,23 @@
+// filepath: frontend/components/home/HomeHighlights.js
+
+"use client";
+
 import Link from "next/link";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
+function resolveMedia(url) {
+  if (!url) return null;
+  if (url.startsWith("http")) return url;
+  if (url.startsWith("/uploads")) return `${API_BASE}${url}`;
+  return `${API_BASE}${url}`;
+}
+
 export default function HomeHighlights({ rodeos, announcements }) {
-  const sorted = [...announcements].sort((a, b) => {
+  const safeRodeos = Array.isArray(rodeos) ? rodeos : [];
+  const safeAnnouncements = Array.isArray(announcements) ? announcements : [];
+
+  const sorted = [...safeAnnouncements].sort((a, b) => {
     const aDate = new Date(a.publishAt || a.createdAt);
     const bDate = new Date(b.publishAt || b.createdAt);
     return bDate - aDate;
@@ -11,8 +25,8 @@ export default function HomeHighlights({ rodeos, announcements }) {
 
   const featured = sorted[0];
 
-  const featuredHref = featured?.event?.slug
-    ? `/events/${featured.event.slug}`
+  const featuredHref = featured?.rodeo?.slug
+    ? `/rodeos/${featured.rodeo.slug}`
     : "/announcements";
 
   return (
@@ -25,29 +39,39 @@ export default function HomeHighlights({ rodeos, announcements }) {
               Upcoming Rodeos
             </h2>
 
-            <ul className="space-y-4 flex-1">
-              {rodeos.map((rodeo) => (
-                <li
-                  key={rodeo.id}
-                  className="bg-white/10 rounded-md p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
-                >
-                  <div>
-                    <p className="font-medium">{rodeo.name}</p>
-                    <p className="text-sm text-white/80">
-                      {new Date(rodeo.startDate).toLocaleDateString()}
-                      {rodeo.location && ` · ${rodeo.location.name}`}
-                    </p>
-                  </div>
-
-                  <Link
-                    href={`/events/${rodeo.slug}`}
-                    className="text-sm font-medium bg-white text-ahsra-blue px-4 py-2 rounded-md"
+            {safeRodeos.length === 0 ? (
+              <p className="text-sm text-white/80 flex-1">
+                No rodeos have been published yet.
+              </p>
+            ) : (
+              <ul className="space-y-4 flex-1">
+                {safeRodeos.map((rodeo) => (
+                  <li
+                    key={rodeo.id}
+                    className="bg-white/10 rounded-md p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
                   >
-                    View Details
-                  </Link>
-                </li>
-              ))}
-            </ul>
+                    <div>
+                      <p className="font-medium">{rodeo.name}</p>
+                      <p className="text-sm text-white/80">
+                        {rodeo.startDate
+                          ? new Date(rodeo.startDate).toLocaleDateString()
+                          : ""}
+                        {rodeo.location?.name
+                          ? ` · ${rodeo.location.name}`
+                          : ""}
+                      </p>
+                    </div>
+
+                    <Link
+                      href={`/rodeos/${rodeo.slug}`}
+                      className="text-sm font-medium bg-white text-ahsra-blue px-4 py-2 rounded-md"
+                    >
+                      View Details
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
 
             <div className="pt-6">
               <Link
@@ -72,8 +96,8 @@ export default function HomeHighlights({ rodeos, announcements }) {
                 {featured.mode === "POSTER" && featured.imageUrl ? (
                   <Link href={featuredHref}>
                     <img
-                      src={`${API_BASE}${featured.imageUrl}`}
-                      alt={featured.title}
+                      src={resolveMedia(featured.imageUrl)}
+                      alt={featured.title || "Announcement"}
                       className="w-full max-h-[420px] object-contain"
                     />
                   </Link>
@@ -99,9 +123,7 @@ export default function HomeHighlights({ rodeos, announcements }) {
                 )}
               </div>
             ) : (
-              <p className="text-sm text-gray-600">
-                No current announcements.
-              </p>
+              <p className="text-sm text-gray-600">No current announcements.</p>
             )}
 
             <div className="pt-6">

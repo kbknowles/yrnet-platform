@@ -2,19 +2,23 @@
 
 import express from "express";
 import prisma from "../prismaClient.mjs";
+import { resolveTenant } from "../middleware/resolveTenant.js";
 
 const router = express.Router();
 
 /**
  * ===============================
- * GET PUBLIC SPONSORS
+ * GET PUBLIC SPONSORS (tenant-scoped)
  * Ordered by:
  * 1. contentType priority
  * 2. level priority
  * 3. sponsor name (alphabetical)
  * ===============================
+ *
+ * GET /api/:tenantSlug/sponsors
  */
-router.get("/", async (_req, res) => {
+
+router.get("/:tenantSlug", resolveTenant, async (req, res) => {
   try {
     const sponsorships = await prisma.$queryRaw`
       SELECT 
@@ -30,12 +34,15 @@ router.get("/", async (_req, res) => {
         s.description
       FROM "Sponsorship" sp
       JOIN "Sponsor" s ON s.id = sp."sponsorId"
-      WHERE sp.active = true
+      WHERE 
+        sp.active = true
+        AND s.active = true
+        AND s."tenantId" = ${req.tenantId}
       ORDER BY
         CASE 
           WHEN sp."contentType" IS NULL THEN 1
           WHEN sp."contentType" = 'SEASON' THEN 2
-          WHEN sp."contentType" = 'EVENT' THEN 3
+          WHEN sp."contentType" = 'RODEO' THEN 3
           WHEN sp."contentType" = 'ATHLETE' THEN 4
           WHEN sp."contentType" = 'LOCATION' THEN 5
           WHEN sp."contentType" = 'GALLERY' THEN 6
@@ -52,10 +59,10 @@ router.get("/", async (_req, res) => {
         s.name;
     `;
 
-    res.json(sponsorships);
+    return res.json(sponsorships);
   } catch (error) {
-    console.error("GET PUBLIC SPONSORS ERROR:", error);
-    res.status(500).json({ error: "Failed to fetch sponsors" });
+    console.error("GET_PUBLIC_SPONSORS_ERROR", error);
+    return res.status(500).json({ error: "Failed to fetch sponsors" });
   }
 });
 

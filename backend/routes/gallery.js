@@ -1,7 +1,8 @@
-// filepath: backend/routes/gallery.mjs
+// filepath: backend/routes/gallery.js
 
 import express from "express";
 import prisma from "../prismaClient.mjs";
+import { resolveTenant } from "../middleware/resolveTenant.js";
 
 const router = express.Router();
 
@@ -18,10 +19,16 @@ function toSlug(str) {
 /* -------------------------------- */
 /* GET ALL PUBLISHED ALBUMS (PUBLIC) */
 /* -------------------------------- */
-router.get("/", async (req, res) => {
+/**
+ * GET /api/:tenantSlug/gallery
+ */
+router.get("/:tenantSlug", resolveTenant, async (req, res) => {
   try {
     const albums = await prisma.galleryAlbum.findMany({
-      where: { published: true },
+      where: {
+        tenantId: req.tenantId,
+        published: true,
+      },
       orderBy: { createdAt: "desc" },
       include: {
         images: { orderBy: { sortOrder: "asc" } },
@@ -44,21 +51,25 @@ router.get("/", async (req, res) => {
 /* -------------------------------- */
 /* GET SINGLE ALBUM BY SLUG (PUBLIC) */
 /* -------------------------------- */
-router.get("/albums/:slug", async (req, res) => {
+/**
+ * GET /api/:tenantSlug/gallery/albums/:slug
+ */
+router.get("/:tenantSlug/albums/:slug", resolveTenant, async (req, res) => {
   try {
     const slug = req.params.slug;
 
     const albums = await prisma.galleryAlbum.findMany({
-      where: { published: true },
+      where: {
+        tenantId: req.tenantId,
+        published: true,
+      },
       include: {
         images: { orderBy: { sortOrder: "asc" } },
         season: true,
       },
     });
 
-    const album = albums.find(
-      (a) => toSlug(a.title) === slug
-    );
+    const album = albums.find((a) => toSlug(a.title) === slug);
 
     if (!album) {
       return res.status(404).json({ error: "Album not found" });

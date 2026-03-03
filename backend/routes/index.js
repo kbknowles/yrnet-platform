@@ -1,3 +1,5 @@
+// filepath: backend/routes/index.js
+
 import express from "express";
 
 /* =========================
@@ -7,7 +9,7 @@ import express from "express";
 import adminSeasonsRouter from "./admin/seasons.js";
 import adminLocationsRouter from "./admin/locations.js";
 import adminRodeosRouter from "./admin/rodeos.js";
-import adminRodeoScheduleItemsRouter from "./admin/rodeoScheduleItems.js";
+import adminRodeoScheduleRouter from "./admin/rodeoSchedule.js";
 import adminRodeoContactsRouter from "./admin/rodeoContacts.js";
 import adminAnnouncementsRouter from "./admin/announcements.js";
 import adminAnnouncementUploadRouter from "./admin/announcementUpload.js";
@@ -38,34 +40,43 @@ import sponsorshipsRouter from "./sponsorships.js";
 
 const router = express.Router();
 
-/* ---------- Admin ---------- */
-router.use("/admin/seasons", adminSeasonsRouter);
-router.use("/admin/locations", adminLocationsRouter);
-router.use("/admin/rodeos", adminRodeosRouter);
-router.use("/admin/rodeo-schedule-items", adminRodeoScheduleItemsRouter);
-router.use("/admin/rodeo-contacts", adminRodeoContactsRouter);
-router.use("/admin/announcements", adminAnnouncementsRouter);
-router.use("/admin/announcements/upload", adminAnnouncementUploadRouter);
-router.use("/admin/officers", adminOfficersRouter);
-router.use("/admin/sponsors", adminSponsorsRouter);
-router.use("/admin/sponsorships", adminSponsorshipsRouter);
-router.use("/admin/gallery", adminGalleryRouter);
-router.use("/admin/pages", adminPagesRouter);
-router.use("/admin/uploads", adminUploadsRouter);
-router.use("/admin/athletes", adminAthletesRouter);
+/* =========================
+   MULTI-TENANT ROOT
+   ========================= */
+
+/*
+   All tenant routes now live under:
+   /api/:tenantSlug/...
+*/
+
+router.use("/:tenantSlug/admin/seasons", adminSeasonsRouter);
+router.use("/:tenantSlug/admin/locations", adminLocationsRouter);
+router.use("/:tenantSlug/admin/rodeos", adminRodeosRouter);
+router.use("/:tenantSlug/admin/rodeo-schedule-items", adminRodeoScheduleRouter);
+router.use("/:tenantSlug/admin/rodeo-contacts", adminRodeoContactsRouter);
+router.use("/:tenantSlug/admin/announcements", adminAnnouncementsRouter);
+router.use("/:tenantSlug/admin/announcements/upload", adminAnnouncementUploadRouter);
+router.use("/:tenantSlug/admin/officers", adminOfficersRouter);
+router.use("/:tenantSlug/admin/sponsors", adminSponsorsRouter);
+router.use("/:tenantSlug/admin/sponsorships", adminSponsorshipsRouter);
+router.use("/:tenantSlug/admin/gallery", adminGalleryRouter);
+router.use("/:tenantSlug/admin/pages", adminPagesRouter);
+router.use("/:tenantSlug/admin/uploads", adminUploadsRouter);
+router.use("/:tenantSlug/admin/athletes", adminAthletesRouter);
 
 /* ---------- Public ---------- */
-router.use("/rodeos", rodeosRouter);
-router.use("/schedule", scheduleRouter);
-router.use("/announcements", announcementsRouter);
-router.use("/sponsors", sponsorsRouter);
-router.use("/seasons", seasonsRouter);
-router.use("/gallery", galleryRouter);
-router.use("/home", homeRouter);
-router.use("/officers", officersRouter);
-router.use("/pages", pagesRouter);
-router.use("/athletes", athletesRouter);
-router.use("/calendar", calendarRouter);
-router.use("/sponsorships", sponsorshipsRouter);
+
+router.use("/:tenantSlug/rodeos", rodeosRouter);
+router.use("/:tenantSlug/schedule", scheduleRouter);
+router.use("/:tenantSlug/announcements", announcementsRouter);
+router.use("/:tenantSlug/sponsors", sponsorsRouter);
+router.use("/:tenantSlug/seasons", seasonsRouter);
+router.use("/:tenantSlug/gallery", galleryRouter);
+router.use("/:tenantSlug/home", homeRouter);
+router.use("/:tenantSlug/officers", officersRouter);
+router.use("/:tenantSlug/pages", pagesRouter);
+router.use("/:tenantSlug/athletes", athletesRouter);
+router.use("/:tenantSlug/calendar", calendarRouter);
+router.use("/:tenantSlug/sponsorships", sponsorshipsRouter);
 
 export default router;

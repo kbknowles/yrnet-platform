@@ -2,11 +2,12 @@
 
 import express from "express";
 import prisma from "../prismaClient.mjs";
+import { resolveTenant } from "../middleware/resolveTenant.js";
 
 const router = express.Router();
 
 /**
- * GET /api/sponsorships/resolve
+ * GET /api/:tenantSlug/sponsorships/resolve
  *
  * Hierarchy:
  * ContentType order:
@@ -17,7 +18,7 @@ const router = express.Router();
  *
  * Stops once slots are filled.
  */
-router.get("/resolve", async (req, res) => {
+router.get("/:tenantSlug/resolve", resolveTenant, async (req, res) => {
   try {
     const now = new Date();
     const { contentType, contentId, slots } = req.query;
@@ -33,6 +34,10 @@ router.get("/resolve", async (req, res) => {
       active: true,
       startDate: { lte: now },
       endDate: { gte: now },
+      sponsor: {
+        tenantId: req.tenantId,
+        active: true,
+      },
     };
 
     // Normalize GLOBAL → null

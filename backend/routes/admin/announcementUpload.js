@@ -1,19 +1,20 @@
-// filepath: backend/routes/admin/announcementUploads.mjs
+// filepath: backend/routes/admin/announcementUploads.js
 
 import express from "express";
 import multer from "multer";
 import fs from "fs";
 import path from "path";
+import prisma from "../../prismaClient.mjs";
+import { resolveTenant } from "../../middleware/resolveTenant.js";
 
 const router = express.Router();
 
 /*
-  IMPORTANT:
-  In Render, set:
+  In Render:
   UPLOAD_ROOT=/uploads
-  and mount persistent disk there.
+  Mount persistent disk there.
 
-  For local dev:
+  Local dev:
   create /uploads folder at project root.
 */
 
@@ -26,19 +27,22 @@ const ALLOWED_TYPES = [
 ];
 
 /* =============================
-   STORAGE (RENDER DISK SAFE)
+   STORAGE (TENANT SAFE)
 ============================= */
 
 const storage = multer.diskStorage({
   destination(req, file, cb) {
     const { id } = req.params;
+    const { tenantSlug } = req.params;
 
-    if (!id) {
-      return cb(new Error("Missing announcement id"));
+    if (!id || !tenantSlug) {
+      return cb(new Error("Missing tenant or announcement id"));
     }
 
     const dir = path.join(
       UPLOAD_ROOT,
+      "tenants",
+      tenantSlug,
       "announcements",
       String(id)
     );
@@ -68,24 +72,48 @@ const upload = multer({
 
 /* =============================
    UPLOAD / REPLACE POSTER
+   POST /api/:tenantSlug/admin/announcements/:id/poster
 ============================= */
 
-router.post("/:id/poster", upload.single("file"), (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: "No file uploaded" });
+router.post(
+  "/:tenantSlug/:id/poster",
+  resolveTenant,
+  upload.single("file"),
+  async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+
+      const announcement = await prisma.announcement.findFirst({
+        where: {
+          id,
+          tenantId: req.tenantId,
+        },
+      });
+
+      if (!announcement) {
+        return res.status(404).json({ error: "Announcement not found" });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+
+      const imageUrl = `/uploads/tenants/${req.params.tenantSlug}/announcements/${id}/${req.file.filename}`;
+
+      await prisma.announcement.update({
+        where: { id },
+        data: { imageUrl },
+      });
+
+      res.json({
+        ok: true,
+        imageUrl,
+      });
+    } catch (err) {
+      console.error("Poster upload failed", err);
+      res.status(500).json({ error: "Upload failed" });
     }
-
-    const imageUrl = `/uploads/announcements/${req.params.id}/${req.file.filename}`;
-
-    res.json({
-      ok: true,
-      imageUrl,
-    });
-  } catch (err) {
-    console.error("Poster upload failed", err);
-    res.status(500).json({ error: "Upload failed" });
   }
-});
+);
 
 export default router;

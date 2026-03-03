@@ -2,16 +2,21 @@
 
 import express from "express";
 import prisma from "../prismaClient.mjs";
+import { resolveTenant } from "../middleware/resolveTenant.js";
 
 const router = express.Router();
 
 /**
- * GET active officers for current season (public)
+ * GET active officers for current season (public, tenant-scoped)
+ * GET /api/:tenantSlug/officers
  */
-router.get("/", async (req, res) => {
+router.get("/:tenantSlug", resolveTenant, async (req, res) => {
   try {
     const currentSeason = await prisma.season.findFirst({
-      where: { active: true },
+      where: {
+        tenantId: req.tenantId,
+        active: true,
+      },
       select: { id: true },
     });
 
@@ -21,6 +26,7 @@ router.get("/", async (req, res) => {
 
     const officers = await prisma.officer.findMany({
       where: {
+        tenantId: req.tenantId,
         active: true,
         seasonId: currentSeason.id,
       },

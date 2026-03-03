@@ -1,4 +1,4 @@
-// filepath: backend/routes/gallery.mjs
+// filepath: backend/routes/gallery.js
 
 import express from "express";
 import prisma from "../prismaClient.mjs";

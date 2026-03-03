@@ -3,6 +3,7 @@
 import express from "express";
 import prisma from "../../prismaClient.mjs";
 import uploadImage from "../../middleware/uploadImage.js";
+import { resolveTenant } from "../../middleware/resolveTenant.js";
 import fs from "fs";
 
 const router = express.Router();
@@ -43,12 +44,13 @@ function deleteFileIfExists(filePath) {
 }
 
 /* ----------------------------
-   GET ALL
+   GET ALL (Tenant Scoped)
 ----------------------------- */
 
-router.get("/", async (_req, res) => {
+router.get("/:tenantSlug", resolveTenant, async (req, res) => {
   try {
     const athletes = await prisma.athlete.findMany({
+      where: { tenantId: req.tenantId },
       orderBy: [{ sortOrder: "asc" }, { lastName: "asc" }],
       include: { season: true },
     });
@@ -61,13 +63,16 @@ router.get("/", async (_req, res) => {
 });
 
 /* ----------------------------
-   GET ONE
+   GET ONE (Tenant Scoped)
 ----------------------------- */
 
-router.get("/:slug", async (req, res) => {
+router.get("/:tenantSlug/:slug", resolveTenant, async (req, res) => {
   try {
-    const athlete = await prisma.athlete.findUnique({
-      where: { slug: req.params.slug },
+    const athlete = await prisma.athlete.findFirst({
+      where: {
+        slug: req.params.slug,
+        tenantId: req.tenantId,
+      },
       include: { season: true },
     });
 
@@ -83,11 +88,12 @@ router.get("/:slug", async (req, res) => {
 });
 
 /* ----------------------------
-   CREATE
+   CREATE (Tenant Scoped)
 ----------------------------- */
 
 router.post(
-  "/",
+  "/:tenantSlug",
+  resolveTenant,
   uploadImage.fields([
     { name: "headshot", maxCount: 1 },
     { name: "actionPhotos", maxCount: 4 },
@@ -96,7 +102,7 @@ router.post(
   async (req, res) => {
     try {
       const activeSeason = await prisma.season.findFirst({
-        where: { active: true },
+        where: { tenantId: req.tenantId, active: true },
       });
 
       if (!activeSeason) {
@@ -128,6 +134,7 @@ router.post(
         data: {
           ...req.body,
           slug,
+          tenantId: req.tenantId,
           seasonId: activeSeason.id,
           headshotUrl,
           actionPhotos,
@@ -147,11 +154,12 @@ router.post(
 );
 
 /* ----------------------------
-   UPDATE
+   UPDATE (Tenant Scoped)
 ----------------------------- */
 
 router.put(
-  "/:slug",
+  "/:tenantSlug/:slug",
+  resolveTenant,
   uploadImage.fields([
     { name: "headshot", maxCount: 1 },
     { name: "actionPhotos", maxCount: 4 },
@@ -161,8 +169,8 @@ router.put(
     try {
       const { slug } = req.params;
 
-      const existing = await prisma.athlete.findUnique({
-        where: { slug },
+      const existing = await prisma.athlete.findFirst({
+        where: { slug, tenantId: req.tenantId },
       });
 
       if (!existing) {
@@ -171,7 +179,6 @@ router.put(
 
       const updateData = {};
 
-      /* Scalars */
       [
         "firstName",
         "lastName",
@@ -187,7 +194,6 @@ router.put(
         }
       });
 
-      /* JSON */
       const parsedEvents = safeParseJSON(req.body.events);
       if (parsedEvents !== undefined) updateData.events = parsedEvents;
 
@@ -197,7 +203,6 @@ router.put(
       const parsedAwards = safeParseJSON(req.body.awards);
       if (parsedAwards !== undefined) updateData.awards = parsedAwards;
 
-      /* Boolean */
       if (req.body.isActive !== undefined) {
         updateData.isActive =
           req.body.isActive === true || req.body.isActive === "true";
@@ -208,7 +213,6 @@ router.put(
           req.body.isFeatured === true || req.body.isFeatured === "true";
       }
 
-      /* HEADSHOT */
       if (req.body.headshotUrl === "") {
         deleteFileIfExists(existing.headshotUrl);
         updateData.headshotUrl = null;
@@ -220,7 +224,6 @@ router.put(
           `/uploads/images/${req.files.headshot[0].filename}`;
       }
 
-      /* ACTION PHOTOS — FULL OVERWRITE */
       const incomingPhotos = safeParseJSON(req.body.actionPhotos);
       if (incomingPhotos !== undefined) {
         existing.actionPhotos?.forEach((path) => {
@@ -243,7 +246,6 @@ router.put(
         ];
       }
 
-      /* VIDEOS — FULL OVERWRITE */
       const incomingVideos = safeParseJSON(req.body.videos);
       if (incomingVideos !== undefined) {
         existing.videos?.forEach((path) => {
@@ -267,7 +269,7 @@ router.put(
       }
 
       const updated = await prisma.athlete.update({
-        where: { slug },
+        where: { id: existing.id },
         data: updateData,
       });
 
@@ -280,23 +282,25 @@ router.put(
 );
 
 /* ----------------------------
-   DELETE
+   DELETE (Tenant Scoped)
 ----------------------------- */
 
-router.delete("/:slug", async (req, res) => {
+router.delete("/:tenantSlug/:slug", resolveTenant, async (req, res) => {
   try {
-    const existing = await prisma.athlete.findUnique({
-      where: { slug: req.params.slug },
+    const existing = await prisma.athlete.findFirst({
+      where: { slug: req.params.slug, tenantId: req.tenantId },
     });
 
-    if (existing) {
-      deleteFileIfExists(existing.headshotUrl);
-      existing.actionPhotos?.forEach(deleteFileIfExists);
-      existing.videos?.forEach(deleteFileIfExists);
+    if (!existing) {
+      return res.status(404).json({ error: "Athlete not found" });
     }
 
+    deleteFileIfExists(existing.headshotUrl);
+    existing.actionPhotos?.forEach(deleteFileIfExists);
+    existing.videos?.forEach(deleteFileIfExists);
+
     await prisma.athlete.delete({
-      where: { slug: req.params.slug },
+      where: { id: existing.id },
     });
 
     res.json({ ok: true });

@@ -1,25 +1,31 @@
+// filepath: backend/routes/admin/sponsors.js
+
 import express from "express";
 import prisma from "../../prismaClient.mjs";
 import multer from "multer";
 import fs from "fs";
+import path from "path";
 
 const router = express.Router();
 
 /* =============================
-   FILE STORAGE (RENDER DISK)
-   Mounted at: /uploads
+   FILE STORAGE (RENDER DISK SAFE)
+   Uses UPLOAD_ROOT if provided
 ============================= */
 
-const uploadDir = "/uploads/sponsors";
+const UPLOAD_ROOT = process.env.UPLOAD_ROOT || path.resolve("uploads");
+const uploadDir = path.join(UPLOAD_ROOT, "sponsors");
 
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
 const storage = multer.diskStorage({
-  destination: uploadDir,
-  filename: (req, file, cb) => {
-    const unique = Date.now() + "-" + file.originalname;
+  destination: (_req, _file, cb) => {
+    cb(null, uploadDir);
+  },
+  filename: (_req, file, cb) => {
+    const unique = Date.now() + "-" + file.originalname.replace(/\s+/g, "-");
     cb(null, unique);
   },
 });
@@ -29,10 +35,18 @@ const upload = multer({ storage });
 function deleteFileIfExists(fileUrl) {
   if (!fileUrl) return;
 
-  const absolutePath = fileUrl.replace("/uploads", "/uploads");
+  // fileUrl example: /uploads/sponsors/abc.png
+  const absolutePath = path.join(
+    UPLOAD_ROOT,
+    fileUrl.replace("/uploads/", "")
+  );
 
-  if (fs.existsSync(absolutePath)) {
-    fs.unlinkSync(absolutePath);
+  try {
+    if (fs.existsSync(absolutePath)) {
+      fs.unlinkSync(absolutePath);
+    }
+  } catch (err) {
+    console.error("FILE DELETE ERROR:", err);
   }
 }
 
@@ -40,7 +54,7 @@ function deleteFileIfExists(fileUrl) {
    GET ALL
 ============================= */
 
-router.get("/", async (req, res) => {
+router.get("/", async (_req, res) => {
   try {
     const sponsors = await prisma.sponsor.findMany({
       orderBy: { createdAt: "desc" },
@@ -83,12 +97,12 @@ router.post("/", async (req, res) => {
     const sponsor = await prisma.sponsor.create({
       data: {
         name: req.body.name,
-        website: req.body.website,
-        description: req.body.description,
-        contactName: req.body.contactName,
-        contactEmail: req.body.contactEmail,
-        contactPhone: req.body.contactPhone,
-        internalNotes: req.body.internalNotes,
+        website: req.body.website || null,
+        description: req.body.description || null,
+        contactName: req.body.contactName || null,
+        contactEmail: req.body.contactEmail || null,
+        contactPhone: req.body.contactPhone || null,
+        internalNotes: req.body.internalNotes || null,
         logoUrl: null,
         bannerUrl: null,
       },
@@ -111,12 +125,12 @@ router.put("/:id", async (req, res) => {
       where: { id: Number(req.params.id) },
       data: {
         name: req.body.name,
-        website: req.body.website,
-        description: req.body.description,
-        contactName: req.body.contactName,
-        contactEmail: req.body.contactEmail,
-        contactPhone: req.body.contactPhone,
-        internalNotes: req.body.internalNotes,
+        website: req.body.website || null,
+        description: req.body.description || null,
+        contactName: req.body.contactName || null,
+        contactEmail: req.body.contactEmail || null,
+        contactPhone: req.body.contactPhone || null,
+        internalNotes: req.body.internalNotes || null,
       },
     });
 
@@ -156,7 +170,7 @@ router.delete("/:id", async (req, res) => {
 });
 
 /* =============================
-   UPLOAD LOGO (REPLACE / REFRESH)
+   UPLOAD LOGO
 ============================= */
 
 router.post("/:id/upload-logo", upload.single("file"), async (req, res) => {
@@ -218,7 +232,7 @@ router.delete("/:id/logo", async (req, res) => {
 });
 
 /* =============================
-   UPLOAD BANNER (REPLACE / REFRESH)
+   UPLOAD BANNER
 ============================= */
 
 router.post("/:id/upload-banner", upload.single("file"), async (req, res) => {

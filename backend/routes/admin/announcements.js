@@ -1,25 +1,60 @@
+// filepath: backend/routes/admin/announcements.js
+
 import express from "express";
 import prisma from "../../prismaClient.mjs";
+import { resolveTenant } from "../../middleware/resolveTenant.js";
 
 const router = express.Router();
 
-/* GET ALL */
-router.get("/", async (_req, res) => {
-  const items = await prisma.announcement.findMany({
-    orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
-  });
-  res.json(items);
+/* ============================
+   GET ALL (Tenant Scoped)
+   GET /api/:tenantSlug/admin/announcements
+============================ */
+router.get("/:tenantSlug", resolveTenant, async (req, res) => {
+  try {
+    const items = await prisma.announcement.findMany({
+      where: {
+        tenantId: req.tenantId,
+      },
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
+      include: {
+        rodeo: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            startDate: true,
+            endDate: true,
+          },
+        },
+        season: {
+          select: {
+            id: true,
+            year: true,
+            active: true,
+          },
+        },
+      },
+    });
+
+    return res.json(items || []);
+  } catch (err) {
+    console.error("ADMIN_ANNOUNCEMENTS_GET_ALL_ERROR", err);
+    return res.status(500).json({ error: "Failed to fetch announcements" });
+  }
 });
 
-/* CREATE */
-router.post("/", async (req, res) => {
+/* ============================
+   CREATE
+   POST /api/:tenantSlug/admin/announcements
+============================ */
+router.post("/:tenantSlug", resolveTenant, async (req, res) => {
   try {
     const {
-      eventId,
+      rodeoId,
       seasonId,
       title,
       content,
-      type,
       mode = "STANDARD",
       imageUrl,
       sortOrder = 0,
@@ -31,76 +66,107 @@ router.post("/", async (req, res) => {
 
     const announcement = await prisma.announcement.create({
       data: {
+        tenantId: req.tenantId,
         title,
         mode,
-        type,
         content: mode === "POSTER" ? "" : content,
         imageUrl: imageUrl || null,
         sortOrder: Number(sortOrder) || 0,
         extras,
         published: Boolean(published),
-        eventId: eventId ? Number(eventId) : null,
+        rodeoId: rodeoId ? Number(rodeoId) : null,
         seasonId: seasonId ? Number(seasonId) : null,
         publishAt: publishAt ? new Date(publishAt) : null,
         expireAt: expireAt ? new Date(expireAt) : null,
       },
     });
 
-    res.json(announcement);
+    return res.json(announcement);
   } catch (err) {
-    console.error(err);
-    res.status(400).json({ error: "Failed to create announcement" });
+    console.error("ADMIN_ANNOUNCEMENTS_CREATE_ERROR", err);
+    return res.status(400).json({ error: "Failed to create announcement" });
   }
 });
 
-/* UPDATE */
-router.put("/:id", async (req, res) => {
+/* ============================
+   UPDATE
+   PUT /api/:tenantSlug/admin/announcements/:id
+============================ */
+router.put("/:tenantSlug/:id", resolveTenant, async (req, res) => {
   try {
+    const id = Number(req.params.id);
+
+    const existing = await prisma.announcement.findFirst({
+      where: { id, tenantId: req.tenantId },
+    });
+
+    if (!existing) {
+      return res.status(404).json({ error: "Announcement not found" });
+    }
+
     const {
       title,
       content,
-      type,
       mode,
       imageUrl,
       sortOrder,
       extras,
       published,
-      eventId,
+      rodeoId,
       seasonId,
       publishAt,
       expireAt,
     } = req.body;
 
     const announcement = await prisma.announcement.update({
-      where: { id: Number(req.params.id) },
+      where: { id },
       data: {
         title,
-        type,
         mode,
         content: mode === "POSTER" ? "" : content,
         imageUrl,
         sortOrder,
         extras,
         published,
-        eventId: eventId ? Number(eventId) : null,
+        rodeoId: rodeoId ? Number(rodeoId) : null,
         seasonId: seasonId ? Number(seasonId) : null,
         publishAt: publishAt ? new Date(publishAt) : null,
         expireAt: expireAt ? new Date(expireAt) : null,
       },
     });
 
-    res.json(announcement);
+    return res.json(announcement);
   } catch (err) {
-    console.error(err);
-    res.status(400).json({ error: "Failed to update announcement" });
+    console.error("ADMIN_ANNOUNCEMENTS_UPDATE_ERROR", err);
+    return res.status(400).json({ error: "Failed to update announcement" });
   }
 });
 
-router.delete("/:id", async (req, res) => {
-  await prisma.announcement.delete({
-    where: { id: Number(req.params.id) },
-  });
-  res.json({ ok: true });
+/* ============================
+   DELETE
+   DELETE /api/:tenantSlug/admin/announcements/:id
+============================ */
+router.delete("/:tenantSlug/:id", resolveTenant, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+
+    const existing = await prisma.announcement.findFirst({
+      where: { id, tenantId: req.tenantId },
+    });
+
+    if (!existing) {
+      return res.status(404).json({ error: "Announcement not found" });
+    }
+
+    await prisma.announcement.delete({
+      where: { id },
+    });
+
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error("ADMIN_ANNOUNCEMENTS_DELETE_ERROR", err);
+    return res.status(400).json({ error: "Failed to delete announcement" });
+  }
 });
 
 export default router;

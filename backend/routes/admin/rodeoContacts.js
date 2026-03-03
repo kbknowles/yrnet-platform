@@ -1,72 +1,142 @@
-// filepath: backend/routes/admin/eventContacts.js
+// filepath: backend/routes/admin/rodeoContacts.js
 
 import express from "express";
 import prisma from "../../prismaClient.mjs";
+import { resolveTenant } from "../../middleware/resolveTenant.js";
 
 const router = express.Router();
 
 /* ---------------------------- */
-/* GET CONTACTS FOR EVENT       */
+/* GET CONTACTS FOR RODEO (Tenant Scoped) */
+/* GET /api/:tenantSlug/admin/rodeo-contacts/rodeo/:rodeoId */
 /* ---------------------------- */
-router.get("/event/:eventId", async (req, res) => {
-  const eventId = Number(req.params.eventId);
+router.get(
+  "/:tenantSlug/rodeo/:rodeoId",
+  resolveTenant,
+  async (req, res) => {
+    try {
+      const rodeoId = Number(req.params.rodeoId);
 
-  const contacts = await prisma.eventContact.findMany({
-    where: { eventId },
-    orderBy: { id: "asc" },
-  });
+      const rodeo = await prisma.rodeo.findFirst({
+        where: { id: rodeoId, tenantId: req.tenantId },
+      });
 
-  res.json(contacts);
+      if (!rodeo) {
+        return res.status(404).json({ error: "Rodeo not found" });
+      }
+
+      const contacts = await prisma.rodeoContact.findMany({
+        where: { rodeoId },
+        orderBy: { id: "asc" },
+      });
+
+      return res.json(contacts || []);
+    } catch (err) {
+      console.error("ADMIN_RODEO_CONTACTS_GET_ERROR", err);
+      return res.status(500).json({ error: "Failed to load rodeo contacts" });
+    }
+  }
+);
+
+/* ---------------------------- */
+/* CREATE RODEO CONTACT (Tenant Scoped) */
+/* POST /api/:tenantSlug/admin/rodeo-contacts */
+/* ---------------------------- */
+router.post("/:tenantSlug", resolveTenant, async (req, res) => {
+  try {
+    const { rodeoId, name, role, phone, email } = req.body;
+
+    const rodeo = await prisma.rodeo.findFirst({
+      where: { id: Number(rodeoId), tenantId: req.tenantId },
+    });
+
+    if (!rodeo) {
+      return res.status(404).json({ error: "Rodeo not found" });
+    }
+
+    const contact = await prisma.rodeoContact.create({
+      data: {
+        rodeoId: Number(rodeoId),
+        name,
+        role: role || null,
+        phone: phone || null,
+        email: email || null,
+      },
+    });
+
+    return res.json(contact);
+  } catch (err) {
+    console.error("ADMIN_RODEO_CONTACTS_CREATE_ERROR", err);
+    return res.status(400).json({ error: "Failed to create rodeo contact" });
+  }
 });
 
 /* ---------------------------- */
-/* CREATE EVENT CONTACT         */
+/* UPDATE RODEO CONTACT (Tenant Scoped) */
+/* PUT /api/:tenantSlug/admin/rodeo-contacts/:id */
 /* ---------------------------- */
-router.post("/", async (req, res) => {
-  const { eventId, name, role, phone, email } = req.body;
+router.put("/:tenantSlug/:id", resolveTenant, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
 
-  const contact = await prisma.eventContact.create({
-    data: {
-      eventId: Number(eventId),
-      name,
-      role: role || null,
-      phone: phone || null,
-      email: email || null,
-    },
-  });
+    const existing = await prisma.rodeoContact.findFirst({
+      where: {
+        id,
+        rodeo: { tenantId: req.tenantId },
+      },
+    });
 
-  res.json(contact);
+    if (!existing) {
+      return res.status(404).json({ error: "Rodeo contact not found" });
+    }
+
+    const { name, role, phone, email } = req.body;
+
+    const contact = await prisma.rodeoContact.update({
+      where: { id },
+      data: {
+        name,
+        role: role || null,
+        phone: phone || null,
+        email: email || null,
+      },
+    });
+
+    return res.json(contact);
+  } catch (err) {
+    console.error("ADMIN_RODEO_CONTACTS_UPDATE_ERROR", err);
+    return res.status(400).json({ error: "Failed to update rodeo contact" });
+  }
 });
 
 /* ---------------------------- */
-/* UPDATE EVENT CONTACT         */
+/* DELETE RODEO CONTACT (Tenant Scoped) */
+/* DELETE /api/:tenantSlug/admin/rodeo-contacts/:id */
 /* ---------------------------- */
-router.put("/:id", async (req, res) => {
-  const id = Number(req.params.id);
-  const { name, role, phone, email } = req.body;
+router.delete("/:tenantSlug/:id", resolveTenant, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
 
-  const contact = await prisma.eventContact.update({
-    where: { id },
-    data: {
-      name,
-      role: role || null,
-      phone: phone || null,
-      email: email || null,
-    },
-  });
+    const existing = await prisma.rodeoContact.findFirst({
+      where: {
+        id,
+        rodeo: { tenantId: req.tenantId },
+      },
+    });
 
-  res.json(contact);
-});
+    if (!existing) {
+      return res.status(404).json({ error: "Rodeo contact not found" });
+    }
 
-/* ---------------------------- */
-/* DELETE EVENT CONTACT         */
-/* ---------------------------- */
-router.delete("/:id", async (req, res) => {
-  await prisma.eventContact.delete({
-    where: { id: Number(req.params.id) },
-  });
+    await prisma.rodeoContact.delete({
+      where: { id },
+    });
 
-  res.json({ success: true });
+    return res.json({ success: true });
+  } catch (err) {
+    console.error("ADMIN_RODEO_CONTACTS_DELETE_ERROR", err);
+    return res.status(400).json({ error: "Failed to delete rodeo contact" });
+  }
 });
 
 export default router;

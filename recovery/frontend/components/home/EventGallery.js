@@ -1,10 +1,10 @@
-// filepath: frontend/components/home/EventGallery.js
+// filepath: frontend/components/home/RodeoGallery.js
 "use client";
 
 import Image from "next/image";
 import Link from "next/link";
 
-export default function EventGallery({ albums = [] }) {
+export default function RodeoGallery({ albums = [] }) {
   const API_BASE = process.env.NEXT_PUBLIC_API_URL;
   const isDev = process.env.NODE_ENV !== "production";
 

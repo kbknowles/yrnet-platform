@@ -1,63 +1,77 @@
-// backend/routes/events.js
+// filepath: backend/routes/rodeos.js
 
 import express from "express";
 import prisma from "../prismaClient.mjs";
+import { resolveTenant } from "../middleware/resolveTenant.js";
 
 const router = express.Router();
 
-console.log("🔥 EVENTS ROUTER LOADED");
-
-
 /**
- * GET /api/events
- * Public, published events only
+ * GET /api/:tenantSlug/rodeos
+ * Public, published rodeos only (tenant-scoped)
  */
-router.get("/", async (req, res) => {
-  const limit = req.query.limit ? Number(req.query.limit) : undefined;
+router.get("/:tenantSlug", resolveTenant, async (req, res) => {
+  try {
+    const limitRaw = req.query.limit;
+    const limit = limitRaw ? Number(limitRaw) : undefined;
 
-  const events = await prisma.event.findMany({
-    where: { status: "published" },
-    orderBy: { startDate: "asc" },
-    take: limit,
-    include: {
-      location: true,
-      season: true,
-    },
-  });
+    const rodeos = await prisma.rodeo.findMany({
+      where: {
+        tenantId: req.tenantId,
+        status: "published",
+      },
+      orderBy: { startDate: "asc" },
+      take: Number.isFinite(limit) ? limit : undefined,
+      include: {
+        location: true,
+        season: true,
+      },
+    });
 
-  res.json(events);
+    return res.json(rodeos);
+  } catch (err) {
+    console.error("RODEOS_API_ERROR", err);
+    return res.status(500).json({ error: "Failed to load rodeos" });
+  }
 });
 
 /**
- * GET /api/events/:slug
- * Public single event by slug
+ * GET /api/:tenantSlug/rodeos/:slug
+ * Public single rodeo by slug (tenant-scoped)
  */
-router.get("/:slug", async (req, res) => {
-  const slug = req.params.slug.toLowerCase();
+router.get("/:tenantSlug/:slug", resolveTenant, async (req, res) => {
+  try {
+    const slug = String(req.params.slug || "").toLowerCase();
 
-  const event = await prisma.event.findFirst({
-    where: {
-      slug,
-      status: "published",
-    },
-    include: {
-      location: true,
-      season: true,
-      scheduleItems: {
-        orderBy: { date: "asc" },
+    const rodeo = await prisma.rodeo.findUnique({
+      where: {
+        slug_tenantId: {
+          slug,
+          tenantId: req.tenantId,
+        },
       },
-      announcements: {
-        where: { published: true },
-        orderBy: { sortOrder: "asc" },
+      include: {
+        location: true,
+        season: true,
+        scheduleItems: {
+          orderBy: { date: "asc" },
+        },
+        announcements: {
+          where: { published: true },
+          orderBy: { sortOrder: "asc" },
+        },
       },
-    },
-  });
+    });
 
-  if (!event) {
-    return res.status(404).json({ error: "Event not found" });
+    if (!rodeo || rodeo.status !== "published") {
+      return res.status(404).json({ error: "Rodeo not found" });
+    }
+
+    return res.json(rodeo);
+  } catch (err) {
+    console.error("RODEO_API_ERROR", err);
+    return res.status(500).json({ error: "Failed to load rodeo" });
   }
-
-  res.json(event);
 });
 
 export default router;

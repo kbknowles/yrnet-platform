@@ -2,15 +2,18 @@
 
 import express from "express";
 import prisma from "../../prismaClient.mjs";
+import { resolveTenant } from "../../middleware/resolveTenant.js";
 
 const router = express.Router();
 
 /**
- * GET all officers (admin)
+ * GET all officers (tenant scoped)
+ * GET /api/:tenantSlug/admin/officers
  */
-router.get("/", async (req, res) => {
+router.get("/:tenantSlug", resolveTenant, async (req, res) => {
   try {
     const officers = await prisma.officer.findMany({
+      where: { tenantId: req.tenantId },
       include: { season: true },
       orderBy: { name: "asc" },
     });
@@ -22,18 +25,30 @@ router.get("/", async (req, res) => {
 });
 
 /**
- * CREATE officer
+ * CREATE officer (tenant scoped)
+ * POST /api/:tenantSlug/admin/officers
  */
-router.post("/", async (req, res) => {
+router.post("/:tenantSlug", resolveTenant, async (req, res) => {
   try {
+    const seasonId = Number(req.body.seasonId);
+
+    const season = await prisma.season.findFirst({
+      where: { id: seasonId, tenantId: req.tenantId },
+    });
+
+    if (!season) {
+      return res.status(400).json({ error: "Invalid season" });
+    }
+
     const officer = await prisma.officer.create({
       data: {
+        tenantId: req.tenantId,
         name: req.body.name,
-        role: req.body.role,          // OfficerRole enum
-        type: req.body.type,          // OfficerType enum
+        role: req.body.role,   // OfficerRole enum
+        type: req.body.type,   // OfficerType enum
         email: req.body.email || null,
         phone: req.body.phone || null,
-        seasonId: Number(req.body.seasonId),
+        seasonId,
         active: req.body.active ?? true,
       },
     });
@@ -45,19 +60,40 @@ router.post("/", async (req, res) => {
 });
 
 /**
- * UPDATE officer
+ * UPDATE officer (tenant scoped)
+ * PUT /api/:tenantSlug/admin/officers/:id
  */
-router.put("/:id", async (req, res) => {
+router.put("/:tenantSlug/:id", resolveTenant, async (req, res) => {
   try {
+    const id = Number(req.params.id);
+
+    const existing = await prisma.officer.findFirst({
+      where: { id, tenantId: req.tenantId },
+    });
+
+    if (!existing) {
+      return res.status(404).json({ error: "Officer not found" });
+    }
+
+    const seasonId = Number(req.body.seasonId);
+
+    const season = await prisma.season.findFirst({
+      where: { id: seasonId, tenantId: req.tenantId },
+    });
+
+    if (!season) {
+      return res.status(400).json({ error: "Invalid season" });
+    }
+
     const officer = await prisma.officer.update({
-      where: { id: Number(req.params.id) },
+      where: { id },
       data: {
         name: req.body.name,
         role: req.body.role,
         type: req.body.type,
         email: req.body.email || null,
         phone: req.body.phone || null,
-        seasonId: Number(req.body.seasonId),
+        seasonId,
         active: req.body.active,
       },
     });
@@ -69,12 +105,23 @@ router.put("/:id", async (req, res) => {
 });
 
 /**
- * DELETE officer
+ * DELETE officer (tenant scoped)
+ * DELETE /api/:tenantSlug/admin/officers/:id
  */
-router.delete("/:id", async (req, res) => {
+router.delete("/:tenantSlug/:id", resolveTenant, async (req, res) => {
   try {
+    const id = Number(req.params.id);
+
+    const existing = await prisma.officer.findFirst({
+      where: { id, tenantId: req.tenantId },
+    });
+
+    if (!existing) {
+      return res.status(404).json({ error: "Officer not found" });
+    }
+
     await prisma.officer.delete({
-      where: { id: Number(req.params.id) },
+      where: { id },
     });
 
     res.json({ success: true });

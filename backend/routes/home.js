@@ -2,63 +2,121 @@
 
 import express from "express";
 import prisma from "../prismaClient.mjs";
+import { resolveTenant } from "../middleware/resolveTenant.js";
 
 const router = express.Router();
 
 /**
- * GET /api/home
- * Returns upcoming rodeos + announcements for the home page
+ * GET /api/:tenantSlug/home
+ * Public homepage payload (tenant-isolated)
+ * Must never hard-crash if DB is empty.
  */
-router.get("/", async (req, res) => {
+router.get("/:tenantSlug", resolveTenant, async (req, res) => {
   try {
     const now = new Date();
+    const tenantId = req.tenantId;
 
-    const [rodeos, announcements] = await Promise.all([
-      prisma.event.findMany({
-        where: {
-          status: "published",
-          startDate: { gte: now },
-          season: { active: true },
-        },
-        orderBy: { startDate: "asc" },
-        take: 3,
-        include: {
-          location: true,
-        },
-      }),
-
-      prisma.announcement.findMany({
-        where: {
-          published: true,
-          season: { active: true },
-          OR: [
-            { expireAt: null },
-            { expireAt: { gt: now } },
+    const [announcements, rodeos, sponsors, featuredAthletes] =
+      await Promise.all([
+        prisma.announcement.findMany({
+          where: {
+            tenantId,
+            published: true,
+            AND: [
+              {
+                OR: [{ publishAt: null }, { publishAt: { lte: now } }],
+              },
+              {
+                OR: [{ expireAt: null }, { expireAt: { gte: now } }],
+              },
+            ],
+          },
+          orderBy: [
+            { sortOrder: "asc" },
+            { publishAt: "desc" },
+            { createdAt: "desc" },
           ],
-          AND: [
-            {
-              OR: [
-                { publishAt: null },
-                { publishAt: { lte: now } },
-              ],
+          include: {
+            rodeo: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                startDate: true,
+                endDate: true,
+              },
             },
-          ],
-        },
-        orderBy: [
-          { sortOrder: "asc" },
-          { publishAt: "desc" },
-        ],
-        take: 3,
-      }),
-    ]);
+          },
+        }),
 
-    res.json({
-      rodeos,
-      announcements,
+        prisma.rodeo.findMany({
+          where: {
+            tenantId,
+            status: "published",
+          },
+          orderBy: { startDate: "asc" },
+          take: 6,
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            startDate: true,
+            endDate: true,
+          },
+        }),
+
+        prisma.sponsor.findMany({
+          where: {
+            tenantId,
+            active: true,
+          },
+          orderBy: [{ createdAt: "desc" }],
+          take: 12,
+          select: {
+            id: true,
+            name: true,
+            website: true,
+            logoUrl: true,
+            description: true,
+          },
+        }),
+
+        prisma.athlete.findMany({
+          where: {
+            tenantId,
+            isActive: true,
+            isFeatured: true,
+          },
+          orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
+          take: 10,
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            slug: true,
+            school: true,
+            grade: true,
+            hometown: true,
+            headshotUrl: true,
+            events: true,
+          },
+        }),
+      ]);
+
+    return res.json({
+      announcements: announcements || [],
+      upcomingRodeos: rodeos || [],
+      sponsors: sponsors || [],
+      featuredAthletes: featuredAthletes || [],
     });
-  } catch (error) {
-    console.error("HOME_API_ERROR", error);
-    res.status(500).json({ error: "Failed to load home data" });
+  } catch (err) {
+    console.error("HOME_API_ERROR", err);
+    return res.status(200).json({
+      announcements: [],
+      upcomingRodeos: [],
+      sponsors: [],
+      featuredAthletes: [],
+    });
   }
 });
 

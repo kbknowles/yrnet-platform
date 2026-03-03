@@ -1,69 +1,55 @@
-// backend/routes/announcements.js
+// filepath: backend/routes/announcements.js
+
 import express from "express";
 import prisma from "../prismaClient.mjs";
+import { resolveTenant } from "../middleware/resolveTenant.js";
 
 const router = express.Router();
 
-/* --------------------------------
-   GET ALL PUBLISHED ANNOUNCEMENTS
-   (WITH EVENT SLUG FOR ROUTING)
----------------------------------- */
-router.get("/", async (_req, res) => {
-  const now = new Date();
+/**
+ * GET /api/:tenantSlug/announcements
+ */
+router.get("/:tenantSlug", resolveTenant, async (req, res) => {
+  try {
+    const now = new Date();
 
-  const items = await prisma.announcement.findMany({
-    where: {
-      published: true,
-      AND: [
-        {
-          OR: [{ publishAt: null }, { publishAt: { lte: now } }],
-        },
-        {
-          OR: [{ expireAt: null }, { expireAt: { gte: now } }],
-        },
+    const announcements = await prisma.announcement.findMany({
+      where: {
+        tenantId: req.tenantId,
+        published: true,
+        AND: [
+          {
+            OR: [{ publishAt: null }, { publishAt: { lte: now } }],
+          },
+          {
+            OR: [{ expireAt: null }, { expireAt: { gte: now } }],
+          },
+        ],
+      },
+      orderBy: [
+        { sortOrder: "asc" },
+        { publishAt: "desc" },
+        { createdAt: "desc" },
       ],
-    },
-    orderBy: [
-      { sortOrder: "asc" },
-      { publishAt: "desc" },
-      { createdAt: "desc" },
-    ],
-    include: {
-      event: {
-        select: {
-          id: true,
-          name: true,
-          slug: true, // REQUIRED for /schedule/[slug]
+      include: {
+        rodeo: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
         },
       },
-    },
-  });
+    });
 
-  res.json(items);
-});
-
-/* --------------------------------
-   GET SINGLE ANNOUNCEMENT (OPTIONAL)
----------------------------------- */
-router.get("/:id", async (req, res) => {
-  const item = await prisma.announcement.findUnique({
-    where: { id: Number(req.params.id) },
-    include: {
-      event: {
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-        },
-      },
-    },
-  });
-
-  if (!item || !item.published) {
-    return res.status(404).json({ error: "Not found" });
+    return res.json(announcements);
+  } catch (err) {
+    console.error("ANNOUNCEMENTS_API_ERROR", err);
+    return res.status(500).json({
+      error: "Failed to load announcements",
+      detail: err?.message || String(err),
+    });
   }
-
-  res.json(item);
 });
 
 export default router;

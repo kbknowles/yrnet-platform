@@ -1,3 +1,5 @@
+// filepath: backend/routes/admin/sponsorships.js
+
 import express from "express";
 import prisma from "../../prismaClient.mjs";
 
@@ -6,7 +8,7 @@ const router = express.Router();
 /* ==============================
    GET ALL
 ============================== */
-router.get("/", async (req, res) => {
+router.get("/", async (_req, res) => {
   try {
     const items = await prisma.sponsorship.findMany({
       include: { sponsor: true },
@@ -15,7 +17,7 @@ router.get("/", async (req, res) => {
 
     res.json(items);
   } catch (err) {
-    console.error(err);
+    console.error("GET sponsorships failed", err);
     res.status(500).json({ error: "Failed to fetch sponsorships" });
   }
 });
@@ -30,10 +32,13 @@ router.get("/:id", async (req, res) => {
       include: { sponsor: true },
     });
 
-    if (!item) return res.status(404).json({ error: "Not found" });
+    if (!item) {
+      return res.status(404).json({ error: "Not found" });
+    }
 
     res.json(item);
   } catch (err) {
+    console.error("GET sponsorship failed", err);
     res.status(500).json({ error: "Failed to fetch sponsorship" });
   }
 });
@@ -54,6 +59,10 @@ router.post("/", async (req, res) => {
       active,
     } = req.body;
 
+    if (!sponsorId || !level || !startDate || !endDate) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
     const created = await prisma.sponsorship.create({
       data: {
         sponsorId: Number(sponsorId),
@@ -61,15 +70,24 @@ router.post("/", async (req, res) => {
         startDate: new Date(startDate),
         endDate: new Date(endDate),
         contentType: contentType || null,
-        contentId: contentId ? Number(contentId) : null,
-        priority: priority ?? 0,
-        active: active ?? true,
+        contentId:
+          contentId !== undefined && contentId !== null && contentId !== ""
+            ? Number(contentId)
+            : null,
+        priority:
+          priority !== undefined && priority !== null
+            ? Number(priority)
+            : 0,
+        active:
+          active === undefined
+            ? true
+            : active === true || active === "true",
       },
     });
 
     res.json(created);
   } catch (err) {
-    console.error(err);
+    console.error("CREATE sponsorship failed", err);
     res.status(500).json({ error: "Failed to create sponsorship" });
   }
 });
@@ -89,6 +107,10 @@ router.put("/:id", async (req, res) => {
       active,
     } = req.body;
 
+    if (!level || !startDate || !endDate) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
     const updated = await prisma.sponsorship.update({
       where: { id: Number(req.params.id) },
       data: {
@@ -96,14 +118,24 @@ router.put("/:id", async (req, res) => {
         startDate: new Date(startDate),
         endDate: new Date(endDate),
         contentType: contentType || null,
-        contentId: contentId ? Number(contentId) : null,
-        priority: priority ?? 0,
-        active: active ?? true,
+        contentId:
+          contentId !== undefined && contentId !== null && contentId !== ""
+            ? Number(contentId)
+            : null,
+        priority:
+          priority !== undefined && priority !== null
+            ? Number(priority)
+            : 0,
+        active:
+          active === undefined
+            ? true
+            : active === true || active === "true",
       },
     });
 
     res.json(updated);
   } catch (err) {
+    console.error("UPDATE sponsorship failed", err);
     res.status(500).json({ error: "Failed to update sponsorship" });
   }
 });
@@ -119,6 +151,7 @@ router.delete("/:id", async (req, res) => {
 
     res.json({ success: true });
   } catch (err) {
+    console.error("DELETE sponsorship failed", err);
     res.status(500).json({ error: "Failed to delete sponsorship" });
   }
 });

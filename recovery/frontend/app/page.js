@@ -3,7 +3,7 @@
 import HomeHero from "../components/home/HomeHero";
 import HomeMission from "../components/home/HomeMission";
 import HomeHighlights from "../components/home/HomeHighlights";
-import EventGallery from "../components/home/EventGallery";
+import RodeoGallery from "../components/home/RodeoGallery";
 import HomeCTA from "../components/home/HomeCTA";
 
 import SponsorZone from "../components/sponsorship/SponsorZone";
@@ -55,7 +55,7 @@ export default async function HomePage() {
 
       <HomeMission />
 
-      <EventGallery albums={galleryAlbums} />
+      <RodeoGallery albums={galleryAlbums} />
 
       {/* Sponsors Section */}
       <section className="py-16 bg-gray-50">

@@ -2,6 +2,7 @@
 
 import express from "express";
 import prisma from "../prismaClient.mjs";
+import { resolveTenant } from "../middleware/resolveTenant.js";
 
 const router = express.Router();
 
@@ -9,9 +10,12 @@ const router = express.Router();
    GET ALL (PUBLIC)
    Active athletes only
 ----------------------------- */
-router.get("/", async (_req, res) => {
+router.get("/:tenantSlug", resolveTenant, async (req, res) => {
   const athletes = await prisma.athlete.findMany({
-    where: { isActive: true },
+    where: {
+      tenantId: req.tenantId,
+      isActive: true,
+    },
     orderBy: [{ sortOrder: "asc" }, { lastName: "asc" }],
   });
 
@@ -20,9 +24,9 @@ router.get("/", async (_req, res) => {
 
 /* ----------------------------
    GET ONE BY SLUG (PUBLIC)
-   Canonical: slug-only
+   Canonical: slug-only (within tenant)
 ----------------------------- */
-router.get("/:slug", async (req, res) => {
+router.get("/:tenantSlug/:slug", resolveTenant, async (req, res) => {
   const { slug } = req.params;
 
   if (!slug) {
@@ -30,7 +34,12 @@ router.get("/:slug", async (req, res) => {
   }
 
   const athlete = await prisma.athlete.findUnique({
-    where: { slug },
+    where: {
+      slug_tenantId: {
+        slug,
+        tenantId: req.tenantId,
+      },
+    },
   });
 
   if (!athlete || !athlete.isActive) {

@@ -96,6 +96,9 @@ model Tenant {
   customPages    CustomPage[]
   athletes       Athlete[]
 
+  rodeoEntries  RodeoEntry[]
+  pointsEntries PointsEntry[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -118,6 +121,9 @@ model Season {
   gallery       GalleryAlbum[]
   athletes      Athlete[]
 
+  rodeoEntries  RodeoEntry[]
+  pointsEntries PointsEntry[]
+
   createdAt DateTime @default(now())
 
   @@unique([year, tenantId])
@@ -137,7 +143,7 @@ model Location {
   tenantId Int
   tenant   Tenant @relation(fields: [tenantId], references: [id])
 
-  rodeos   Rodeo[]
+  rodeos    Rodeo[]
   createdAt DateTime @default(now())
 }
 
@@ -156,7 +162,7 @@ model CallInPolicy {
   tenantId Int
   tenant   Tenant @relation(fields: [tenantId], references: [id])
 
-  rodeos  Rodeo[]
+  rodeos    Rodeo[]
   createdAt DateTime @default(now())
 }
 
@@ -169,6 +175,8 @@ model Rodeo {
 
   startDate DateTime
   endDate   DateTime
+
+  goCount Int @default(1)
 
   tenantId Int
   tenant   Tenant @relation(fields: [tenantId], references: [id])
@@ -187,9 +195,11 @@ model Rodeo {
   location     Location      @relation(fields: [locationId], references: [id])
   callInPolicy CallInPolicy? @relation(fields: [callInPolicyId], references: [id])
 
-  scheduleItems RodeoScheduleItem[]
-  contacts      RodeoContact[]
-  announcements Announcement[]
+  scheduleItems  RodeoScheduleItem[]
+  contacts       RodeoContact[]
+  announcements  Announcement[]
+  entries        RodeoEntry[]
+  pointsEntries  PointsEntry[]
 
   createdAt DateTime @default(now())
 
@@ -207,7 +217,7 @@ model RodeoScheduleItem {
   startTime String?
   notes     String?
 
-  rodeo Rodeo @relation(fields: [rodeoId], references: [id])
+  rodeo     Rodeo   @relation(fields: [rodeoId], references: [id])
   createdAt DateTime @default(now())
 }
 
@@ -220,7 +230,7 @@ model RodeoContact {
   contactRole String
   officerRole String
 
-  rodeo Rodeo @relation(fields: [rodeoId], references: [id])
+  rodeo     Rodeo   @relation(fields: [rodeoId], references: [id])
   createdAt DateTime @default(now())
 }
 
@@ -241,7 +251,7 @@ model Officer {
   seasonId Int
   active   Boolean @default(true)
 
-  season Season @relation(fields: [seasonId], references: [id])
+  season   Season  @relation(fields: [seasonId], references: [id])
 
   createdAt DateTime @default(now())
 }
@@ -354,19 +364,19 @@ model GalleryImage {
   caption   String?
   sortOrder Int @default(0)
 
-  album GalleryAlbum @relation(fields: [albumId], references: [id])
+  album     GalleryAlbum @relation(fields: [albumId], references: [id])
   createdAt DateTime @default(now())
 }
 
 /* ================= CUSTOM PAGE ================= */
 
 model CustomPage {
-  id      Int @id @default(autoincrement())
-  title   String
+  id           Int @id @default(autoincrement())
+  title        String
   heroSubtitle String?
-  slug    String
-  content String
-  status  String
+  slug         String
+  content      String
+  status       String
 
   tenantId Int
   tenant   Tenant @relation(fields: [tenantId], references: [id])
@@ -416,12 +426,81 @@ model Athlete {
   futureGoals String?
   socialLinks Json?
 
-  isActive   Boolean @default(true)
+  isActive Boolean @default(true)
+
+  profileEnabled   Boolean @default(false)
+  profilePublished Boolean @default(false)
+
   isFeatured Boolean @default(false)
   sortOrder  Int     @default(0)
+
+  entries      RodeoEntry[]
+  pointsEntries PointsEntry[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@unique([slug, tenantId])
+}
+
+/* ================= RODEO ENTRY ================= */
+
+model RodeoEntry {
+  id       Int @id @default(autoincrement())
+
+  tenantId Int
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  seasonId Int
+  season   Season @relation(fields: [seasonId], references: [id])
+
+  rodeoId Int
+  rodeo   Rodeo @relation(fields: [rodeoId], references: [id], onDelete: Cascade)
+
+  athleteId Int
+  athlete   Athlete @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+
+  event    AthleteEvent
+  goNumber Int @default(1)
+
+  // NEW: opposite side of PointsEntry.entry relation
+  pointsEntry PointsEntry?
+
+  createdAt DateTime @default(now())
+
+  @@unique([rodeoId, athleteId, event, goNumber])
+  @@index([tenantId, seasonId, rodeoId, event, goNumber])
+  @@index([athleteId])
+}
+
+/* ================= POINTS ENTRY ================= */
+
+model PointsEntry {
+  id       Int @id @default(autoincrement())
+
+  tenantId Int
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  seasonId Int
+  season   Season @relation(fields: [seasonId], references: [id])
+
+  rodeoId Int
+  rodeo   Rodeo @relation(fields: [rodeoId], references: [id], onDelete: Cascade)
+
+  athleteId Int
+  athlete   Athlete @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+
+  entryId Int @unique
+  entry   RodeoEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  event    AthleteEvent
+  goNumber Int @default(1)
+
+  points   Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId, seasonId, rodeoId, event, goNumber])
+  @@index([athleteId])
 }

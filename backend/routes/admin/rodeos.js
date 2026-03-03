@@ -1,16 +1,19 @@
-// filepath: backend/routes/admin/events.js
+// filepath: backend/routes/admin/rodeos.js
 
 import express from "express";
 import prisma from "../../prismaClient.mjs";
+import { resolveTenant } from "../../middleware/resolveTenant.js";
 
 const router = express.Router();
 
 /* ---------------- */
-/* GET ALL EVENTS  */
+/* GET ALL RODEOS (Tenant Scoped) */
+/* GET /api/:tenantSlug/admin/rodeos */
 /* ---------------- */
-router.get("/", async (_req, res) => {
+router.get("/:tenantSlug", resolveTenant, async (req, res) => {
   try {
-    const events = await prisma.event.findMany({
+    const rodeos = await prisma.rodeo.findMany({
+      where: { tenantId: req.tenantId },
       include: {
         season: true,
         location: true,
@@ -21,20 +24,24 @@ router.get("/", async (_req, res) => {
       orderBy: { startDate: "asc" },
     });
 
-    res.json(events);
+    return res.json(rodeos || []);
   } catch (err) {
-    console.error("GET EVENTS ERROR:", err);
-    res.status(500).json({ error: "Failed to load events" });
+    console.error("GET_RODEOS_ERROR", err);
+    return res.status(500).json({ error: "Failed to load rodeos" });
   }
 });
 
 /* ---------------- */
-/* GET EVENT BY SLUG */
+/* GET RODEO BY SLUG (Tenant Scoped) */
+/* GET /api/:tenantSlug/admin/rodeos/:slug */
 /* ---------------- */
-router.get("/:slug", async (req, res) => {
+router.get("/:tenantSlug/:slug", resolveTenant, async (req, res) => {
   try {
-    const event = await prisma.event.findUnique({
-      where: { slug: req.params.slug },
+    const rodeo = await prisma.rodeo.findFirst({
+      where: {
+        slug: req.params.slug,
+        tenantId: req.tenantId,
+      },
       include: {
         season: true,
         location: true,
@@ -44,21 +51,22 @@ router.get("/:slug", async (req, res) => {
       },
     });
 
-    if (!event) {
-      return res.status(404).json({ error: "Event not found" });
+    if (!rodeo) {
+      return res.status(404).json({ error: "Rodeo not found" });
     }
 
-    res.json(event);
+    return res.json(rodeo);
   } catch (err) {
-    console.error("GET EVENT ERROR:", err);
-    res.status(500).json({ error: "Failed to load event" });
+    console.error("GET_RODEO_ERROR", err);
+    return res.status(500).json({ error: "Failed to load rodeo" });
   }
 });
 
 /* ---------------- */
-/* CREATE EVENT */
+/* CREATE RODEO (Tenant Scoped) */
+/* POST /api/:tenantSlug/admin/rodeos */
 /* ---------------- */
-router.post("/", async (req, res) => {
+router.post("/:tenantSlug", resolveTenant, async (req, res) => {
   try {
     const {
       name,
@@ -75,13 +83,24 @@ router.post("/", async (req, res) => {
     } = req.body;
 
     if (!name || !slug || !startDate || !endDate || !seasonId || !locationId) {
-      return res.status(400).json({
-        error: "Missing required fields",
-      });
+      return res.status(400).json({ error: "Missing required fields" });
     }
 
-    const event = await prisma.event.create({
+    const season = await prisma.season.findFirst({
+      where: { id: Number(seasonId), tenantId: req.tenantId },
+    });
+
+    const location = await prisma.location.findFirst({
+      where: { id: Number(locationId), tenantId: req.tenantId },
+    });
+
+    if (!season || !location) {
+      return res.status(400).json({ error: "Invalid season or location" });
+    }
+
+    const rodeo = await prisma.rodeo.create({
       data: {
+        tenantId: req.tenantId,
         name,
         slug,
         startDate: new Date(startDate),
@@ -96,17 +115,18 @@ router.post("/", async (req, res) => {
       },
     });
 
-    res.json(event);
+    return res.json(rodeo);
   } catch (err) {
-    console.error("CREATE EVENT ERROR:", err);
-    res.status(500).json({ error: "Failed to create event" });
+    console.error("CREATE_RODEO_ERROR", err);
+    return res.status(500).json({ error: "Failed to create rodeo" });
   }
 });
 
 /* ---------------- */
-/* UPDATE EVENT (BY SLUG) */
+/* UPDATE RODEO (Tenant Scoped) */
+/* PUT /api/:tenantSlug/admin/rodeos/:slug */
 /* ---------------- */
-router.put("/:slug", async (req, res) => {
+router.put("/:tenantSlug/:slug", resolveTenant, async (req, res) => {
   try {
     const {
       name,
@@ -123,13 +143,19 @@ router.put("/:slug", async (req, res) => {
     } = req.body;
 
     if (!name || !newSlug || !startDate || !endDate || !seasonId || !locationId) {
-      return res.status(400).json({
-        error: "Missing required fields",
-      });
+      return res.status(400).json({ error: "Missing required fields" });
     }
 
-    const event = await prisma.event.update({
-      where: { slug: req.params.slug },
+    const existing = await prisma.rodeo.findFirst({
+      where: { slug: req.params.slug, tenantId: req.tenantId },
+    });
+
+    if (!existing) {
+      return res.status(404).json({ error: "Rodeo not found" });
+    }
+
+    const rodeo = await prisma.rodeo.update({
+      where: { id: existing.id },
       data: {
         name,
         slug: newSlug,
@@ -141,30 +167,39 @@ router.put("/:slug", async (req, res) => {
         generalInfo: generalInfo || null,
         specials: specials || null,
         isStateFinals: Boolean(isStateFinals),
-        status,
+        status: status || "published",
       },
     });
 
-    res.json(event);
+    return res.json(rodeo);
   } catch (err) {
-    console.error("UPDATE EVENT ERROR:", err);
-    res.status(500).json({ error: "Failed to update event" });
+    console.error("UPDATE_RODEO_ERROR", err);
+    return res.status(500).json({ error: "Failed to update rodeo" });
   }
 });
 
 /* ---------------- */
-/* DELETE EVENT (BY SLUG) */
+/* DELETE RODEO (Tenant Scoped) */
+/* DELETE /api/:tenantSlug/admin/rodeos/:slug */
 /* ---------------- */
-router.delete("/:slug", async (req, res) => {
+router.delete("/:tenantSlug/:slug", resolveTenant, async (req, res) => {
   try {
-    await prisma.event.delete({
-      where: { slug: req.params.slug },
+    const existing = await prisma.rodeo.findFirst({
+      where: { slug: req.params.slug, tenantId: req.tenantId },
     });
 
-    res.json({ success: true });
+    if (!existing) {
+      return res.status(404).json({ error: "Rodeo not found" });
+    }
+
+    await prisma.rodeo.delete({
+      where: { id: existing.id },
+    });
+
+    return res.json({ success: true });
   } catch (err) {
-    console.error("DELETE EVENT ERROR:", err);
-    res.status(500).json({ error: "Failed to delete event" });
+    console.error("DELETE_RODEO_ERROR", err);
+    return res.status(500).json({ error: "Failed to delete rodeo" });
   }
 });
 

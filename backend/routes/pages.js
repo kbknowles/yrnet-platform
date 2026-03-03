@@ -2,15 +2,20 @@
 
 import express from "express";
 import prisma from "../prismaClient.mjs";
+import { resolveTenant } from "../middleware/resolveTenant.js";
 
 const router = express.Router();
 
 /* ------------------------------ */
 /* GET ALL PUBLISHED PAGES */
+/* GET /api/:tenantSlug/pages */
 /* ------------------------------ */
-router.get("/", async (req, res) => {
+router.get("/:tenantSlug", resolveTenant, async (req, res) => {
   const pages = await prisma.customPage.findMany({
-    where: { status: "published" },
+    where: {
+      tenantId: req.tenantId,
+      status: "published",
+    },
     orderBy: { sortOrder: "asc" },
     select: {
       title: true,
@@ -28,10 +33,12 @@ router.get("/", async (req, res) => {
 
 /* ------------------------------ */
 /* GET PAGE BY SLUG */
+/* GET /api/:tenantSlug/pages/:slug */
 /* ------------------------------ */
-router.get("/:slug", async (req, res) => {
+router.get("/:tenantSlug/:slug", resolveTenant, async (req, res) => {
   const page = await prisma.customPage.findFirst({
     where: {
+      tenantId: req.tenantId,
       slug: req.params.slug,
       status: "published",
     },
