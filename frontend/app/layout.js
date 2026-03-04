@@ -2,7 +2,6 @@
 
 import "../styles/globals.css";
 import { Fira_Sans } from "next/font/google";
-import Footer from "components/Footer";
 
 const firaSans = Fira_Sans({
   subsets: ["latin"],
@@ -13,13 +12,9 @@ const firaSans = Fira_Sans({
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body
-        suppressHydrationWarning
-        className={`${firaSans.variable} min-h-screen flex flex-col`}
-      >
-        <main className="flex-1 bg-white">{children}</main>
-        <Footer />
+    <html lang="en">
+      <body className={`${firaSans.variable} min-h-screen flex flex-col`}>
+        {children}
       </body>
     </html>
   );

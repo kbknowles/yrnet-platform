@@ -62,7 +62,7 @@ export default function Header({ tenant }) {
     <header
       className={`${
         isHome
-          ? "absolute top-0 left-0 w-full bg-transparent"
+          ? "absolute top-0 left-0 w-full bg-gray-900"
           : "bg-slate-900"
       } text-white z-50`}
     >
