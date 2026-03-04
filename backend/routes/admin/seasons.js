@@ -10,14 +10,14 @@ const router = express.Router();
 /* GET ALL SEASONS (Tenant Scoped) */
 /* GET /api/:tenantSlug/admin/seasons */
 /* ---------------- */
-router.get("/:tenantSlug", resolveTenant, async (req, res) => {
+router.get("/", resolveTenant, async (req, res) => {
   try {
     const seasons = await prisma.season.findMany({
       where: { tenantId: req.tenantId },
       orderBy: { startDate: "desc" },
     });
 
-    res.json(seasons);
+    res.json(seasons || []);
   } catch (err) {
     console.error("GET /seasons failed", err);
     res.status(500).json({ error: "Failed to load seasons" });
@@ -28,7 +28,7 @@ router.get("/:tenantSlug", resolveTenant, async (req, res) => {
 /* CREATE SEASON (Tenant Scoped) */
 /* POST /api/:tenantSlug/admin/seasons */
 /* ---------------- */
-router.post("/:tenantSlug", resolveTenant, async (req, res) => {
+router.post("/", resolveTenant, async (req, res) => {
   try {
     const { year, startDate, endDate, active } = req.body;
 
@@ -57,7 +57,7 @@ router.post("/:tenantSlug", resolveTenant, async (req, res) => {
 /* UPDATE SEASON (Tenant Scoped) */
 /* PUT /api/:tenantSlug/admin/seasons/:id */
 /* ---------------- */
-router.put("/:tenantSlug/:id", resolveTenant, async (req, res) => {
+router.put("/:id", resolveTenant, async (req, res) => {
   try {
     const id = Number(req.params.id);
     const { year, startDate, endDate, active } = req.body;
@@ -91,7 +91,7 @@ router.put("/:tenantSlug/:id", resolveTenant, async (req, res) => {
 /* DELETE SEASON (Tenant Scoped) */
 /* DELETE /api/:tenantSlug/admin/seasons/:id */
 /* ---------------- */
-router.delete("/:tenantSlug/:id", resolveTenant, async (req, res) => {
+router.delete("/:id", resolveTenant, async (req, res) => {
   try {
     const id = Number(req.params.id);
 

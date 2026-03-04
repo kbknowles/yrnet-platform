@@ -35,7 +35,7 @@ export default function RodeoGallery({ albums = [] }) {
 
           <Link
             href={`/gallery/${latestAlbum.slug}`}
-            className="text-sm text-ahsra-blue hover:underline"
+            className="text-sm text-primary hover:underline"
           >
             View More →
           </Link>

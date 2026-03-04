@@ -9,44 +9,55 @@ const router = express.Router();
 /* ----------------------------
    GET ALL (PUBLIC)
    Active athletes only
+   GET /api/:tenantSlug/athletes
 ----------------------------- */
-router.get("/:tenantSlug", resolveTenant, async (req, res) => {
-  const athletes = await prisma.athlete.findMany({
-    where: {
-      tenantId: req.tenantId,
-      isActive: true,
-    },
-    orderBy: [{ sortOrder: "asc" }, { lastName: "asc" }],
-  });
+router.get("/", resolveTenant, async (req, res) => {
+  try {
+    const athletes = await prisma.athlete.findMany({
+      where: {
+        tenantId: req.tenantId,
+        isActive: true,
+      },
+      orderBy: [{ sortOrder: "asc" }, { lastName: "asc" }],
+    });
 
-  res.json(athletes);
+    res.json(athletes || []);
+  } catch (err) {
+    console.error("PUBLIC_ATHLETES_ERROR", err);
+    res.status(200).json([]);
+  }
 });
 
 /* ----------------------------
    GET ONE BY SLUG (PUBLIC)
-   Canonical: slug-only (within tenant)
+   GET /api/:tenantSlug/athletes/:slug
 ----------------------------- */
-router.get("/:tenantSlug/:slug", resolveTenant, async (req, res) => {
-  const { slug } = req.params;
+router.get("/:slug", resolveTenant, async (req, res) => {
+  try {
+    const { slug } = req.params;
 
-  if (!slug) {
-    return res.status(400).json({ error: "Invalid athlete slug" });
-  }
+    if (!slug) {
+      return res.status(400).json({ error: "Invalid athlete slug" });
+    }
 
-  const athlete = await prisma.athlete.findUnique({
-    where: {
-      slug_tenantId: {
-        slug,
-        tenantId: req.tenantId,
+    const athlete = await prisma.athlete.findUnique({
+      where: {
+        slug_tenantId: {
+          slug,
+          tenantId: req.tenantId,
+        },
       },
-    },
-  });
+    });
 
-  if (!athlete || !athlete.isActive) {
-    return res.status(404).json({ error: "Athlete not found" });
+    if (!athlete || !athlete.isActive) {
+      return res.status(404).json({ error: "Athlete not found" });
+    }
+
+    res.json(athlete);
+  } catch (err) {
+    console.error("PUBLIC_ATHLETE_ERROR", err);
+    res.status(500).json({ error: "Failed to load athlete" });
   }
-
-  res.json(athlete);
 });
 
 export default router;

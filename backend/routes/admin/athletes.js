@@ -45,9 +45,10 @@ function deleteFileIfExists(filePath) {
 
 /* ----------------------------
    GET ALL (Tenant Scoped)
+   GET /api/:tenantSlug/admin/athletes
 ----------------------------- */
 
-router.get("/:tenantSlug", resolveTenant, async (req, res) => {
+router.get("/", resolveTenant, async (req, res) => {
   try {
     const athletes = await prisma.athlete.findMany({
       where: { tenantId: req.tenantId },
@@ -55,7 +56,7 @@ router.get("/:tenantSlug", resolveTenant, async (req, res) => {
       include: { season: true },
     });
 
-    res.json(athletes);
+    res.json(athletes || []);
   } catch (err) {
     console.error("GET ATHLETES ERROR:", err);
     res.status(500).json({ error: "Failed to load athletes" });
@@ -64,9 +65,10 @@ router.get("/:tenantSlug", resolveTenant, async (req, res) => {
 
 /* ----------------------------
    GET ONE (Tenant Scoped)
+   GET /api/:tenantSlug/admin/athletes/:slug
 ----------------------------- */
 
-router.get("/:tenantSlug/:slug", resolveTenant, async (req, res) => {
+router.get("/:slug", resolveTenant, async (req, res) => {
   try {
     const athlete = await prisma.athlete.findFirst({
       where: {
@@ -89,10 +91,11 @@ router.get("/:tenantSlug/:slug", resolveTenant, async (req, res) => {
 
 /* ----------------------------
    CREATE (Tenant Scoped)
+   POST /api/:tenantSlug/admin/athletes
 ----------------------------- */
 
 router.post(
-  "/:tenantSlug",
+  "/",
   resolveTenant,
   uploadImage.fields([
     { name: "headshot", maxCount: 1 },
@@ -155,10 +158,11 @@ router.post(
 
 /* ----------------------------
    UPDATE (Tenant Scoped)
+   PUT /api/:tenantSlug/admin/athletes/:slug
 ----------------------------- */
 
 router.put(
-  "/:tenantSlug/:slug",
+  "/:slug",
   resolveTenant,
   uploadImage.fields([
     { name: "headshot", maxCount: 1 },
@@ -283,9 +287,10 @@ router.put(
 
 /* ----------------------------
    DELETE (Tenant Scoped)
+   DELETE /api/:tenantSlug/admin/athletes/:slug
 ----------------------------- */
 
-router.delete("/:tenantSlug/:slug", resolveTenant, async (req, res) => {
+router.delete("/:slug", resolveTenant, async (req, res) => {
   try {
     const existing = await prisma.athlete.findFirst({
       where: { slug: req.params.slug, tenantId: req.tenantId },

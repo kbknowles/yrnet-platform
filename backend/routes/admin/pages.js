@@ -10,17 +10,14 @@ const router = express.Router();
 /* GET ALL PAGES (Tenant Scoped) */
 /* GET /api/:tenantSlug/admin/pages */
 /* ------------------------------ */
-router.get("/:tenantSlug", resolveTenant, async (req, res) => {
+router.get("/", resolveTenant, async (req, res) => {
   try {
     const pages = await prisma.customPage.findMany({
       where: { tenantId: req.tenantId },
-      orderBy: [
-        { sortOrder: "asc" },
-        { updatedAt: "desc" },
-      ],
+      orderBy: [{ sortOrder: "asc" }, { updatedAt: "desc" }],
     });
 
-    res.json(pages);
+    res.json(pages || []);
   } catch (err) {
     console.error("ADMIN_PAGES_GET_ERROR", err);
     res.status(500).json({ error: "Failed to load pages" });
@@ -31,7 +28,7 @@ router.get("/:tenantSlug", resolveTenant, async (req, res) => {
 /* CREATE PAGE (Tenant Scoped) */
 /* POST /api/:tenantSlug/admin/pages */
 /* ------------------------------ */
-router.post("/:tenantSlug", resolveTenant, async (req, res) => {
+router.post("/", resolveTenant, async (req, res) => {
   try {
     const {
       title,
@@ -77,7 +74,7 @@ router.post("/:tenantSlug", resolveTenant, async (req, res) => {
 /* UPDATE PAGE (Tenant Scoped) */
 /* PUT /api/:tenantSlug/admin/pages/:id */
 /* ------------------------------ */
-router.put("/:tenantSlug/:id", resolveTenant, async (req, res) => {
+router.put("/:id", resolveTenant, async (req, res) => {
   try {
     const id = Number(req.params.id);
 
@@ -133,7 +130,7 @@ router.put("/:tenantSlug/:id", resolveTenant, async (req, res) => {
 /* DELETE PAGE (Tenant Scoped) */
 /* DELETE /api/:tenantSlug/admin/pages/:id */
 /* ------------------------------ */
-router.delete("/:tenantSlug/:id", resolveTenant, async (req, res) => {
+router.delete("/:id", resolveTenant, async (req, res) => {
   try {
     const id = Number(req.params.id);
 

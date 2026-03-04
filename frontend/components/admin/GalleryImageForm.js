@@ -23,7 +23,7 @@ export default function GalleryImageForm({ albumId, onUploaded }) {
         placeholder="Caption"
         className="border p-1"
       />
-      <button className="bg-ahsra-blue text-white px-3 py-1 rounded">
+      <button className="bg-primary text-white px-3 py-1 rounded">
         Upload
       </button>
     </form>

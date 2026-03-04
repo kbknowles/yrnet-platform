@@ -11,7 +11,7 @@ const router = express.Router();
 /* CREATE ALBUM (Tenant Scoped) */
 /* POST /api/:tenantSlug/admin/gallery */
 /* -------------------------- */
-router.post("/:tenantSlug", resolveTenant, async (req, res) => {
+router.post("/", resolveTenant, async (req, res) => {
   try {
     const { title, seasonId } = req.body;
 
@@ -38,7 +38,7 @@ router.post("/:tenantSlug", resolveTenant, async (req, res) => {
 /* UPDATE ALBUM (Tenant Scoped) */
 /* PUT /api/:tenantSlug/admin/gallery/:id */
 /* -------------------------- */
-router.put("/:tenantSlug/:id", resolveTenant, async (req, res) => {
+router.put("/:id", resolveTenant, async (req, res) => {
   try {
     const albumId = Number(req.params.id);
     const { title, seasonId } = req.body;
@@ -70,7 +70,7 @@ router.put("/:tenantSlug/:id", resolveTenant, async (req, res) => {
 /* DELETE ALBUM + IMAGES (Tenant Scoped) */
 /* DELETE /api/:tenantSlug/admin/gallery/:id */
 /* -------------------------- */
-router.delete("/:tenantSlug/:id", resolveTenant, async (req, res) => {
+router.delete("/:id", resolveTenant, async (req, res) => {
   try {
     const albumId = Number(req.params.id);
 
@@ -101,7 +101,7 @@ router.delete("/:tenantSlug/:id", resolveTenant, async (req, res) => {
 /* LIST ALBUMS + IMAGES (Tenant Scoped) */
 /* GET /api/:tenantSlug/admin/gallery */
 /* -------------------------- */
-router.get("/:tenantSlug", resolveTenant, async (req, res) => {
+router.get("/", resolveTenant, async (req, res) => {
   try {
     const albums = await prisma.galleryAlbum.findMany({
       where: { tenantId: req.tenantId },
@@ -113,7 +113,7 @@ router.get("/:tenantSlug", resolveTenant, async (req, res) => {
       orderBy: { createdAt: "desc" },
     });
 
-    res.json(albums);
+    res.json(albums || []);
   } catch (err) {
     console.error("LIST ALBUMS ERROR:", err);
     res.status(500).json({ error: "Failed to fetch albums" });
@@ -125,7 +125,7 @@ router.get("/:tenantSlug", resolveTenant, async (req, res) => {
 /* POST /api/:tenantSlug/admin/gallery/:id/images */
 /* -------------------------- */
 router.post(
-  "/:tenantSlug/:id/images",
+  "/:id/images",
   resolveTenant,
   upload.single("image"),
   async (req, res) => {
@@ -166,7 +166,7 @@ router.post(
 /* PUT /api/:tenantSlug/admin/gallery/images/:id/order */
 /* -------------------------- */
 router.put(
-  "/:tenantSlug/images/:id/order",
+  "/images/:id/order",
   resolveTenant,
   async (req, res) => {
     try {
@@ -201,7 +201,7 @@ router.put(
 /* DELETE /api/:tenantSlug/admin/gallery/images/:id */
 /* -------------------------- */
 router.delete(
-  "/:tenantSlug/images/:id",
+  "/images/:id",
   resolveTenant,
   async (req, res) => {
     try {

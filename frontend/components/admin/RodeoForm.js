@@ -136,7 +136,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
         ))}
       </select>
 
-      <button className="rounded bg-ahsra-blue px-4 py-2 text-white">
+      <button className="rounded bg-primary px-4 py-2 text-white">
         Add Event
       </button>
     </form>

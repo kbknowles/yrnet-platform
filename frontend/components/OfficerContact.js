@@ -1,7 +1,7 @@
 // filepath: frontend/components/OfficerContact.js
 "use client";
 
-import { maskPhone } from "../lib/officerDisplay";
+import { maskPhone } from "lib/officerDisplay";
 
 export function RevealEmail({ email }) {
   if (!email) return null;
@@ -9,7 +9,7 @@ export function RevealEmail({ email }) {
   return (
     <button
       onClick={() => (window.location.href = `mailto:${email}`)}
-      className="text-sm text-ahsra-blue underline"
+      className="text-sm underline"
     >
       {email.replace("@", " [at] ").replace(".", " [dot] ")}
     </button>

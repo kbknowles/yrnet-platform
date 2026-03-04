@@ -63,7 +63,7 @@ export default function SponsorStrip({ sponsors = [] }) {
                 rel="noopener noreferrer"
                 className="flex items-center justify-center w-full h-full px-4 text-center"
               >
-                <span className="text-lg md:text-xl font-semibold tracking-wide text-ahsra-blue">
+                <span className="text-lg md:text-xl font-semibold tracking-wide text-primary">
                   {s.name}
                 </span>
               </a>

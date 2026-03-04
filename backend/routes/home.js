@@ -4,14 +4,17 @@ import express from "express";
 import prisma from "../prismaClient.mjs";
 import { resolveTenant } from "../middleware/resolveTenant.js";
 
-const router = express.Router();
+/*
+  CRITICAL:
+  mergeParams: true allows :tenantSlug
+  from the parent router to be available here.
+*/
+const router = express.Router({ mergeParams: true });
 
 /**
  * GET /api/:tenantSlug/home
- * Public homepage payload (tenant-isolated)
- * Must never hard-crash if DB is empty.
  */
-router.get("/:tenantSlug", resolveTenant, async (req, res) => {
+router.get("/", resolveTenant, async (req, res) => {
   try {
     const now = new Date();
     const tenantId = req.tenantId;
@@ -23,12 +26,8 @@ router.get("/:tenantSlug", resolveTenant, async (req, res) => {
             tenantId,
             published: true,
             AND: [
-              {
-                OR: [{ publishAt: null }, { publishAt: { lte: now } }],
-              },
-              {
-                OR: [{ expireAt: null }, { expireAt: { gte: now } }],
-              },
+              { OR: [{ publishAt: null }, { publishAt: { lte: now } }] },
+              { OR: [{ expireAt: null }, { expireAt: { gte: now } }] },
             ],
           },
           orderBy: [
@@ -50,10 +49,7 @@ router.get("/:tenantSlug", resolveTenant, async (req, res) => {
         }),
 
         prisma.rodeo.findMany({
-          where: {
-            tenantId,
-            status: "published",
-          },
+          where: { tenantId, status: "published" },
           orderBy: { startDate: "asc" },
           take: 6,
           select: {
@@ -66,11 +62,8 @@ router.get("/:tenantSlug", resolveTenant, async (req, res) => {
         }),
 
         prisma.sponsor.findMany({
-          where: {
-            tenantId,
-            active: true,
-          },
-          orderBy: [{ createdAt: "desc" }],
+          where: { tenantId, active: true },
+          orderBy: { createdAt: "desc" },
           take: 12,
           select: {
             id: true,
@@ -104,14 +97,14 @@ router.get("/:tenantSlug", resolveTenant, async (req, res) => {
       ]);
 
     return res.json({
-      announcements: announcements || [],
-      upcomingRodeos: rodeos || [],
-      sponsors: sponsors || [],
-      featuredAthletes: featuredAthletes || [],
+      announcements,
+      upcomingRodeos: rodeos,
+      sponsors,
+      featuredAthletes,
     });
   } catch (err) {
     console.error("HOME_API_ERROR", err);
-    return res.status(200).json({
+    return res.status(500).json({
       announcements: [],
       upcomingRodeos: [],
       sponsors: [],

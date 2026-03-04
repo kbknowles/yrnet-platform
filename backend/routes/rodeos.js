@@ -10,7 +10,7 @@ const router = express.Router();
  * GET /api/:tenantSlug/rodeos
  * Public, published rodeos only (tenant-scoped)
  */
-router.get("/:tenantSlug", resolveTenant, async (req, res) => {
+router.get("/", resolveTenant, async (req, res) => {
   try {
     const limitRaw = req.query.limit;
     const limit = limitRaw ? Number(limitRaw) : undefined;
@@ -28,7 +28,7 @@ router.get("/:tenantSlug", resolveTenant, async (req, res) => {
       },
     });
 
-    return res.json(rodeos);
+    return res.json(rodeos || []);
   } catch (err) {
     console.error("RODEOS_API_ERROR", err);
     return res.status(500).json({ error: "Failed to load rodeos" });
@@ -39,7 +39,7 @@ router.get("/:tenantSlug", resolveTenant, async (req, res) => {
  * GET /api/:tenantSlug/rodeos/:slug
  * Public single rodeo by slug (tenant-scoped)
  */
-router.get("/:tenantSlug/:slug", resolveTenant, async (req, res) => {
+router.get("/:slug", resolveTenant, async (req, res) => {
   try {
     const slug = String(req.params.slug || "").toLowerCase();
 

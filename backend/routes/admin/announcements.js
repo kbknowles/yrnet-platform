@@ -10,7 +10,7 @@ const router = express.Router();
    GET ALL (Tenant Scoped)
    GET /api/:tenantSlug/admin/announcements
 ============================ */
-router.get("/:tenantSlug", resolveTenant, async (req, res) => {
+router.get("/", resolveTenant, async (req, res) => {
   try {
     const items = await prisma.announcement.findMany({
       where: {
@@ -48,7 +48,7 @@ router.get("/:tenantSlug", resolveTenant, async (req, res) => {
    CREATE
    POST /api/:tenantSlug/admin/announcements
 ============================ */
-router.post("/:tenantSlug", resolveTenant, async (req, res) => {
+router.post("/", resolveTenant, async (req, res) => {
   try {
     const {
       rodeoId,
@@ -92,7 +92,7 @@ router.post("/:tenantSlug", resolveTenant, async (req, res) => {
    UPDATE
    PUT /api/:tenantSlug/admin/announcements/:id
 ============================ */
-router.put("/:tenantSlug/:id", resolveTenant, async (req, res) => {
+router.put("/:id", resolveTenant, async (req, res) => {
   try {
     const id = Number(req.params.id);
 
@@ -146,7 +146,7 @@ router.put("/:tenantSlug/:id", resolveTenant, async (req, res) => {
    DELETE
    DELETE /api/:tenantSlug/admin/announcements/:id
 ============================ */
-router.delete("/:tenantSlug/:id", resolveTenant, async (req, res) => {
+router.delete("/:id", resolveTenant, async (req, res) => {
   try {
     const id = Number(req.params.id);
 

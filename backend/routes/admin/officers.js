@@ -10,7 +10,7 @@ const router = express.Router();
  * GET all officers (tenant scoped)
  * GET /api/:tenantSlug/admin/officers
  */
-router.get("/:tenantSlug", resolveTenant, async (req, res) => {
+router.get("/", resolveTenant, async (req, res) => {
   try {
     const officers = await prisma.officer.findMany({
       where: { tenantId: req.tenantId },
@@ -18,7 +18,7 @@ router.get("/:tenantSlug", resolveTenant, async (req, res) => {
       orderBy: { name: "asc" },
     });
 
-    res.json(officers);
+    res.json(officers || []);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -28,7 +28,7 @@ router.get("/:tenantSlug", resolveTenant, async (req, res) => {
  * CREATE officer (tenant scoped)
  * POST /api/:tenantSlug/admin/officers
  */
-router.post("/:tenantSlug", resolveTenant, async (req, res) => {
+router.post("/", resolveTenant, async (req, res) => {
   try {
     const seasonId = Number(req.body.seasonId);
 
@@ -44,8 +44,8 @@ router.post("/:tenantSlug", resolveTenant, async (req, res) => {
       data: {
         tenantId: req.tenantId,
         name: req.body.name,
-        role: req.body.role,   // OfficerRole enum
-        type: req.body.type,   // OfficerType enum
+        role: req.body.role,
+        type: req.body.type,
         email: req.body.email || null,
         phone: req.body.phone || null,
         seasonId,
@@ -63,7 +63,7 @@ router.post("/:tenantSlug", resolveTenant, async (req, res) => {
  * UPDATE officer (tenant scoped)
  * PUT /api/:tenantSlug/admin/officers/:id
  */
-router.put("/:tenantSlug/:id", resolveTenant, async (req, res) => {
+router.put("/:id", resolveTenant, async (req, res) => {
   try {
     const id = Number(req.params.id);
 
@@ -108,7 +108,7 @@ router.put("/:tenantSlug/:id", resolveTenant, async (req, res) => {
  * DELETE officer (tenant scoped)
  * DELETE /api/:tenantSlug/admin/officers/:id
  */
-router.delete("/:tenantSlug/:id", resolveTenant, async (req, res) => {
+router.delete("/:id", resolveTenant, async (req, res) => {
   try {
     const id = Number(req.params.id);
 

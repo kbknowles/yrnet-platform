@@ -63,7 +63,7 @@ export default function SeasonForm({ onCreated }) {
         Active season
       </label>
 
-      <button className="bg-ahsra-blue text-white px-4 py-2 rounded">
+      <button className="bg-primary text-white px-4 py-2 rounded">
         Create Season
       </button>
     </form>

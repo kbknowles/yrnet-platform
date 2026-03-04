@@ -4,13 +4,13 @@ import express from "express";
 import prisma from "../prismaClient.mjs";
 import { resolveTenant } from "../middleware/resolveTenant.js";
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
 /* ----------------------- */
 /* UTIL: SLUG NORMALIZER   */
 /* ----------------------- */
 function toSlug(str) {
-  return str
+  return String(str || "")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)+/g, "");
@@ -18,11 +18,9 @@ function toSlug(str) {
 
 /* -------------------------------- */
 /* GET ALL PUBLISHED ALBUMS (PUBLIC) */
+/* GET /api/:tenantSlug/gallery      */
 /* -------------------------------- */
-/**
- * GET /api/:tenantSlug/gallery
- */
-router.get("/:tenantSlug", resolveTenant, async (req, res) => {
+router.get("/", resolveTenant, async (req, res) => {
   try {
     const albums = await prisma.galleryAlbum.findMany({
       where: {
@@ -36,27 +34,25 @@ router.get("/:tenantSlug", resolveTenant, async (req, res) => {
       },
     });
 
-    const withSlugs = albums.map((a) => ({
+    const withSlugs = (albums || []).map((a) => ({
       ...a,
       slug: toSlug(a.title),
     }));
 
-    res.json(withSlugs);
+    return res.json(withSlugs);
   } catch (err) {
-    console.error("PUBLIC GALLERY LIST ERROR:", err);
-    res.status(500).json({ error: "Failed to fetch gallery albums" });
+    console.error("PUBLIC_GALLERY_LIST_ERROR", err);
+    return res.status(200).json([]);
   }
 });
 
 /* -------------------------------- */
 /* GET SINGLE ALBUM BY SLUG (PUBLIC) */
+/* GET /api/:tenantSlug/gallery/albums/:slug */
 /* -------------------------------- */
-/**
- * GET /api/:tenantSlug/gallery/albums/:slug
- */
-router.get("/:tenantSlug/albums/:slug", resolveTenant, async (req, res) => {
+router.get("/albums/:slug", resolveTenant, async (req, res) => {
   try {
-    const slug = req.params.slug;
+    const slug = String(req.params.slug || "");
 
     const albums = await prisma.galleryAlbum.findMany({
       where: {
@@ -69,19 +65,16 @@ router.get("/:tenantSlug/albums/:slug", resolveTenant, async (req, res) => {
       },
     });
 
-    const album = albums.find((a) => toSlug(a.title) === slug);
+    const album = (albums || []).find((a) => toSlug(a.title) === slug);
 
     if (!album) {
       return res.status(404).json({ error: "Album not found" });
     }
 
-    res.json({
-      ...album,
-      slug,
-    });
+    return res.json({ ...album, slug });
   } catch (err) {
-    console.error("PUBLIC GALLERY ALBUM ERROR:", err);
-    res.status(500).json({ error: "Failed to fetch album" });
+    console.error("PUBLIC_GALLERY_ALBUM_ERROR", err);
+    return res.status(500).json({ error: "Failed to fetch album" });
   }
 });
 

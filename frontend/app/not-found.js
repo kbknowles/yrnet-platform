@@ -5,7 +5,7 @@ import Link from "next/link";
 export default function NotFound() {
   return (
     <main className="min-h-[60vh] flex flex-col items-center justify-center px-4 text-center space-y-6">
-      <h1 className="text-4xl font-bold text-ahsra-blue">
+      <h1 className="text-4xl font-bold text-primary">
         Page Not Found
       </h1>
 
@@ -15,7 +15,7 @@ export default function NotFound() {
 
       <Link
         href="/"
-        className="text-ahsra-red font-medium underline"
+        className="text-accent font-medium underline"
       >
         Return to Home
       </Link>

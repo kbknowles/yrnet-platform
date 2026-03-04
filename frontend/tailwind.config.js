@@ -7,20 +7,22 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        ahsra: {
-          red: "#b22234",   // USA Red
-          blue: "#3C3B6E",  // USA Blue
+        primary: {
+          DEFAULT: "#3C3B6E", // USA Blue (default)
+        },
+        accent: {
+          DEFAULT: "#b22234", // USA Red (default)
+        },
+        brand: {
           black: "#000000",
         },
       },
-        fontFamily: {
-         sans: ["Fira Sans", "system-ui", "sans-serif"],
-    },
+      fontFamily: {
+        sans: ["Fira Sans", "system-ui", "sans-serif"],
+      },
     },
   },
-
-    plugins: [
-    require("@tailwindcss/typography"),    ],
+  plugins: [
+    require("@tailwindcss/typography"),
+  ],
 };
-
-

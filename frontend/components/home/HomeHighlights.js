@@ -56,15 +56,13 @@ export default function HomeHighlights({ rodeos, announcements }) {
                         {rodeo.startDate
                           ? new Date(rodeo.startDate).toLocaleDateString()
                           : ""}
-                        {rodeo.location?.name
-                          ? ` · ${rodeo.location.name}`
-                          : ""}
+                        {rodeo.location?.name ? ` · ${rodeo.location.name}` : ""}
                       </p>
                     </div>
 
                     <Link
                       href={`/rodeos/${rodeo.slug}`}
-                      className="text-sm font-medium bg-white text-ahsra-blue px-4 py-2 rounded-md"
+                      className="text-sm font-medium bg-white text-primary px-4 py-2 rounded-md"
                     >
                       View Details
                     </Link>
@@ -87,7 +85,7 @@ export default function HomeHighlights({ rodeos, announcements }) {
         {/* Featured Announcement */}
         <div className="bg-gray-100 flex justify-center">
           <div className="w-full max-w-xl p-6 md:p-8 flex flex-col">
-            <h2 className="text-xl md:text-2xl font-semibold mb-4 text-ahsra-red">
+            <h2 className="text-xl md:text-2xl font-semibold mb-4 text-accent">
               Announcements
             </h2>
 
@@ -115,7 +113,7 @@ export default function HomeHighlights({ rodeos, announcements }) {
 
                     <Link
                       href={featuredHref}
-                      className="inline-block text-sm font-medium bg-ahsra-red text-white px-4 py-2 rounded-md"
+                      className="inline-block text-sm font-medium bg-accent text-white px-4 py-2 rounded-md"
                     >
                       View Details
                     </Link>
@@ -129,7 +127,7 @@ export default function HomeHighlights({ rodeos, announcements }) {
             <div className="pt-6">
               <Link
                 href="/announcements"
-                className="text-sm font-medium text-ahsra-red underline underline-offset-4"
+                className="text-sm font-medium text-accent underline underline-offset-4"
               >
                 View All Announcements →
               </Link>

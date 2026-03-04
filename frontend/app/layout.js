@@ -2,16 +2,7 @@
 
 import "../styles/globals.css";
 import { Fira_Sans } from "next/font/google";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
-
-export const metadata = {
-  title: "Alabama High School Rodeo Association",
-  description: "Official AHSRA website",
-  icons: {
-    icon: "/favicon.ico",
-  },
-};
+import Footer from "components/Footer";
 
 const firaSans = Fira_Sans({
   subsets: ["latin"],
@@ -27,7 +18,6 @@ export default function RootLayout({ children }) {
         suppressHydrationWarning
         className={`${firaSans.variable} min-h-screen flex flex-col`}
       >
-        <Header />
         <main className="flex-1 bg-white">{children}</main>
         <Footer />
       </body>

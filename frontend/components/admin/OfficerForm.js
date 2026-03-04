@@ -81,7 +81,7 @@ export default function OfficerForm({ seasons, onCreated }) {
         ))}
       </select>
 
-      <button className="bg-ahsra-blue text-white rounded px-4 py-2">
+      <button className="bg-primary text-white rounded px-4 py-2">
         Add Officer
       </button>
     </form>

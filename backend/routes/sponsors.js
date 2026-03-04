@@ -9,16 +9,11 @@ const router = express.Router();
 /**
  * ===============================
  * GET PUBLIC SPONSORS (tenant-scoped)
- * Ordered by:
- * 1. contentType priority
- * 2. level priority
- * 3. sponsor name (alphabetical)
- * ===============================
- *
  * GET /api/:tenantSlug/sponsors
+ * ===============================
  */
 
-router.get("/:tenantSlug", resolveTenant, async (req, res) => {
+router.get("/", resolveTenant, async (req, res) => {
   try {
     const sponsorships = await prisma.$queryRaw`
       SELECT 
@@ -59,7 +54,7 @@ router.get("/:tenantSlug", resolveTenant, async (req, res) => {
         s.name;
     `;
 
-    return res.json(sponsorships);
+    return res.json(sponsorships || []);
   } catch (error) {
     console.error("GET_PUBLIC_SPONSORS_ERROR", error);
     return res.status(500).json({ error: "Failed to fetch sponsors" });

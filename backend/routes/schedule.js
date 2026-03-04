@@ -10,7 +10,7 @@ const router = express.Router();
  * GET /api/:tenantSlug/schedule
  * Public schedule list (published rodeos, tenant-scoped)
  */
-router.get("/:tenantSlug", resolveTenant, async (req, res) => {
+router.get("/", resolveTenant, async (req, res) => {
   try {
     const rodeos = await prisma.rodeo.findMany({
       where: {
@@ -24,7 +24,7 @@ router.get("/:tenantSlug", resolveTenant, async (req, res) => {
       },
     });
 
-    return res.json(rodeos);
+    return res.json(rodeos || []);
   } catch (err) {
     console.error("SCHEDULE_API_ERROR", err);
     return res.status(500).json({ error: "Failed to load schedule" });
@@ -35,7 +35,7 @@ router.get("/:tenantSlug", resolveTenant, async (req, res) => {
  * GET /api/:tenantSlug/schedule/:slug
  * Public single rodeo (published, tenant-scoped)
  */
-router.get("/:tenantSlug/:slug", resolveTenant, async (req, res) => {
+router.get("/:slug", resolveTenant, async (req, res) => {
   try {
     const slug = String(req.params.slug || "").toLowerCase();
 

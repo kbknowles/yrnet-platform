@@ -23,7 +23,7 @@ export default function ScheduleCalendar({ events }) {
     <div className="space-y-10">
       {Object.entries(grouped).map(([month, items]) => (
         <section key={month} className="space-y-4">
-          <h2 className="text-xl font-semibold text-ahsra-blue">
+          <h2 className="text-xl font-semibold text-primary">
             {month}
           </h2>
 

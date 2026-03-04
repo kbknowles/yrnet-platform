@@ -4,12 +4,12 @@ import express from "express";
 import prisma from "../prismaClient.mjs";
 import { resolveTenant } from "../middleware/resolveTenant.js";
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
 /**
  * GET /api/:tenantSlug/announcements
  */
-router.get("/:tenantSlug", resolveTenant, async (req, res) => {
+router.get("/", resolveTenant, async (req, res) => {
   try {
     const now = new Date();
 
@@ -42,13 +42,10 @@ router.get("/:tenantSlug", resolveTenant, async (req, res) => {
       },
     });
 
-    return res.json(announcements);
+    return res.json(announcements || []);
   } catch (err) {
     console.error("ANNOUNCEMENTS_API_ERROR", err);
-    return res.status(500).json({
-      error: "Failed to load announcements",
-      detail: err?.message || String(err),
-    });
+    return res.status(200).json([]);
   }
 });
 

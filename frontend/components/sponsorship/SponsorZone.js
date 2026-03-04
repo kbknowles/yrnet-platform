@@ -12,6 +12,7 @@ function resolveImage(url) {
 }
 
 export default function SponsorZone({
+  tenantSlug, // 👈 REQUIRED for multi-tenant
   contentType,
   contentId,
   levels = ["PREMIER", "FEATURED"],
@@ -20,9 +21,13 @@ export default function SponsorZone({
   const [sponsors, setSponsors] = useState([]);
 
   useEffect(() => {
+    if (!tenantSlug) return;
+
     async function load() {
       try {
         const params = new URLSearchParams();
+
+        params.append("tenant", tenantSlug); // 👈 tenant isolation
 
         if (contentType) params.append("contentType", contentType);
         if (contentId) params.append("contentId", contentId);
@@ -44,7 +49,6 @@ export default function SponsorZone({
         const final = [];
         const seen = new Set();
 
-        // 1️⃣ Add direct matches first
         for (const d of direct) {
           if (final.length >= slots) break;
           if (!d?.sponsor) continue;
@@ -54,7 +58,6 @@ export default function SponsorZone({
           final.push(d.sponsor);
         }
 
-        // 2️⃣ Only backfill if needed
         if (final.length < slots) {
           for (const b of backfill) {
             if (final.length >= slots) break;
@@ -73,7 +76,7 @@ export default function SponsorZone({
     }
 
     load();
-  }, [contentType, contentId, levels, slots]);
+  }, [tenantSlug, contentType, contentId, levels, slots]);
 
   const gridClasses =
     slots === 1
@@ -120,7 +123,7 @@ export default function SponsorZone({
             Sponsorship Available
           </div>
           <div className="text-sm text-slate-600">
-            This placement is available. Contact AHSRA to become a featured sponsor.
+            This placement is available.
           </div>
         </div>
       )}

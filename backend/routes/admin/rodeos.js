@@ -10,7 +10,7 @@ const router = express.Router();
 /* GET ALL RODEOS (Tenant Scoped) */
 /* GET /api/:tenantSlug/admin/rodeos */
 /* ---------------- */
-router.get("/:tenantSlug", resolveTenant, async (req, res) => {
+router.get("/", resolveTenant, async (req, res) => {
   try {
     const rodeos = await prisma.rodeo.findMany({
       where: { tenantId: req.tenantId },
@@ -35,7 +35,7 @@ router.get("/:tenantSlug", resolveTenant, async (req, res) => {
 /* GET RODEO BY SLUG (Tenant Scoped) */
 /* GET /api/:tenantSlug/admin/rodeos/:slug */
 /* ---------------- */
-router.get("/:tenantSlug/:slug", resolveTenant, async (req, res) => {
+router.get("/:slug", resolveTenant, async (req, res) => {
   try {
     const rodeo = await prisma.rodeo.findFirst({
       where: {
@@ -66,7 +66,7 @@ router.get("/:tenantSlug/:slug", resolveTenant, async (req, res) => {
 /* CREATE RODEO (Tenant Scoped) */
 /* POST /api/:tenantSlug/admin/rodeos */
 /* ---------------- */
-router.post("/:tenantSlug", resolveTenant, async (req, res) => {
+router.post("/", resolveTenant, async (req, res) => {
   try {
     const {
       name,
@@ -126,7 +126,7 @@ router.post("/:tenantSlug", resolveTenant, async (req, res) => {
 /* UPDATE RODEO (Tenant Scoped) */
 /* PUT /api/:tenantSlug/admin/rodeos/:slug */
 /* ---------------- */
-router.put("/:tenantSlug/:slug", resolveTenant, async (req, res) => {
+router.put("/:slug", resolveTenant, async (req, res) => {
   try {
     const {
       name,
@@ -182,7 +182,7 @@ router.put("/:tenantSlug/:slug", resolveTenant, async (req, res) => {
 /* DELETE RODEO (Tenant Scoped) */
 /* DELETE /api/:tenantSlug/admin/rodeos/:slug */
 /* ---------------- */
-router.delete("/:tenantSlug/:slug", resolveTenant, async (req, res) => {
+router.delete("/:slug", resolveTenant, async (req, res) => {
   try {
     const existing = await prisma.rodeo.findFirst({
       where: { slug: req.params.slug, tenantId: req.tenantId },

@@ -74,7 +74,7 @@ export default function LocationForm({ onCreated }) {
         onChange={(e) => setForm({ ...form, zip: e.target.value })}
       />
 
-      <button className="bg-ahsra-blue text-white rounded px-4 py-2">
+      <button className="bg-primary text-white rounded px-4 py-2">
         Add Location
       </button>
     </form>

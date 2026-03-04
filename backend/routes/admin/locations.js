@@ -10,7 +10,7 @@ const router = express.Router();
 /* GET ALL LOCATIONS (Tenant Scoped) */
 /* GET /api/:tenantSlug/admin/locations */
 /* ---------------- */
-router.get("/:tenantSlug", resolveTenant, async (req, res) => {
+router.get("/", resolveTenant, async (req, res) => {
   try {
     const locations = await prisma.location.findMany({
       where: { tenantId: req.tenantId },
@@ -28,7 +28,7 @@ router.get("/:tenantSlug", resolveTenant, async (req, res) => {
 /* CREATE LOCATION (Tenant Scoped) */
 /* POST /api/:tenantSlug/admin/locations */
 /* ---------------- */
-router.post("/:tenantSlug", resolveTenant, async (req, res) => {
+router.post("/", resolveTenant, async (req, res) => {
   try {
     const { name, streetAddress, city, state, zip, venueInfo } = req.body;
 
@@ -59,7 +59,7 @@ router.post("/:tenantSlug", resolveTenant, async (req, res) => {
 /* UPDATE LOCATION (Tenant Scoped) */
 /* PUT /api/:tenantSlug/admin/locations/:id */
 /* ---------------- */
-router.put("/:tenantSlug/:id", resolveTenant, async (req, res) => {
+router.put("/:id", resolveTenant, async (req, res) => {
   try {
     const id = Number(req.params.id);
     const { name, streetAddress, city, state, zip, venueInfo } = req.body;
@@ -99,7 +99,7 @@ router.put("/:tenantSlug/:id", resolveTenant, async (req, res) => {
 /* DELETE LOCATION (Tenant Scoped) */
 /* DELETE /api/:tenantSlug/admin/locations/:id */
 /* ---------------- */
-router.delete("/:tenantSlug/:id", resolveTenant, async (req, res) => {
+router.delete("/:id", resolveTenant, async (req, res) => {
   try {
     const id = Number(req.params.id);
 

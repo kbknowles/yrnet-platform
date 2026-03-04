@@ -10,7 +10,7 @@ const router = express.Router();
  * GET active officers for current season (public, tenant-scoped)
  * GET /api/:tenantSlug/officers
  */
-router.get("/:tenantSlug", resolveTenant, async (req, res) => {
+router.get("/", resolveTenant, async (req, res) => {
   try {
     const currentSeason = await prisma.season.findFirst({
       where: {
@@ -38,15 +38,16 @@ router.get("/:tenantSlug", resolveTenant, async (req, res) => {
         phone: true,
       },
       orderBy: [
-        { type: "asc" },   // EXECUTIVE → DIRECTOR → STUDENT
-        { role: "asc" },   // enum order
+        { type: "asc" },
+        { role: "asc" },
         { name: "asc" },
       ],
     });
 
-    res.json(officers);
+    res.json(officers || []);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("PUBLIC_OFFICERS_ERROR", err);
+    res.status(200).json([]);
   }
 });
 
