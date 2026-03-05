@@ -6,8 +6,6 @@ import prisma from "../prismaClient.mjs";
 
 export async function resolveTenant(req, res, next) {
   try {
-    console.log("RESOLVE_TENANT PARAMS:", req.originalUrl, req.params);
-    console.log("PARAMS:", req.params);
     const tenantSlug = req.params?.tenantSlug;
 
     if (!tenantSlug) {

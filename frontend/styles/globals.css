@@ -44,13 +44,18 @@ span {
 }
 
 
-/* Hero override */
-.hero,
-.hero h1,
-.hero h2,
-.hero h3,
-.hero p,
-.hero span {
-  color: white;
+@layer components {
+  .hero,
+  .hero h1,
+  .hero h2,
+  .hero h3,
+  .hero h4,
+  .hero h5,
+  .hero h6,
+  .hero p,
+  .hero li,
+  .hero span,
+  .hero div {
+    color: #fff !important;
+  }
 }
-

@@ -1,21 +1,31 @@
-// filepath: frontend/components/home/LatestAnnouncements.js
-"use client";
-
-export default function LatestAnnouncements({ announcements = [] }) {
-  const visible = announcements.slice(0, 3);
+export default function LatestAnnouncements({ announcements }) {
+  const sorted = [...announcements].sort((a, b) => {
+    if (a.priority === "important" && b.priority !== "important") return -1;
+    if (a.priority !== "important" && b.priority === "important") return 1;
+    return new Date(b.publishAt) - new Date(a.publishAt);
+  });
 
   return (
-    <div>
-      <h2 className="text-xl font-semibold mb-4">Latest Announcements</h2>
+    <section className="space-y-4">
+      <h2 className="text-xl font-semibold">Announcements</h2>
 
-      <ul className="space-y-3">
-        {visible.map((a) => (
-          <li key={a.id} className="border rounded p-3">
-            <div className="font-medium">{a.title}</div>
-            <div className="text-sm text-gray-600">{a.content}</div>
-          </li>
+      <div className="space-y-3">
+        {sorted.map(a => (
+          <div
+            key={a.id}
+            className={`rounded border p-4
+              ${a.priority === "important"
+                ? "border-red-700 bg-red-50"
+                : "bg-white"
+              }`}
+          >
+            <div className="font-semibold">{a.title}</div>
+            <div className="text-sm text-gray-600 mt-1">
+              {a.content}
+            </div>
+          </div>
         ))}
-      </ul>
-    </div>
+      </div>
+    </section>
   );
 }
