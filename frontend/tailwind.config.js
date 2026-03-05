@@ -7,12 +7,16 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: {
-          DEFAULT: "#3C3B6E", // USA Blue (default)
+        primary: "var(--primary)",
+        secondary: "var(--secondary)",
+        accent: "var(--accent)",
+
+        neutral: {
+          white: "#FFFFFF",
+          charcoal: "#1F2937",
+          gray: "#F3F4F6",
         },
-        accent: {
-          DEFAULT: "#b22234", // USA Red (default)
-        },
+
         brand: {
           black: "#000000",
         },

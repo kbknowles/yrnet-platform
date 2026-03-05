@@ -1,4 +1,3 @@
-// filepath: frontend/components/Header.js
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -40,6 +39,7 @@ export default function Header({ tenant }) {
         const menuPages = (Array.isArray(data) ? data : [])
           .filter((p) => p.showInMenu)
           .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+
         setPages(menuPages);
       })
       .catch(() => setPages([]));
@@ -61,16 +61,13 @@ export default function Header({ tenant }) {
   return (
     <header
       className={`${
-        isHome
-          ? "absolute top-0 left-0 w-full bg-gray-900"
-          : "bg-slate-900"
+        isHome ? "absolute top-0 left-0 w-full bg-primary" : "bg-primary"
       } text-white z-50`}
     >
       <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-        {/* Brand */}
         <Link
           href={buildHref("")}
-          className="flex items-center gap-3 font-bold tracking-wide"
+          className="flex items-center gap-3 font-bold tracking-wide text-white"
         >
           {logoSrc && (
             <Image
@@ -82,34 +79,40 @@ export default function Header({ tenant }) {
             />
           )}
 
-          <span className="hidden lg:inline text-lg">
+          <span className="hidden lg:inline text-lg text-white">
             {tenant?.name}
           </span>
 
-          <span className="lg:hidden text-lg">
+          <span className="lg:hidden text-lg text-white">
             {tenant?.shortName || tenant?.name}
           </span>
         </Link>
 
-        {/* Desktop Nav */}
         <nav className="hidden md:flex gap-6 text-sm font-medium">
           {STATIC_LINKS.map((l) => (
-            <Link key={l.title} href={buildHref(l.href)}>
+            <Link
+              key={l.title}
+              href={buildHref(l.href)}
+              className="text-white hover:text-accent transition"
+            >
               {l.title}
             </Link>
           ))}
 
           {pages.map((p) => (
-            <Link key={p.slug} href={buildHref(p.slug)}>
+            <Link
+              key={p.slug}
+              href={buildHref(p.slug)}
+              className="text-white hover:text-accent transition"
+            >
               {p.title}
             </Link>
           ))}
         </nav>
 
-        {/* Mobile Toggle */}
         <button
           type="button"
-          className="md:hidden text-xl"
+          className="md:hidden text-xl text-white"
           onClick={() => setOpen(!open)}
           aria-label="Toggle menu"
         >
@@ -117,13 +120,8 @@ export default function Header({ tenant }) {
         </button>
       </div>
 
-      {/* Mobile Menu */}
       {open && (
-        <nav
-          className={`md:hidden px-4 pb-4 flex flex-col gap-3 text-sm ${
-            isHome ? "bg-black/80" : "bg-slate-900"
-          }`}
-        >
+        <nav className="md:hidden px-4 pb-4 flex flex-col gap-3 text-sm bg-primary">
           {[...STATIC_LINKS, ...pages.map((p) => ({
             title: p.title,
             href: p.slug,
@@ -132,6 +130,7 @@ export default function Header({ tenant }) {
               key={l.title}
               href={buildHref(l.href)}
               onClick={() => setOpen(false)}
+              className="text-white hover:text-accent transition"
             >
               {l.title}
             </Link>

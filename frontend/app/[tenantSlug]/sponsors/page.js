@@ -41,7 +41,7 @@ export default async function SponsorsPage() {
   return (
     <main className="bg-gray-50">
       {/* HERO */}
-      <section className="bg-primary/95 text-white">
+      <section className="hero bg-secondary text-white">
         <div className="max-w-6xl mx-auto px-4 py-16 text-center space-y-6">
           <h1 className="mb-4 text-4xl font-semibold tracking-tight text-heading md:text-5xl lg:text-6xl">
             Our Sponsors

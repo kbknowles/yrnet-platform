@@ -21,11 +21,12 @@ export default function Footer({ tenant }) {
           .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
 
         setPages(footerPages);
-      });
+      })
+      .catch(() => setPages([]));
   }, [tenant?.slug]);
 
   return (
-    <footer className="bg-gray-900 text-white text-sm py-10">
+    <footer className="bg-primary text-white text-sm py-10">
       <div className="max-w-6xl mx-auto px-4 space-y-6 text-center">
         {/* Logo */}
         <div className="flex justify-center">
@@ -48,8 +49,8 @@ export default function Footer({ tenant }) {
           {pages.map((p) => (
             <Link
               key={p.slug}
-              href={`/${p.slug}`}
-              className="text-gray-300 hover:text-white"
+              href={`/${tenant?.slug}/${p.slug}`}
+              className="text-gray-200 hover:text-accent transition"
             >
               {p.title}
             </Link>
@@ -60,7 +61,15 @@ export default function Footer({ tenant }) {
           <div>
             © {new Date().getFullYear()} {tenant?.name}
           </div>
-          <div className="text-gray-400">
+
+          <div className="text-gray-200">
+            Powered by{" "}
+            <span className="font-semibold text-accent">
+              Youth Rodeo Network
+            </span>
+          </div>
+
+          <div className="text-gray-300">
             Built by{" "}
             <a
               href="https://kbdev.app"

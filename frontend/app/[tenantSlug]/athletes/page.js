@@ -1,7 +1,7 @@
 // filepath: frontend/app/athletes/page.js
 
 import Link from "next/link";
-import SponsorZone from "../components/sponsorship/SponsorZone";
+import SponsorZone from "components/sponsorship/SponsorZone";
 import { headers } from "next/headers";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
@@ -18,6 +18,18 @@ function getTenantSlugFromHost(host) {
   const parts = hostname.split(".");
   if (parts.length >= 3) return parts[0];
   return "demo";
+}
+
+async function getHomeData(tenantSlug) {
+  const res = await fetch(`${API_BASE}/api/${tenantSlug}/home`, {
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    return { tenant: null };
+  }
+
+  return res.json();
 }
 
 async function getAthletes(tenantSlug) {
@@ -41,7 +53,12 @@ export default async function AthletesPage() {
   const h = await headers();
   const tenantSlug = getTenantSlugFromHost(h.get("host"));
 
-  const athletes = await getAthletes(tenantSlug);
+  const [homeData, athletes] = await Promise.all([
+    getHomeData(tenantSlug),
+    getAthletes(tenantSlug),
+  ]);
+
+  const tenant = homeData?.tenant;
 
   const activeAthletes = athletes
     .filter((a) => a.isActive && a.slug)
@@ -54,19 +71,17 @@ export default async function AthletesPage() {
   return (
     <main className="bg-gray-50">
       {/* HERO */}
-      <section className="bg-primary/95 text-white">
+      <section className="hero bg-secondary">
         <div className="max-w-6xl mx-auto px-4 py-16 text-center space-y-6">
-          <h1 className="mb-4 text-4xl font-semibold tracking-tight text-heading md:text-5xl lg:text-6xl">
+          <h1 className="mb-4 text-4xl font-semibold tracking-tight md:text-5xl lg:text-6xl">
             Athletes
           </h1>
 
           <div className="w-24 h-1 bg-accent mx-auto" />
 
-          <p className="mx-auto text-white/90 mb-6 text-lg font-normal text-body lg:text-xl sm:px-16 xl:px-48">
-            <span className="block">
-              Discover the student athletes building their rodeo legacy through
-              AHSRA.
-            </span>
+          <p className="mx-auto text-white/90 mb-6 text-lg lg:text-xl sm:px-16 xl:px-48">
+            Discover the student athletes building their rodeo legacy through{" "}
+            {tenant?.slug?.toUpperCase() || "our association" }.
           </p>
         </div>
       </section>

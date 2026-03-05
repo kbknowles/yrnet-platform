@@ -1,6 +1,6 @@
 // filepath: frontend/app/learn-more/page.js
 
-import SponsorZone from "../components/sponsorship/SponsorZone";
+import SponsorZone from "components/sponsorship/SponsorZone";
 
 export default function LearnMorePage() {
   return (

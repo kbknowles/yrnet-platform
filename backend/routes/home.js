@@ -19,8 +19,22 @@ router.get("/", resolveTenant, async (req, res) => {
     const now = new Date();
     const tenantId = req.tenantId;
 
-    const [announcements, rodeos, sponsors, featuredAthletes] =
+    const [tenant, announcements, rodeos, sponsors, featuredAthletes] =
       await Promise.all([
+        prisma.tenant.findUnique({
+          where: { id: tenantId },
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            logoUrl: true,
+            primaryColor: true,
+            secondaryColor: true,
+            accentColor: true,
+            theme: true,
+          },
+        }),
+
         prisma.announcement.findMany({
           where: {
             tenantId,
@@ -97,6 +111,7 @@ router.get("/", resolveTenant, async (req, res) => {
       ]);
 
     return res.json({
+      tenant,
       announcements,
       upcomingRodeos: rodeos,
       sponsors,
@@ -105,6 +120,7 @@ router.get("/", resolveTenant, async (req, res) => {
   } catch (err) {
     console.error("HOME_API_ERROR", err);
     return res.status(500).json({
+      tenant: null,
       announcements: [],
       upcomingRodeos: [],
       sponsors: [],

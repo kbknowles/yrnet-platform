@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import SponsorZone from "../components/sponsorship/SponsorZone";
+import SponsorZone from "components/sponsorship/SponsorZone";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 

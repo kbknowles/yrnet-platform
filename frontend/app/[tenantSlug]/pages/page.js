@@ -1,7 +1,7 @@
 // filepath: frontend/app/pages/page.js
 
 import Link from "next/link";
-import SponsorZone from "../components/sponsorship/SponsorZone";
+import SponsorZone from "components/sponsorship/SponsorZone";
 import { headers } from "next/headers";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
@@ -37,7 +37,7 @@ export default async function PagesIndex() {
 
   return (
     <main className="max-w-5xl mx-auto px-4 py-12 space-y-10">
-      <section className="space-y-4">
+      <section hero className="space-y-4">
         <h1 className="text-3xl font-semibold text-primary">Pages</h1>
 
         {/* Header Sponsor Zone */}

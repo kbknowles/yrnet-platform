@@ -6,8 +6,8 @@ import { useEffect, useState } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import SponsorZone from "../components/sponsorship/SponsorZone";
-import { formatDate } from "../lib/formatDate";
+import SponsorZone from "components/sponsorship/SponsorZone";
+import { formatDate } from "lib/formatDate";
 import { useTenantSlug } from "hooks/useTenantSlug";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
@@ -17,7 +17,6 @@ function startOfToday() {
   return new Date(now.getFullYear(), now.getMonth(), now.getDate());
 }
 
-// Treat ISO dates as DATE-ONLY using YYYY-MM-DD, then set end-of-day locally.
 function endOfDayFromISO(dateVal) {
   if (!dateVal) return null;
 
@@ -74,6 +73,7 @@ export default function SchedulePage() {
 
   const [events, setEvents] = useState([]);
   const [selectedSlug, setSelectedSlug] = useState(null);
+  const [seasonName, setSeasonName] = useState("Season Schedule");
 
   useEffect(() => {
     if (!tenantSlug) return;
@@ -85,10 +85,16 @@ export default function SchedulePage() {
       .then((data) => {
         const today = startOfToday();
 
-        const visible = (Array.isArray(data) ? data : []).filter((e) => {
-          const eventEnd = endOfDayFromISO(e.endDate || e.startDate);
-          return eventEnd && eventEnd >= today;
-        });
+        if (data?.season?.name) {
+          setSeasonName(data.season.name);
+        }
+
+        const visible = (Array.isArray(data?.events) ? data.events : []).filter(
+          (e) => {
+            const eventEnd = endOfDayFromISO(e.endDate || e.startDate);
+            return eventEnd && eventEnd >= today;
+          }
+        );
 
         setEvents(sortSchedule(visible));
       })
@@ -108,32 +114,33 @@ export default function SchedulePage() {
   }));
 
   return (
-    <main className="bg-slate-50">
-      {/* HERO */}
-      <section className="bg-primary/95  py-14 px-4 relative">
-        <div className="absolute top-0 left-0 right-0 h-1 bg-primary" />
 
-        <div className="max-w-5xl mx-auto text-center space-y-6">
-          <h1 className="text-4xl md:text-5xl font-semibold text-white/90 tracking-tight">
-            2026 Schedule
+    <main className="bg-gray-50">
+      {/* PAGE HEADER */}
+      <section className="bg-secondary text-white/90">
+        <div className="max-w-6xl mx-auto px-4 py-16 text-center space-y-6">
+          <h1 className="mb-4 text-4xl font-semibold tracking-tight text-white/90 text-heading md:text-5xl lg:text-6xl">
+            {seasonName}
           </h1>
+          
+          <div className="w-24 h-1 bg-accent mx-auto" />
 
-          <p className="text-lg text-white opacity-90 max-w-2xl mx-auto">
+              <p className="mx-auto text-white/90 mb-6 text-lg font-normal text-body lg:text-xl sm:px-16 xl:px-48">
             View upcoming rodeos, download to your calendar, and plan your
             season.
           </p>
 
           {nextEvent && (
-            <div className="mt-10 space-y-4">
-              <div className="text-xl uppercase tracking-wide text-slate-900 font-bold">
+            <div className="mt-8 space-y-3">
+              <div className="text-sm uppercase tracking-wide text-gray-600 font-semibold">
                 Next Rodeo
               </div>
 
-              <h2 className="text-3xl md:text-4xl font-semibold text-white">
+              <h2 className="text-2xl font-semibold text-primary">
                 {nextEvent.name}
               </h2>
 
-              <p className="text-white opacity-90">
+              <p className="text-gray-700">
                 {formatDate(nextEvent.startDate)}
                 {nextEvent.endDate && ` – ${formatDate(nextEvent.endDate)}`}
                 {nextEvent.location && ` · ${nextEvent.location.name}`}
@@ -141,7 +148,7 @@ export default function SchedulePage() {
 
               <Link
                 href={`/events/${nextEvent.slug}`}
-                className="inline-block bg-accent text-white px-8 py-3 rounded-md text-sm font-semibold hover:opacity-90 transition"
+                className="inline-block bg-accent text-white px-6 py-2 rounded-md text-sm font-semibold hover:opacity-90 transition"
               >
                 View Event Details
               </Link>
@@ -151,7 +158,7 @@ export default function SchedulePage() {
       </section>
 
       {/* MAIN CONTENT */}
-      <div className="max-w-7xl mx-auto px-4 py-14 space-y-12">
+      <div className="max-w-7xl mx-auto px-4 py-12 space-y-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
           {/* LEFT — LIST */}
           <div className="lg:col-span-2 space-y-6">
@@ -176,7 +183,7 @@ export default function SchedulePage() {
                   <div className="flex justify-between items-start">
                     <Link
                       href={`/events/${e.slug}`}
-                      className="text-xl font-semibold text-accent hover:underline"
+                      className="text-xl font-semibold text-primary hover:text-accent transition"
                     >
                       {e.name}
                     </Link>
@@ -239,7 +246,7 @@ export default function SchedulePage() {
                 initialView="dayGridMonth"
                 events={calendarEvents}
                 height={500}
-                eventColor="#8B1E2D"
+                eventColor="var(--primary)"
                 eventClick={(info) => {
                   setSelectedSlug(info.event.id);
                   document
@@ -256,13 +263,13 @@ export default function SchedulePage() {
       </div>
 
       {/* SPONSORS */}
-      <section className="bg-white/90 py-4">
+      <section className="bg-white py-6 border-t border-gray-200">
         <div className="max-w-7xl mx-auto px-4 space-y-6">
-          <h2 className="text-2xl font-semibold text-center">
+          <h2 className="text-2xl font-semibold text-center text-primary">
             Thank You to Our Sponsors
           </h2>
 
-          <div className="border-t-2 border-rose-700 w-20 mx-auto" />
+          <div className="border-t-2 border-primary w-20 mx-auto" />
 
           <SponsorZone
             contentType="SEASON"

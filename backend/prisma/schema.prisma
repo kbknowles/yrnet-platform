@@ -81,9 +81,13 @@ model Tenant {
   slug         String
   domain       String?
   primaryColor String?
+  secondaryColor String?
   accentColor  String?
   logoUrl      String?
   active       Boolean  @default(true)
+
+
+  theme          String?   // future theme system
 
   seasons        Season[]
   locations      Location[]

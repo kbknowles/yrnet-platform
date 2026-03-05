@@ -1,9 +1,9 @@
 // filepath: frontend/app/leadership/page.js
 
-import SponsorZone from "../components/sponsorship/SponsorZone";
+import SponsorZone from "components/sponsorship/SponsorZone";
 import { headers } from "next/headers";
 
-import { ROLE_LABELS, publicEmailForRole } from "../lib/officerDisplay";
+import { ROLE_LABELS, publicEmailForRole } from "lib/officerDisplay";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -53,7 +53,7 @@ export default async function LeadershipPage() {
   return (
     <main className="bg-gray-50">
       {/* HERO */}
-      <section className="bg-primary/95 text-white">
+      <section className="hero bg-secondary text-white">
         <div className="max-w-6xl mx-auto px-4 py-16 text-center space-y-6">
           <h1 className="mb-4 text-4xl font-semibold tracking-tight text-heading md:text-5xl lg:text-6xl">
             Leadership

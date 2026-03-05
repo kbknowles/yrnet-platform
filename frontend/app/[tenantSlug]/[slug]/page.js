@@ -1,6 +1,6 @@
 // filepath: frontend/app/[slug]/page.js
 
-import SponsorZone from "../components/sponsorship/SponsorZone";
+import SponsorZone from "components/sponsorship/SponsorZone";
 
 import { notFound } from "next/navigation";
 
@@ -30,7 +30,7 @@ export default async function CustomPage({ params }) {
   return (
     <main className="flex-1">
       {/* Hero Section */}
-      <section className="bg-primary text-white py-16 px-4">
+      <section className="bg-secondary text-white/90 py-16 px-4">
         <div className="max-w-6xl mx-auto text-center space-y-6">
           <h1 className="mb-4 text-4xl font-semibold tracking-tight md:text-5xl lg:text-6xl">
             {page.title}

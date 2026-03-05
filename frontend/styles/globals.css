@@ -5,6 +5,11 @@
 :root {
   --font-body: system-ui, sans-serif;
   --font-heading: system-ui, sans-serif;
+
+  /* default tenant colors */
+  --primary: #3C3B6E;
+  --secondary: #B22234;
+  --accent: #D4AF37;
 }
 
 /* Global resets */
@@ -16,10 +21,11 @@ html, body {
 
 body {
   font-family: var(--font-body);
-  background-color: #e5e7eb; 
-  color: #111827;           /* gray-900 */
+  background-color: #F3F4F6; /* dust gray */
+  color: #1F2937; /* charcoal */
 }
 
+/* Headings use tenant primary color */
 h1,
 h2,
 h3,
@@ -27,5 +33,24 @@ h4,
 h5,
 h6 {
   font-family: var(--font-heading);
-
+  color: var(--primary);
 }
+
+/* Paragraph and body text */
+p,
+li,
+span {
+  color: #1F2937;
+}
+
+
+/* Hero override */
+.hero,
+.hero h1,
+.hero h2,
+.hero h3,
+.hero p,
+.hero span {
+  color: white;
+}
+
