@@ -74,12 +74,12 @@ export default function Header({ tenant }) {
         isHome ? "absolute top-0 left-0 w-full bg-transparent" : "bg-slate-900"
       } text-white z-50`}
     >
-      <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+      <div className="hero max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
         {/* Brand */}
         {!isHome ? (
           <Link
             href={buildHref("/")}
-            className="flex items-center gap-3 font-bold tracking-wide"
+            className="flex items-center gap-3 font-semibold tracking-wide"
           >
             <Image
               src={logoSrc}
@@ -125,7 +125,7 @@ export default function Header({ tenant }) {
       {open && (
         <nav
           className={`md:hidden px-4 pb-4 flex flex-col gap-3 text-sm ${
-            isHome ? "bg-black/80" : "bg-ahsra-blue"
+            isHome ? "bg-black/80" : "bg-secondary"
           }`}
         >
           {[

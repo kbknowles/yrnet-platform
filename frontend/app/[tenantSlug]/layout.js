@@ -42,7 +42,7 @@ export default async function TenantLayout({ children, params }) {
   return (
     <div style={style} className="flex flex-col min-h-screen">
       <Header tenant={tenant} />
-      <main className="flex-1 bg-white">{children}</main>
+      <main className="flex-1">{children}</main>
       <Footer tenant={tenant} />
     </div>
   );

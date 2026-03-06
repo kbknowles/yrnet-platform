@@ -5,15 +5,13 @@
 :root {
   --font-body: system-ui, sans-serif;
   --font-heading: system-ui, sans-serif;
-
-  /* default tenant colors */
   --primary: #3C3B6E;
   --secondary: #B22234;
   --accent: #D4AF37;
 }
 
-/* Global resets */
-html, body {
+html,
+body {
   height: 100%;
   margin: 0;
   padding: 0;
@@ -21,11 +19,11 @@ html, body {
 
 body {
   font-family: var(--font-body);
-  background-color: #F3F4F6; /* dust gray */
-  color: #1F2937; /* charcoal */
+  background-color: #F3F4F6;
+  color: #1F2937;
+  
 }
 
-/* Headings use tenant primary color */
 h1,
 h2,
 h3,
@@ -36,26 +34,22 @@ h6 {
   color: var(--primary);
 }
 
-/* Paragraph and body text */
 p,
 li,
 span {
   color: #1F2937;
 }
 
-
-@layer components {
-  .hero,
-  .hero h1,
-  .hero h2,
-  .hero h3,
-  .hero h4,
-  .hero h5,
-  .hero h6,
-  .hero p,
-  .hero li,
-  .hero span,
-  .hero div {
-    color: #fff !important;
-  }
+.hero,
+.hero h1,
+.hero h2,
+.hero h3,
+.hero h4,
+.hero h5,
+.hero h6,
+.hero p,
+.hero li,
+.hero span,
+.hero div {
+  color: #ffffff;
 }

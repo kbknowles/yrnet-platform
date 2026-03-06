@@ -33,7 +33,7 @@ export default function HomeHighlights({ rodeos, announcements }) {
     <section className="w-full mt-1">
       <div className="grid grid-cols-1 md:grid-cols-2">
         {/* Upcoming Rodeos */}
-        <div className="bg-gray-900 text-white flex justify-center">
+        <div className="bg-gray-900 hero flex justify-center">
           <div className="w-full max-w-xl p-6 md:p-8 flex flex-col">
             <h2 className="text-xl md:text-2xl font-semibold mb-4">
               Upcoming Rodeos
