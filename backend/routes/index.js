@@ -38,7 +38,7 @@ import athletesRouter from "./athletes.js";
 import calendarRouter from "./calendar.js";
 import sponsorshipsRouter from "./sponsorships.js";
 
-const router = express.Router({ mergeParams: true });
+const router = express.Router();
 
 /* =========================
    MULTI-TENANT ROOT
