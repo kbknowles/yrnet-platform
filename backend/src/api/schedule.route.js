@@ -6,7 +6,7 @@ import { getSchedule } from "../services/scheduleService.js";
 const router = express.Router({ mergeParams: true });
 
 /**
- * GET /api/schedule
+ * GET /schedule
  * Returns full schedule (list + calendar)
  */
 router.get("/", async (req, res) => {

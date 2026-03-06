@@ -16,7 +16,7 @@ function getTenantSlugFromHost(host) {
 
 async function getOfficers(tenantSlug) {
   try {
-    const res = await fetch(`${API_BASE}/api/${tenantSlug}/officers`, {
+    const res = await fetch(`${API_BASE}/${tenantSlug}/officers`, {
       cache: "no-store",
     });
     if (!res.ok) return [];

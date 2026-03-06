@@ -78,7 +78,7 @@ export default function SchedulePage() {
   useEffect(() => {
     if (!tenantSlug) return;
 
-    fetch(`${API_BASE}/api/${tenantSlug}/schedule`, {
+    fetch(`${API_BASE}/${tenantSlug}/schedule`, {
       cache: "no-store",
     })
       .then((r) => r.json())

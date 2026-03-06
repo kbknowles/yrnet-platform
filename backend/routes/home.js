@@ -12,7 +12,7 @@ import { resolveTenant } from "../middleware/resolveTenant.js";
 const router = express.Router({ mergeParams: true });
 
 /**
- * GET /api/:tenantSlug/home
+ * GET /:tenantSlug/home
  */
 router.get("/", resolveTenant, async (req, res) => {
   try {

@@ -37,7 +37,7 @@ async function getEvent(tenantSlug, slug) {
   if (!slug) return null;
 
   const res = await fetch(
-    `${API_BASE}/api/${tenantSlug}/events/${encodeURIComponent(slug)}`,
+    `${API_BASE}/${tenantSlug}/events/${encodeURIComponent(slug)}`,
     { cache: "no-store" }
   );
 

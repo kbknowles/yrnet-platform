@@ -15,7 +15,7 @@ function getTenantSlugFromHost(host) {
 
 async function getPages(tenantSlug) {
   try {
-    const res = await fetch(`${API_BASE}/api/${tenantSlug}/pages`, {
+    const res = await fetch(`${API_BASE}/${tenantSlug}/pages`, {
       cache: "no-store",
     });
     if (!res.ok) return [];

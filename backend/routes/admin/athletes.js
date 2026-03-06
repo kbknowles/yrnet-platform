@@ -45,7 +45,7 @@ function deleteFileIfExists(filePath) {
 
 /* ----------------------------
    GET ALL (Tenant Scoped)
-   GET /api/:tenantSlug/admin/athletes
+GET /:tenantSlug/admin/athletes
 ----------------------------- */
 
 router.get("/", resolveTenant, async (req, res) => {
@@ -65,7 +65,7 @@ router.get("/", resolveTenant, async (req, res) => {
 
 /* ----------------------------
    GET ONE (Tenant Scoped)
-   GET /api/:tenantSlug/admin/athletes/:slug
+GET /:tenantSlug/admin/athletes/:slug
 ----------------------------- */
 
 router.get("/:slug", resolveTenant, async (req, res) => {

@@ -9,7 +9,7 @@ const router = express.Router({ mergeParams: true });
 /* ----------------------------
    GET ALL (PUBLIC)
    Active athletes only
-   GET /api/:tenantSlug/athletes
+GET /:tenantSlug/athletes
 ----------------------------- */
 router.get("/", resolveTenant, async (req, res) => {
   try {
@@ -30,7 +30,7 @@ router.get("/", resolveTenant, async (req, res) => {
 
 /* ----------------------------
    GET ONE BY SLUG (PUBLIC)
-   GET /api/:tenantSlug/athletes/:slug
+GET /:tenantSlug/athletes/:slug
 ----------------------------- */
 router.get("/:slug", resolveTenant, async (req, res) => {
   try {

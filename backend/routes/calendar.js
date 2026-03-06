@@ -21,7 +21,7 @@ function escapeIcsText(value) {
 }
 
 /**
- * GET /api/:tenantSlug/calendar/:slug.ics
+ * GET /:tenantSlug/calendar/:slug.ics
  */
 router.get("/:tenantSlug/:slug.ics", resolveTenant, async (req, res) => {
   try {

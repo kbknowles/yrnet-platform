@@ -21,7 +21,7 @@ function resolveImage(url) {
 
 async function getSponsors(tenantSlug) {
   try {
-    const res = await fetch(`${API_BASE}/api/${tenantSlug}/sponsors`, {
+    const res = await fetch(`${API_BASE}/${tenantSlug}/sponsors`, {
       cache: "no-store",
     });
 

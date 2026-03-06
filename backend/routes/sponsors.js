@@ -8,7 +8,7 @@ const router = express.Router({ mergeParams: true });
 /**
  * ===============================
  * GET PUBLIC SPONSORS (tenant-scoped)
- * GET /api/:tenantSlug/sponsors
+ * GET /:tenantSlug/sponsors
  * ===============================
  */
 

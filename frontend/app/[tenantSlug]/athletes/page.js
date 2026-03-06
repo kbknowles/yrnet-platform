@@ -1,8 +1,7 @@
-// filepath: frontend/app/athletes/page.js
+// filepath: frontend/app/[tenantSlug]/athletes/page.js
 
 import Link from "next/link";
 import SponsorZone from "components/sponsorship/SponsorZone";
-import { headers } from "next/headers";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -13,15 +12,8 @@ function resolveImage(url) {
   return url;
 }
 
-function getTenantSlugFromHost(host) {
-  const hostname = (host || "").split(":")[0];
-  const parts = hostname.split(".");
-  if (parts.length >= 3) return parts[0];
-  return "demo";
-}
-
 async function getHomeData(tenantSlug) {
-  const res = await fetch(`${API_BASE}/api/${tenantSlug}/home`, {
+  const res = await fetch(`${API_BASE}/${tenantSlug}/home`, {
     cache: "no-store",
   });
 
@@ -33,7 +25,7 @@ async function getHomeData(tenantSlug) {
 }
 
 async function getAthletes(tenantSlug) {
-  const res = await fetch(`${API_BASE}/api/${tenantSlug}/athletes`, {
+  const res = await fetch(`${API_BASE}/${tenantSlug}/athletes`, {
     cache: "no-store",
   });
 
@@ -49,9 +41,8 @@ function formatEvent(label) {
     .join(" ");
 }
 
-export default async function AthletesPage() {
-  const h = await headers();
-  const tenantSlug = getTenantSlugFromHost(h.get("host"));
+export default async function AthletesPage({ params }) {
+  const { tenantSlug } = await params;
 
   const [homeData, athletes] = await Promise.all([
     getHomeData(tenantSlug),
@@ -81,7 +72,7 @@ export default async function AthletesPage() {
 
           <p className="mx-auto text-white/90 mb-6 text-lg lg:text-xl sm:px-16 xl:px-48">
             Discover the student athletes building their rodeo legacy through{" "}
-            {tenant?.slug?.toUpperCase() || "our association" }.
+            {tenant?.slug?.toUpperCase() || "our association"}.
           </p>
         </div>
       </section>
@@ -95,7 +86,7 @@ export default async function AthletesPage() {
             {activeAthletes.map((a) => (
               <Link
                 key={a.slug}
-                href={`/athletes/${a.slug}`}
+                href={`/${tenantSlug}/athletes/${a.slug}`}
                 className="bg-white border rounded-lg p-4 hover:shadow-md transition block"
               >
                 {a.headshotUrl && (

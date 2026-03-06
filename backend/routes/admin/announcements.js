@@ -8,7 +8,7 @@ const router = express.Router({ mergeParams: true });
 
 /* ============================
    GET ALL (Tenant Scoped)
-   GET /api/:tenantSlug/admin/announcements
+GET /:tenantSlug/admin/announcements
 ============================ */
 router.get("/", resolveTenant, async (req, res) => {
   try {

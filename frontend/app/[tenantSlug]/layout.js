@@ -10,7 +10,7 @@ export default async function TenantLayout({ children, params }) {
 
   if (tenantSlug) {
     try {
-      const res = await fetch(`${API_BASE}/api/${tenantSlug}/home`, {
+      const res = await fetch(`${API_BASE}/${tenantSlug}/home`, {
         cache: "no-store",
       });
 

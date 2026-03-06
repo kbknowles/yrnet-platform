@@ -19,6 +19,7 @@ async function safeFetch(url) {
     try {
       errText = await res.text();
     } catch {}
+
     throw new Error(`Fetch failed ${res.status}: ${errText}`);
   }
 
@@ -44,9 +45,9 @@ export default async function TenantHomePage(props) {
   }
 
   const [homeData, announcements, galleryAlbums] = await Promise.all([
-    safeFetch(`${API_BASE}/api/${tenantSlug}/home`),
-    safeFetch(`${API_BASE}/api/${tenantSlug}/announcements?published=true`),
-    softFetch(`${API_BASE}/api/${tenantSlug}/gallery`, []),
+    safeFetch(`${API_BASE}/${tenantSlug}/home`),
+    safeFetch(`${API_BASE}/${tenantSlug}/announcements?published=true`),
+    softFetch(`${API_BASE}/${tenantSlug}/gallery`, []),
   ]);
 
   const tenantName = homeData?.tenant?.name || "";
@@ -63,17 +64,11 @@ export default async function TenantHomePage(props) {
     <>
       <HomeHero tenantName={tenantName} />
 
-      <HomeHighlights
-        rodeos={sortedRodeos}
-        announcements={announcements}
-      />
+      <HomeHighlights rodeos={sortedRodeos} announcements={announcements} />
 
       <HomeMission tenantSlug={tenantSlug} />
 
-      <RodeoGallery
-        albums={galleryAlbums}
-        tenantSlug={tenantSlug}
-      />
+      <RodeoGallery albums={galleryAlbums} tenantSlug={tenantSlug} />
 
       <section className="py-16 bg-gray-50">
         <div className="max-w-6xl mx-auto px-6">

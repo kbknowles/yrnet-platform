@@ -52,7 +52,7 @@ export default function Header({ tenant }) {
     // Multi-tenant pages
     if (!tenantSlug) return;
 
-    fetch(`${API_BASE}/api/${tenantSlug}/pages`, { cache: "no-store" })
+    fetch(`${API_BASE}/${tenantSlug}/pages`, { cache: "no-store" })
       .then((res) => res.json())
       .then((data) => {
         const menuPages = (Array.isArray(data) ? data : [])

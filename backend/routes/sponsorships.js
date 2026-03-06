@@ -7,7 +7,7 @@ import { resolveTenant } from "../middleware/resolveTenant.js";
 const router = express.Router({ mergeParams: true });
 
 /**
- * GET /api/:tenantSlug/sponsorships/resolve
+ * GET /:tenantSlug/sponsorships/resolve
  *
  * Hierarchy:
  * ContentType order:

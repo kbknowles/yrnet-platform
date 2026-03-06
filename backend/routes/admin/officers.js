@@ -8,7 +8,7 @@ const router = express.Router({ mergeParams: true });
 
 /**
  * GET all officers (tenant scoped)
- * GET /api/:tenantSlug/admin/officers
+ * GET /:tenantSlug/admin/officers
  */
 router.get("/", resolveTenant, async (req, res) => {
   try {

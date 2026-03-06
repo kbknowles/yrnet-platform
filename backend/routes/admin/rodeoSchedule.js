@@ -7,7 +7,7 @@ import { resolveTenant } from "../../middleware/resolveTenant.js";
 const router = express.Router({ mergeParams: true });
 
 /**
- * GET /api/:tenantSlug/admin/rodeo-schedule-items/:rodeoId
+ * GET /:tenantSlug/admin/rodeo-schedule-items/:rodeoId
  * Returns schedule items for a single rodeo (tenant scoped)
  */
 router.get("/:tenantSlug/:rodeoId", resolveTenant, async (req, res) => {

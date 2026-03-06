@@ -7,7 +7,7 @@ import { resolveTenant } from "../middleware/resolveTenant.js";
 const router = express.Router({ mergeParams: true });
 
 /**
- * GET /api/:tenantSlug/rodeos
+ * GET /:tenantSlug/rodeos
  * Public, published rodeos only (tenant-scoped)
  */
 router.get("/", resolveTenant, async (req, res) => {
@@ -36,7 +36,7 @@ router.get("/", resolveTenant, async (req, res) => {
 });
 
 /**
- * GET /api/:tenantSlug/rodeos/:slug
+ * GET /:tenantSlug/rodeos/:slug
  * Public single rodeo by slug (tenant-scoped)
  */
 router.get("/:slug", resolveTenant, async (req, res) => {

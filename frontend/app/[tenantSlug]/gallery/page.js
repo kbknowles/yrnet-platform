@@ -20,7 +20,7 @@ export default async function GalleryIndexPage() {
 
   const isDev = process.env.NODE_ENV !== "production";
 
-  const res = await fetch(`${API_BASE}/api/${tenantSlug}/gallery`, {
+  const res = await fetch(`${API_BASE}/${tenantSlug}/gallery`, {
     cache: "no-store",
   });
 

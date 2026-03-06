@@ -7,7 +7,7 @@ import { resolveTenant } from "../middleware/resolveTenant.js";
 const router = express.Router({ mergeParams: true });
 
 /**
- * GET /api/:tenantSlug/schedule
+ * GET /:tenantSlug/schedule
  * Public schedule list (published rodeos, tenant-scoped)
  */
 router.get("/", resolveTenant, async (req, res) => {
@@ -32,7 +32,7 @@ router.get("/", resolveTenant, async (req, res) => {
 });
 
 /**
- * GET /api/:tenantSlug/schedule/:slug
+ * GET /:tenantSlug/schedule/:slug
  * Public single rodeo (published, tenant-scoped)
  */
 router.get("/:slug", resolveTenant, async (req, res) => {

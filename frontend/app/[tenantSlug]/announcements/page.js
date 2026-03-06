@@ -26,7 +26,7 @@ export default function AnnouncementsPage() {
 
     setLoading(true);
 
-    fetch(`${API_BASE}/api/${tenantSlug}/announcements`, { cache: "no-store" })
+    fetch(`${API_BASE}/${tenantSlug}/announcements`, { cache: "no-store" })
       .then((r) => r.json())
       .then((data) => {
         setAnnouncements(Array.isArray(data) ? data : []);

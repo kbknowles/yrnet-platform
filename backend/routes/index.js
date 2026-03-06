@@ -46,7 +46,7 @@ const router = express.Router();
 
 /*
    All tenant routes now live under:
-   /api/:tenantSlug/...
+   /:tenantSlug/...
 */
 
 router.use("/:tenantSlug/admin/seasons", adminSeasonsRouter);
