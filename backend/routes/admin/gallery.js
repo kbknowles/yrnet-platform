@@ -5,7 +5,7 @@ import prisma from "../../prismaClient.mjs";
 import { upload } from "../../lib/upload.js";
 import { resolveTenant } from "../../middleware/resolveTenant.js";
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
 /* -------------------------- */
 /* CREATE ALBUM (Tenant Scoped) */

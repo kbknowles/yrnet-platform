@@ -7,7 +7,7 @@ import path from "path";
 import prisma from "../../prismaClient.mjs";
 import { resolveTenant } from "../../middleware/resolveTenant.js";
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
 /*
   In Render:

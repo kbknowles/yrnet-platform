@@ -1,7 +1,7 @@
 import express from "express";
 import prisma from "../db/prisma.js";
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
 router.get("/:slug.ics", async (req, res) => {
   const event = await prisma.event.findUnique({

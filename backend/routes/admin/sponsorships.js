@@ -3,7 +3,7 @@
 import express from "express";
 import prisma from "../../prismaClient.mjs";
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
 /* ==============================
    GET ALL

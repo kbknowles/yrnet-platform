@@ -3,7 +3,7 @@
 import express from "express";
 import { getSchedule } from "../services/scheduleService.js";
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
 /**
  * GET /api/schedule

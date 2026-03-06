@@ -4,7 +4,7 @@ import express from "express";
 import uploadPdf from "../../middleware/uploadPdf.js";
 import uploadImage from "../../middleware/uploadImage.js";
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
 /*
   PUBLIC_API_URL should match your API base domain

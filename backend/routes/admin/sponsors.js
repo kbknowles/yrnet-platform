@@ -6,7 +6,7 @@ import multer from "multer";
 import fs from "fs";
 import path from "path";
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
 /* =============================
    FILE STORAGE (RENDER DISK SAFE)

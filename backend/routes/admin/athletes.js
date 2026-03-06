@@ -6,7 +6,7 @@ import uploadImage from "../../middleware/uploadImage.js";
 import { resolveTenant } from "../../middleware/resolveTenant.js";
 import fs from "fs";
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
 /* ----------------------------
    UTILS
