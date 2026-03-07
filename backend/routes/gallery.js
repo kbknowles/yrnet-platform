@@ -18,7 +18,7 @@ function toSlug(str) {
 
 /* -------------------------------- */
 /* GET ALL PUBLISHED ALBUMS (PUBLIC) */
-/* GET /api/:tenantSlug/gallery      */
+/* GET /:tenantSlug/gallery          */
 /* -------------------------------- */
 router.get("/", resolveTenant, async (req, res) => {
   try {
@@ -48,9 +48,9 @@ router.get("/", resolveTenant, async (req, res) => {
 
 /* -------------------------------- */
 /* GET SINGLE ALBUM BY SLUG (PUBLIC) */
-/* GET /api/:tenantSlug/gallery/albums/:slug */
+/* GET /:tenantSlug/gallery/:slug    */
 /* -------------------------------- */
-router.get("/albums/:slug", resolveTenant, async (req, res) => {
+router.get("/:slug", resolveTenant, async (req, res) => {
   try {
     const slug = String(req.params.slug || "");
 
@@ -71,7 +71,10 @@ router.get("/albums/:slug", resolveTenant, async (req, res) => {
       return res.status(404).json({ error: "Album not found" });
     }
 
-    return res.json({ ...album, slug });
+    return res.json({
+      ...album,
+      slug: toSlug(album.title),
+    });
   } catch (err) {
     console.error("PUBLIC_GALLERY_ALBUM_ERROR", err);
     return res.status(500).json({ error: "Failed to fetch album" });

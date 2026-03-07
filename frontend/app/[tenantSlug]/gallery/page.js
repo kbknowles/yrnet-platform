@@ -1,61 +1,71 @@
-// filepath: frontend/app/gallery/page.js
+// filepath: frontend/app/[tenantSlug]/gallery/page.js
 
 import Link from "next/link";
 import Image from "next/image";
 import SponsorZone from "components/sponsorship/SponsorZone";
-import { headers } from "next/headers";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
-function getTenantSlugFromHost(host) {
-  const hostname = (host || "").split(":")[0];
-  const parts = hostname.split(".");
-  if (parts.length >= 3) return parts[0];
-  return "demo";
+function resolveImage(url) {
+  if (!url) return null;
+  if (url.startsWith("http")) return url;
+  if (url.startsWith("/uploads")) return `${API_BASE}${url}`;
+  return url;
 }
 
-export default async function GalleryIndexPage() {
-  const h = await headers();
-  const tenantSlug = getTenantSlugFromHost(h.get("host"));
-
-  const isDev = process.env.NODE_ENV !== "production";
-
-  const res = await fetch(`${API_BASE}/${tenantSlug}/gallery`, {
+async function getHomeData(tenantSlug) {
+  const res = await fetch(`${API_BASE}/${tenantSlug}/home`, {
     cache: "no-store",
   });
 
   if (!res.ok) {
-    return <div className="p-8">Failed to load gallery.</div>;
+    return { tenant: null };
   }
 
-  const albums = await res.json();
+  return res.json();
+}
+
+async function getAlbums(tenantSlug) {
+  const res = await fetch(`${API_BASE}/${tenantSlug}/gallery`, {
+    cache: "no-store",
+  });
+
+  if (!res.ok) return [];
+  return res.json();
+}
+
+export default async function GalleryPage({ params }) {
+  const { tenantSlug } = await params;
+
+  const [homeData, albums] = await Promise.all([
+    getHomeData(tenantSlug),
+    getAlbums(tenantSlug),
+  ]);
+
+  const tenant = homeData?.tenant;
 
   return (
     <main className="bg-gray-50">
       {/* HERO */}
-      <section className="hero bg-secondary text-white">
+      <section className="hero bg-secondary">
         <div className="max-w-6xl mx-auto px-4 py-16 text-center space-y-6">
-          <h1 className="mb-4 text-4xl font-semibold tracking-tight text-heading md:text-5xl lg:text-6xl">
+          <h1 className="mb-4 text-4xl font-semibold tracking-tight md:text-5xl lg:text-6xl">
             Photo Gallery
           </h1>
 
           <div className="w-24 h-1 bg-accent mx-auto" />
 
-          <p className="mx-auto text-white/90 mb-6 text-lg font-normal text-body lg:text-xl sm:px-16 xl:px-48">
-            <span className="block">
-              Explore highlights from Rodeos across the seasons
-            </span>
-            <span className="block">
-              Athletes, Action shots, Awards, and Unforgettable moments.
-            </span>
+          <p className="mx-auto text-white/90 mb-6 text-lg lg:text-xl sm:px-16 xl:px-48">
+            Explore highlights from rodeos across{" "}
+            {tenant?.slug?.toUpperCase() || "our association"}.
           </p>
         </div>
       </section>
 
       {/* ALBUM GRID */}
-      <section className="max-w-6xl mx-auto px-4 py-16 space-y-12">
+      <section className="max-w-7xl mx-auto px-4 py-16 space-y-12">
         {!Array.isArray(albums) || albums.length === 0 ? (
-          <p className="text-center text-gray-600">Gallery coming soon.</p>
+          <p>No albums available.</p>
         ) : (
           <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-8">
             {albums.map((album) => {
@@ -64,22 +74,18 @@ export default async function GalleryIndexPage() {
 
               return (
                 <Link
-                  key={album.id}
-                  href={`/gallery/${album.slug}`}
+                  key={album.slug || album.id}
+                  href={`/${tenantSlug}/gallery/${album.slug}`}
                   className="group relative block rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition"
                 >
                   <div className="relative h-56 bg-gray-200">
                     {cover?.imageUrl && (
                       <Image
-                        src={
-                          cover.imageUrl.startsWith("http")
-                            ? cover.imageUrl
-                            : `${API_BASE}${cover.imageUrl}`
-                        }
+                        src={resolveImage(cover.imageUrl)}
                         alt={album.title}
                         fill
                         className="object-cover group-hover:scale-105 transition duration-300"
-                        unoptimized={isDev}
+                        unoptimized
                       />
                     )}
 
@@ -89,6 +95,7 @@ export default async function GalleryIndexPage() {
                       <h2 className="font-semibold text-lg truncate">
                         {album.title}
                       </h2>
+
                       <p className="text-sm text-white/80">
                         {imageCount} {imageCount === 1 ? "Photo" : "Photos"}
                       </p>
@@ -110,12 +117,7 @@ export default async function GalleryIndexPage() {
 
           <div className="border-t-2 border-rose-700 w-20 mx-auto" />
 
-          <SponsorZone
-            contentType="SEASON"
-            contentId={null}
-            levels={["PREMIER", "FEATURED"]}
-            slots={4}
-          />
+          <SponsorZone contentType="SEASON" contentId={null} slots={4} />
         </div>
       </section>
     </main>

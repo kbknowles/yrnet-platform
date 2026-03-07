@@ -1,4 +1,4 @@
-// filepath: frontend/app/gallery/[slug]/GalleryView.js
+// filepath: frontend/app/[tenantSlug]/gallery/[slug]/GalleryView.js
 
 "use client";
 
@@ -7,13 +7,20 @@ import Image from "next/image";
 import AlbumSlideshow from "components/gallery/AlbumSlideshow";
 import SponsorZone from "components/sponsorship/SponsorZone";
 
-export default function GalleryView({ album, API_BASE, isDev }) {
+function resolveImage(url, API_BASE) {
+  if (!url) return null;
+  if (url.startsWith("http")) return url;
+  if (url.startsWith("/uploads")) return `${API_BASE}${url}`;
+  return url;
+}
+
+export default function GalleryView({ album, API_BASE }) {
   const [open, setOpen] = useState(false);
   const [startIndex, setStartIndex] = useState(0);
 
-  const images = album.images.map((img) => ({
+  const images = (album.images || []).map((img) => ({
     ...img,
-    imageUrl: `${API_BASE}${img.imageUrl}`,
+    imageUrl: resolveImage(img.imageUrl, API_BASE),
   }));
 
   const imageCount = images.length;
@@ -22,6 +29,7 @@ export default function GalleryView({ album, API_BASE, isDev }) {
     function handleKey(e) {
       if (e.key === "Escape") setOpen(false);
     }
+
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, []);
@@ -35,7 +43,6 @@ export default function GalleryView({ album, API_BASE, isDev }) {
             {album.title}
           </h1>
 
-          {/* Accent Bar — directly under title */}
           <div className="w-24 h-1 bg-rose-700 mx-auto mt-4 mb-6" />
 
           <p className="text-gray-300 text-lg">
@@ -61,8 +68,9 @@ export default function GalleryView({ album, API_BASE, isDev }) {
                 alt={img.caption || album.title}
                 fill
                 className="object-cover group-hover:scale-105 transition duration-300"
-                unoptimized={isDev}
+                unoptimized
               />
+
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition" />
             </div>
           ))}
@@ -86,10 +94,7 @@ export default function GalleryView({ album, API_BASE, isDev }) {
             className="w-[90vw] max-w-5xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <AlbumSlideshow
-              images={images}
-              initialIndex={startIndex}
-            />
+            <AlbumSlideshow images={images} initialIndex={startIndex} />
           </div>
         </div>
       )}
@@ -97,9 +102,7 @@ export default function GalleryView({ album, API_BASE, isDev }) {
       {/* SPONSORS */}
       <section className="bg-white py-16">
         <div className="max-w-7xl mx-auto px-4 text-center space-y-6">
-          <h2 className="text-2xl font-bold">
-            Thank You to Our Sponsors
-          </h2>
+          <h2 className="text-2xl font-bold">Thank You to Our Sponsors</h2>
 
           <div className="w-20 h-1 bg-rose-700 mx-auto" />
 
