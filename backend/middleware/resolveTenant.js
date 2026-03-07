@@ -10,11 +10,14 @@ export async function resolveTenant(req, res, next) {
       return res.status(400).json({ error: "Tenant slug missing" });
     }
 
-    const tenant = await prisma.tenant.findUnique({
-      where: { slug: tenantSlug },
+    const tenant = await prisma.tenant.findFirst({
+      where: {
+        slug: tenantSlug,
+        active: true,
+      },
     });
 
-    if (!tenant || !tenant.active) {
+    if (!tenant) {
       return res.status(404).json({ error: "Tenant not found" });
     }
 
