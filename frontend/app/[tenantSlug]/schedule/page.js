@@ -119,28 +119,28 @@ export default function SchedulePage() {
       {/* PAGE HEADER */}
       <section className="bg-secondary text-white/90">
         <div className="max-w-6xl mx-auto px-4 py-16 text-center space-y-6">
-          <h1 className="mb-4 text-4xl font-semibold tracking-tight text-white/90 text-heading md:text-5xl lg:text-6xl">
+           <h1 className="text-4xl md:text-5xl font-semibold text-white/90 tracking-tight">
             {seasonName}
           </h1>
           
           <div className="w-24 h-1 bg-accent mx-auto" />
 
-              <p className="mx-auto text-white/90 mb-6 text-lg font-normal text-body lg:text-xl sm:px-16 xl:px-48">
+              <p className="text-lg text-white opacity-90 max-w-2xl mx-auto">
             View upcoming rodeos, download to your calendar, and plan your
             season.
           </p>
 
           {nextEvent && (
             <div className="mt-8 space-y-3">
-              <div className="text-sm uppercase tracking-wide text-gray-600 font-semibold">
+              <div className="text-xl uppercase tracking-wide text-slate-900 font-bold">
                 Next Rodeo
               </div>
 
-              <h2 className="text-2xl font-semibold text-primary">
+              <h2 className="text-3xl md:text-4xl font-semibold text-white">
                 {nextEvent.name}
               </h2>
 
-              <p className="text-gray-700">
+              <p className="text-white opacity-90">
                 {formatDate(nextEvent.startDate)}
                 {nextEvent.endDate && ` – ${formatDate(nextEvent.endDate)}`}
                 {nextEvent.location && ` · ${nextEvent.location.name}`}
@@ -148,7 +148,7 @@ export default function SchedulePage() {
 
               <Link
                 href={`/events/${nextEvent.slug}`}
-                className="inline-block bg-accent text-white px-6 py-2 rounded-md text-sm font-semibold hover:opacity-90 transition"
+                className="inline-block bg-accent text-white px-8 py-3 rounded-md text-sm font-semibold hover:opacity-90 transition"
               >
                 View Event Details
               </Link>
