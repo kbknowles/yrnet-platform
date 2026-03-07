@@ -37,9 +37,9 @@ export default function GalleryView({ album, API_BASE }) {
   return (
     <main className="bg-gray-50">
       {/* HERO */}
-      <section className="bg-primary text-white">
+      <section className="bg-secondary text-white">
         <div className="max-w-6xl mx-auto px-4 py-20 text-center">
-          <h1 className="text-4xl md:text-5xl font-semibold tracking-tight">
+          <h1 className="hero text-4xl md:text-5xl font-semibold tracking-tight">
             {album.title}
           </h1>
 

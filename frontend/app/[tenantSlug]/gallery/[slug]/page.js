@@ -1,15 +1,14 @@
-// filepath: frontend/app/gallery/[slug]/page.js
+// filepath: frontend/app/[tenantSlug]/gallery/[slug]/page.js
 
 import GalleryView from "./GalleryView";
 
 export default async function GalleryAlbumPage({ params }) {
   const API_BASE = process.env.NEXT_PUBLIC_API_URL;
-  const isDev = process.env.NODE_ENV !== "production";
 
-  const { slug } = await params;
+  const { tenantSlug, slug } = await params;
 
   const res = await fetch(
-    `${API_BASE}/api/gallery/albums/${slug}`,
+    `${API_BASE}/${tenantSlug}/gallery/${slug}`,
     { cache: "no-store" }
   );
 
@@ -23,7 +22,6 @@ export default async function GalleryAlbumPage({ params }) {
     <GalleryView
       album={album}
       API_BASE={API_BASE}
-      isDev={isDev}
     />
   );
 }
