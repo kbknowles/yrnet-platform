@@ -9,15 +9,6 @@ import { resolveTenant } from "../../middleware/resolveTenant.js";
 
 const router = express.Router({ mergeParams: true });
 
-/*
-  In Render:
-  UPLOAD_ROOT=/uploads
-  Mount persistent disk there.
-
-  Local dev:
-  create /uploads folder at project root.
-*/
-
 const UPLOAD_ROOT = process.env.UPLOAD_ROOT || path.resolve("uploads");
 
 const ALLOWED_TYPES = [
@@ -26,14 +17,9 @@ const ALLOWED_TYPES = [
   "application/pdf",
 ];
 
-/* =============================
-   STORAGE (TENANT SAFE)
-============================= */
-
 const storage = multer.diskStorage({
   destination(req, file, cb) {
-    const { id } = req.params;
-    const { tenantSlug } = req.params;
+    const { id, tenantSlug } = req.params;
 
     if (!id || !tenantSlug) {
       return cb(new Error("Missing tenant or announcement id"));
@@ -56,7 +42,7 @@ const storage = multer.diskStorage({
 
   filename(req, file, cb) {
     const ext = path.extname(file.originalname).toLowerCase();
-    cb(null, `poster${ext}`); // overwrite
+    cb(null, `poster${ext}`);
   },
 });
 
@@ -69,11 +55,6 @@ const upload = multer({
     cb(null, true);
   },
 });
-
-/* =============================
-   UPLOAD / REPLACE POSTER
-   POST /api/:tenantSlug/admin/announcements/:id/poster
-============================= */
 
 router.post(
   "/:tenantSlug/:id/poster",
@@ -98,16 +79,16 @@ router.post(
         return res.status(400).json({ error: "No file uploaded" });
       }
 
-      const imageUrl = `/uploads/tenants/${req.params.tenantSlug}/announcements/${id}/${req.file.filename}`;
+      const filename = req.file.filename;
 
       await prisma.announcement.update({
         where: { id },
-        data: { imageUrl },
+        data: { imageUrl: filename },
       });
 
       res.json({
         ok: true,
-        imageUrl,
+        imageUrl: filename,
       });
     } catch (err) {
       console.error("Poster upload failed", err);

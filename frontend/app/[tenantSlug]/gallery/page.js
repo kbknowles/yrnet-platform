@@ -6,11 +6,12 @@ import SponsorZone from "components/sponsorship/SponsorZone";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
-function resolveImage(url) {
-  if (!url) return null;
-  if (url.startsWith("http")) return url;
-  if (url.startsWith("/uploads")) return `${API_BASE}${url}`;
-  return url;
+function resolveImage(filename, tenantSlug) {
+  if (!filename) return null;
+
+  if (filename.startsWith("http")) return filename;
+
+  return `${API_BASE}/uploads/tenants/${tenantSlug}/gallery/${filename}`;
 }
 
 async function getHomeData(tenantSlug) {
@@ -72,6 +73,8 @@ export default async function GalleryPage({ params }) {
               const cover = album.images?.[0];
               const imageCount = album.images?.length || 0;
 
+              const imageSrc = resolveImage(cover?.imageUrl, tenantSlug);
+
               return (
                 <Link
                   key={album.slug || album.id}
@@ -79,9 +82,9 @@ export default async function GalleryPage({ params }) {
                   className="group relative block rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition"
                 >
                   <div className="relative h-56 bg-gray-200">
-                    {cover?.imageUrl && (
+                    {imageSrc && (
                       <Image
-                        src={resolveImage(cover.imageUrl)}
+                        src={imageSrc}
                         alt={album.title}
                         fill
                         className="object-cover group-hover:scale-105 transition duration-300"

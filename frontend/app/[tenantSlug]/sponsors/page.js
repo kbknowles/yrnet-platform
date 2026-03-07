@@ -4,11 +4,13 @@ import Image from "next/image";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
-function resolveImage(url) {
-  if (!url) return null;
-  if (url.startsWith("http")) return url;
-  if (url.startsWith("/uploads")) return `${API_BASE}${url}`;
-  return url;
+function resolveImage(filename, tenantSlug) {
+  if (!filename) return null;
+
+  if (filename.startsWith("http")) return filename;
+
+  // filename only in DB
+  return `${API_BASE}/uploads/tenants/${tenantSlug}/sponsors/${filename}`;
 }
 
 async function getSponsors(tenantSlug) {
@@ -65,7 +67,10 @@ export default async function SponsorsPage({ params }) {
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-8 items-center">
               {sponsors.map((s) => {
-                const imageSrc = resolveImage(s.logoUrl || s.bannerUrl);
+                const imageSrc = resolveImage(
+                  s.logoUrl || s.bannerUrl,
+                  tenantSlug
+                );
 
                 return (
                   <a
@@ -98,9 +103,7 @@ export default async function SponsorsPage({ params }) {
 
         {/* Call to Action */}
         <section className="bg-white border rounded-xl p-12 text-center space-y-4 shadow-sm">
-          <h2 className="text-2xl font-bold text-primary">
-            Become a Sponsor
-          </h2>
+          <h2 className="text-2xl font-bold text-primary">Become a Sponsor</h2>
           <p className="max-w-xl mx-auto text-gray-700">
             Sponsorship opportunities are available for events, athletes, and
             statewide exposure throughout the rodeo season.
