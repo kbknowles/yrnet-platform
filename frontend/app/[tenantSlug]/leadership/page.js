@@ -1,18 +1,9 @@
-// filepath: frontend/app/leadership/page.js
+// filepath: frontend/app/[tenantSlug]/leadership/page.js
 
 import SponsorZone from "components/sponsorship/SponsorZone";
-import { headers } from "next/headers";
-
 import { ROLE_LABELS, publicEmailForRole } from "lib/officerDisplay";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
-
-function getTenantSlugFromHost(host) {
-  const hostname = (host || "").split(":")[0];
-  const parts = hostname.split(".");
-  if (parts.length >= 3) return parts[0];
-  return "demo";
-}
 
 async function getOfficers(tenantSlug) {
   try {
@@ -40,9 +31,8 @@ function maskPhone(phone) {
   return `***-***-${digits.slice(-4)}`;
 }
 
-export default async function LeadershipPage() {
-  const h = await headers();
-  const tenantSlug = getTenantSlugFromHost(h.get("host"));
+export default async function LeadershipPage({ params }) {
+  const { tenantSlug } = await params;
 
   const officers = await getOfficers(tenantSlug);
 
@@ -62,9 +52,8 @@ export default async function LeadershipPage() {
           <div className="w-24 h-1 bg-accent mx-auto" />
 
           <p className="mx-auto text-white/90 mb-6 text-lg font-normal text-body lg:text-xl sm:px-16 xl:px-48">
-            <span className="block">Dedicated volunteers serving the</span>
             <span className="block">
-              Alabama High School Rodeo Association.
+              Dedicated volunteers serving the association.
             </span>
           </p>
         </div>

@@ -36,6 +36,7 @@ router.get("/", resolveTenant, async (req, res) => {
         role: true,
         type: true,
         phone: true,
+        email: true,
       },
       orderBy: [
         { type: "asc" },
@@ -47,7 +48,7 @@ router.get("/", resolveTenant, async (req, res) => {
     res.json(officers || []);
   } catch (err) {
     console.error("PUBLIC_OFFICERS_ERROR", err);
-    res.status(200).json([]);
+    res.status(500).json({ error: "Failed to load officers" });
   }
 });
 

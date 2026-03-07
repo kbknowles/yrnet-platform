@@ -13,27 +13,34 @@ const router = express.Router({ mergeParams: true });
 router.get("/", resolveTenant, async (req, res) => {
   try {
     const officers = await prisma.officer.findMany({
-      where: { tenantId: req.tenantId },
+      where: {
+        tenantId: req.tenantId,
+        active: true,
+      },
       include: { season: true },
       orderBy: { name: "asc" },
     });
 
     res.json(officers || []);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("GET_ADMIN_OFFICERS_ERROR", err);
+    res.status(500).json({ error: "Failed to load officers" });
   }
 });
 
 /**
  * CREATE officer (tenant scoped)
- * POST /api/:tenantSlug/admin/officers
+ * POST /:tenantSlug/admin/officers
  */
 router.post("/", resolveTenant, async (req, res) => {
   try {
     const seasonId = Number(req.body.seasonId);
 
     const season = await prisma.season.findFirst({
-      where: { id: seasonId, tenantId: req.tenantId },
+      where: {
+        id: seasonId,
+        tenantId: req.tenantId,
+      },
     });
 
     if (!season) {
@@ -55,20 +62,24 @@ router.post("/", resolveTenant, async (req, res) => {
 
     res.json(officer);
   } catch (err) {
+    console.error("CREATE_OFFICER_ERROR", err);
     res.status(400).json({ error: err.message });
   }
 });
 
 /**
  * UPDATE officer (tenant scoped)
- * PUT /api/:tenantSlug/admin/officers/:id
+ * PUT /:tenantSlug/admin/officers/:id
  */
 router.put("/:id", resolveTenant, async (req, res) => {
   try {
     const id = Number(req.params.id);
 
     const existing = await prisma.officer.findFirst({
-      where: { id, tenantId: req.tenantId },
+      where: {
+        id,
+        tenantId: req.tenantId,
+      },
     });
 
     if (!existing) {
@@ -78,7 +89,10 @@ router.put("/:id", resolveTenant, async (req, res) => {
     const seasonId = Number(req.body.seasonId);
 
     const season = await prisma.season.findFirst({
-      where: { id: seasonId, tenantId: req.tenantId },
+      where: {
+        id: seasonId,
+        tenantId: req.tenantId,
+      },
     });
 
     if (!season) {
@@ -94,26 +108,30 @@ router.put("/:id", resolveTenant, async (req, res) => {
         email: req.body.email || null,
         phone: req.body.phone || null,
         seasonId,
-        active: req.body.active,
+        active: req.body.active ?? existing.active,
       },
     });
 
     res.json(officer);
   } catch (err) {
+    console.error("UPDATE_OFFICER_ERROR", err);
     res.status(400).json({ error: err.message });
   }
 });
 
 /**
  * DELETE officer (tenant scoped)
- * DELETE /api/:tenantSlug/admin/officers/:id
+ * DELETE /:tenantSlug/admin/officers/:id
  */
 router.delete("/:id", resolveTenant, async (req, res) => {
   try {
     const id = Number(req.params.id);
 
     const existing = await prisma.officer.findFirst({
-      where: { id, tenantId: req.tenantId },
+      where: {
+        id,
+        tenantId: req.tenantId,
+      },
     });
 
     if (!existing) {
@@ -126,6 +144,7 @@ router.delete("/:id", resolveTenant, async (req, res) => {
 
     res.json({ success: true });
   } catch (err) {
+    console.error("DELETE_OFFICER_ERROR", err);
     res.status(400).json({ error: err.message });
   }
 });
