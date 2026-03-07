@@ -2,44 +2,28 @@
 
 import prisma from "../prismaClient.mjs";
 
-
-
 export async function resolveTenant(req, res, next) {
   try {
-    const tenantSlug = req.params?.tenantSlug;
+    const { tenantSlug } = req.params;
 
     if (!tenantSlug) {
-      return res.status(400).json({ error: "Tenant slug required" });
+      return res.status(400).json({ error: "Tenant slug missing" });
     }
 
-    const tenant = await prisma.tenant.findFirst({
-      where: {
-        slug: tenantSlug,
-        active: true,
-      },
-      select: {
-        id: true,
-        slug: true,
-        name: true,
-        domain: true,
-        primaryColor: true,
-        accentColor: true,
-        logoUrl: true,
-        active: true,
-      },
+    const tenant = await prisma.tenant.findUnique({
+      where: { slug: tenantSlug },
     });
 
-    if (!tenant) {
+    if (!tenant || !tenant.active) {
       return res.status(404).json({ error: "Tenant not found" });
     }
 
-    req.tenantId = tenant.id;
     req.tenant = tenant;
+    req.tenantId = tenant.id;
 
     next();
   } catch (err) {
-    console.error("RESOLVE_TENANT_ERROR", err);
-    return res.status(500).json({ error: "Tenant resolution failed" });
+    console.error("TENANT RESOLUTION ERROR:", err);
+    res.status(500).json({ error: "Failed to resolve tenant" });
   }
 }
-

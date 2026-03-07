@@ -2,15 +2,32 @@
 
 import express from "express";
 import prisma from "../../prismaClient.mjs";
-import { upload } from "../../lib/upload.js";
+import { upload } from "../../middleware/uploadGalleryImage.js";
 import { resolveTenant } from "../../middleware/resolveTenant.js";
+import fs from "fs";
+import path from "path";
 
 const router = express.Router({ mergeParams: true });
+
+function deleteFileIfExists(filePath) {
+  if (!filePath) return;
+
+  const absolutePath = path.join("/", filePath);
+
+  try {
+    if (fs.existsSync(absolutePath)) {
+      fs.unlinkSync(absolutePath);
+    }
+  } catch (err) {
+    console.error("FILE DELETE ERROR:", err);
+  }
+}
 
 /* -------------------------- */
 /* CREATE ALBUM (Tenant Scoped) */
 /* POST /api/:tenantSlug/admin/gallery */
 /* -------------------------- */
+
 router.post("/", resolveTenant, async (req, res) => {
   try {
     const { title, seasonId } = req.body;
@@ -38,6 +55,7 @@ router.post("/", resolveTenant, async (req, res) => {
 /* UPDATE ALBUM (Tenant Scoped) */
 /* PUT /api/:tenantSlug/admin/gallery/:id */
 /* -------------------------- */
+
 router.put("/:id", resolveTenant, async (req, res) => {
   try {
     const albumId = Number(req.params.id);
@@ -70,17 +88,21 @@ router.put("/:id", resolveTenant, async (req, res) => {
 /* DELETE ALBUM + IMAGES (Tenant Scoped) */
 /* DELETE /api/:tenantSlug/admin/gallery/:id */
 /* -------------------------- */
+
 router.delete("/:id", resolveTenant, async (req, res) => {
   try {
     const albumId = Number(req.params.id);
 
     const existing = await prisma.galleryAlbum.findFirst({
       where: { id: albumId, tenantId: req.tenantId },
+      include: { images: true },
     });
 
     if (!existing) {
       return res.status(404).json({ error: "Album not found" });
     }
+
+    existing.images?.forEach((img) => deleteFileIfExists(img.imageUrl));
 
     await prisma.galleryImage.deleteMany({
       where: { albumId },
@@ -101,6 +123,7 @@ router.delete("/:id", resolveTenant, async (req, res) => {
 /* LIST ALBUMS + IMAGES (Tenant Scoped) */
 /* GET /api/:tenantSlug/admin/gallery */
 /* -------------------------- */
+
 router.get("/", resolveTenant, async (req, res) => {
   try {
     const albums = await prisma.galleryAlbum.findMany({
@@ -124,6 +147,7 @@ router.get("/", resolveTenant, async (req, res) => {
 /* UPLOAD IMAGE TO ALBUM (Tenant Scoped) */
 /* POST /api/:tenantSlug/admin/gallery/:id/images */
 /* -------------------------- */
+
 router.post(
   "/:id/images",
   resolveTenant,
@@ -144,10 +168,12 @@ router.post(
         return res.status(404).json({ error: "Album not found" });
       }
 
+      const imageUrl = `/uploads/tenants/${req.tenant.slug}/gallery/${req.file.filename}`;
+
       const image = await prisma.galleryImage.create({
         data: {
           albumId,
-          imageUrl: `/uploads/gallery/${req.file.filename}`,
+          imageUrl,
           caption: req.body.caption || null,
           sortOrder: req.body.sortOrder ? Number(req.body.sortOrder) : 0,
         },
@@ -165,69 +191,65 @@ router.post(
 /* UPDATE IMAGE SORT ORDER (Tenant Scoped) */
 /* PUT /api/:tenantSlug/admin/gallery/images/:id/order */
 /* -------------------------- */
-router.put(
-  "/images/:id/order",
-  resolveTenant,
-  async (req, res) => {
-    try {
-      const imageId = Number(req.params.id);
 
-      const image = await prisma.galleryImage.findFirst({
-        where: {
-          id: imageId,
-          album: { tenantId: req.tenantId },
-        },
-      });
+router.put("/images/:id/order", resolveTenant, async (req, res) => {
+  try {
+    const imageId = Number(req.params.id);
 
-      if (!image) {
-        return res.status(404).json({ error: "Image not found" });
-      }
+    const image = await prisma.galleryImage.findFirst({
+      where: {
+        id: imageId,
+        album: { tenantId: req.tenantId },
+      },
+    });
 
-      const updated = await prisma.galleryImage.update({
-        where: { id: imageId },
-        data: { sortOrder: Number(req.body.sortOrder) },
-      });
-
-      res.json(updated);
-    } catch (err) {
-      console.error("UPDATE IMAGE ORDER ERROR:", err);
-      res.status(500).json({ error: "Failed to update image order" });
+    if (!image) {
+      return res.status(404).json({ error: "Image not found" });
     }
+
+    const updated = await prisma.galleryImage.update({
+      where: { id: imageId },
+      data: { sortOrder: Number(req.body.sortOrder) },
+    });
+
+    res.json(updated);
+  } catch (err) {
+    console.error("UPDATE IMAGE ORDER ERROR:", err);
+    res.status(500).json({ error: "Failed to update image order" });
   }
-);
+});
 
 /* -------------------------- */
 /* DELETE IMAGE (Tenant Scoped) */
 /* DELETE /api/:tenantSlug/admin/gallery/images/:id */
 /* -------------------------- */
-router.delete(
-  "/images/:id",
-  resolveTenant,
-  async (req, res) => {
-    try {
-      const imageId = Number(req.params.id);
 
-      const image = await prisma.galleryImage.findFirst({
-        where: {
-          id: imageId,
-          album: { tenantId: req.tenantId },
-        },
-      });
+router.delete("/images/:id", resolveTenant, async (req, res) => {
+  try {
+    const imageId = Number(req.params.id);
 
-      if (!image) {
-        return res.status(404).json({ error: "Image not found" });
-      }
+    const image = await prisma.galleryImage.findFirst({
+      where: {
+        id: imageId,
+        album: { tenantId: req.tenantId },
+      },
+    });
 
-      await prisma.galleryImage.delete({
-        where: { id: imageId },
-      });
-
-      res.json({ success: true });
-    } catch (err) {
-      console.error("DELETE IMAGE ERROR:", err);
-      res.status(500).json({ error: "Failed to delete image" });
+    if (!image) {
+      return res.status(404).json({ error: "Image not found" });
     }
+
+    deleteFileIfExists(image.imageUrl);
+
+    await prisma.galleryImage.delete({
+      where: { id: imageId },
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("DELETE IMAGE ERROR:", err);
+    res.status(500).json({ error: "Failed to delete image" });
   }
-);
+});
 
 export default router;

@@ -1,14 +1,13 @@
-// filepath: frontend/app/[slug]/page.js
+// filepath: frontend/app/[tenantSlug]/[slug]/page.js
 
 import SponsorZone from "components/sponsorship/SponsorZone";
-
 import { notFound } from "next/navigation";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
-async function getPage(slug) {
+async function getPage(tenantSlug, slug) {
   const res = await fetch(
-    `${API_BASE}/api/pages/${encodeURIComponent(slug)}`,
+    `${API_BASE}/api/${tenantSlug}/pages/${encodeURIComponent(slug)}`,
     { cache: "no-store" }
   );
 
@@ -17,11 +16,11 @@ async function getPage(slug) {
 }
 
 export default async function CustomPage({ params }) {
-  const { slug } = await params;
+  const { tenantSlug, slug } = await params;
 
-  if (!slug) notFound();
+  if (!slug || !tenantSlug) notFound();
 
-  const page = await getPage(slug);
+  const page = await getPage(tenantSlug, slug);
 
   if (!page || page.status !== "published") {
     notFound();
@@ -29,7 +28,7 @@ export default async function CustomPage({ params }) {
 
   return (
     <main className="flex-1">
-      {/* Hero Section */}
+      {/* HERO */}
       <section className="bg-secondary text-white/90 py-16 px-4">
         <div className="max-w-6xl mx-auto text-center space-y-6">
           <h1 className="mb-4 text-4xl font-semibold tracking-tight md:text-5xl lg:text-6xl">
@@ -46,7 +45,7 @@ export default async function CustomPage({ params }) {
         </div>
       </section>
 
-      {/* Content Section */}
+      {/* CONTENT */}
       <section className="max-w-5xl mx-auto px-4 py-12">
         {page.isPlaceholder ? (
           <div className="flex items-center justify-center py-20 text-center">
@@ -62,24 +61,23 @@ export default async function CustomPage({ params }) {
         )}
       </section>
 
-            {/* SPONSORS */}
-            <section className="bg-white/90 py-4">
-              <div className="max-w-7xl mx-auto px-4 space-y-6">
-                <h2 className="text-2xl font-semibold text-center">
-                  Thank You to Our Sponsors
-                </h2>
-      
-                <div className="border-t-2 border-rose-700 w-20 mx-auto" />
-      
-               <SponsorZone
-               contentType="ANNOUNCEMENT"
-               contentId={null}
-               levels={["PREMIER", "FEATURED"]}
-               slots={4}
-               />
-              </div>
-            </section>
-      
+      {/* SPONSORS */}
+      <section className="bg-white/90 py-4">
+        <div className="max-w-7xl mx-auto px-4 space-y-6">
+          <h2 className="text-2xl font-semibold text-center">
+            Thank You to Our Sponsors
+          </h2>
+
+          <div className="border-t-2 border-rose-700 w-20 mx-auto" />
+
+          <SponsorZone
+            contentType="ANNOUNCEMENT"
+            contentId={null}
+            levels={["PREMIER", "FEATURED"]}
+            slots={4}
+          />
+        </div>
+      </section>
     </main>
   );
 }

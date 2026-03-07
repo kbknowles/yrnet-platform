@@ -5,6 +5,7 @@ import prisma from "../../prismaClient.mjs";
 import uploadImage from "../../middleware/uploadImage.js";
 import { resolveTenant } from "../../middleware/resolveTenant.js";
 import fs from "fs";
+import path from "path";
 
 const router = express.Router({ mergeParams: true });
 
@@ -34,13 +35,19 @@ function safeParseJSON(value) {
 function deleteFileIfExists(filePath) {
   if (!filePath) return;
 
+  const absolutePath = path.join("/", filePath);
+
   try {
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
+    if (fs.existsSync(absolutePath)) {
+      fs.unlinkSync(absolutePath);
     }
   } catch (err) {
     console.error("FILE DELETE ERROR:", err);
   }
+}
+
+function tenantUploadPath(tenantSlug, type, filename) {
+  return `/uploads/tenants/${tenantSlug}/${type}/${filename}`;
 }
 
 /* ----------------------------
@@ -91,7 +98,7 @@ router.get("/:slug", resolveTenant, async (req, res) => {
 
 /* ----------------------------
    CREATE (Tenant Scoped)
-   POST /api/:tenantSlug/admin/athletes
+POST /api/:tenantSlug/admin/athletes
 ----------------------------- */
 
 router.post(
@@ -113,6 +120,7 @@ router.post(
       }
 
       const { firstName, lastName } = req.body;
+
       if (!firstName || !lastName) {
         return res.status(400).json({ error: "Name required" });
       }
@@ -120,17 +128,21 @@ router.post(
       const slug = slugify(firstName, lastName);
 
       const headshotUrl = req.files?.headshot?.[0]
-        ? `/uploads/images/${req.files.headshot[0].filename}`
+        ? tenantUploadPath(
+            req.tenant.slug,
+            "images",
+            req.files.headshot[0].filename
+          )
         : null;
 
       const actionPhotos =
-        req.files?.actionPhotos?.map(
-          (f) => `/uploads/images/${f.filename}`
+        req.files?.actionPhotos?.map((f) =>
+          tenantUploadPath(req.tenant.slug, "images", f.filename)
         ) || [];
 
       const videos =
-        req.files?.videos?.map(
-          (f) => `/uploads/videos/${f.filename}`
+        req.files?.videos?.map((f) =>
+          tenantUploadPath(req.tenant.slug, "videos", f.filename)
         ) || [];
 
       const athlete = await prisma.athlete.create({
@@ -158,7 +170,7 @@ router.post(
 
 /* ----------------------------
    UPDATE (Tenant Scoped)
-   PUT /api/:tenantSlug/admin/athletes/:slug
+PUT /api/:tenantSlug/admin/athletes/:slug
 ----------------------------- */
 
 router.put(
@@ -224,15 +236,20 @@ router.put(
 
       if (req.files?.headshot?.[0]) {
         deleteFileIfExists(existing.headshotUrl);
-        updateData.headshotUrl =
-          `/uploads/images/${req.files.headshot[0].filename}`;
+
+        updateData.headshotUrl = tenantUploadPath(
+          req.tenant.slug,
+          "images",
+          req.files.headshot[0].filename
+        );
       }
 
       const incomingPhotos = safeParseJSON(req.body.actionPhotos);
+
       if (incomingPhotos !== undefined) {
-        existing.actionPhotos?.forEach((path) => {
-          if (!incomingPhotos.includes(path)) {
-            deleteFileIfExists(path);
+        existing.actionPhotos?.forEach((p) => {
+          if (!incomingPhotos.includes(p)) {
+            deleteFileIfExists(p);
           }
         });
 
@@ -240,21 +257,22 @@ router.put(
       }
 
       if (req.files?.actionPhotos?.length) {
-        const newPaths = req.files.actionPhotos.map(
-          (f) => `/uploads/images/${f.filename}`
+        const newPhotos = req.files.actionPhotos.map((f) =>
+          tenantUploadPath(req.tenant.slug, "images", f.filename)
         );
 
         updateData.actionPhotos = [
           ...(updateData.actionPhotos ?? existing.actionPhotos ?? []),
-          ...newPaths,
+          ...newPhotos,
         ];
       }
 
       const incomingVideos = safeParseJSON(req.body.videos);
+
       if (incomingVideos !== undefined) {
-        existing.videos?.forEach((path) => {
-          if (!incomingVideos.includes(path)) {
-            deleteFileIfExists(path);
+        existing.videos?.forEach((p) => {
+          if (!incomingVideos.includes(p)) {
+            deleteFileIfExists(p);
           }
         });
 
@@ -262,13 +280,13 @@ router.put(
       }
 
       if (req.files?.videos?.length) {
-        const newVideoPaths = req.files.videos.map(
-          (f) => `/uploads/videos/${f.filename}`
+        const newVideos = req.files.videos.map((f) =>
+          tenantUploadPath(req.tenant.slug, "videos", f.filename)
         );
 
         updateData.videos = [
           ...(updateData.videos ?? existing.videos ?? []),
-          ...newVideoPaths,
+          ...newVideos,
         ];
       }
 
@@ -287,7 +305,7 @@ router.put(
 
 /* ----------------------------
    DELETE (Tenant Scoped)
-   DELETE /api/:tenantSlug/admin/athletes/:slug
+DELETE /api/:tenantSlug/admin/athletes/:slug
 ----------------------------- */
 
 router.delete("/:slug", resolveTenant, async (req, res) => {

@@ -4,27 +4,40 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 
-const imagePath = "/uploads/images";
-const videoPath = "/uploads/videos";
-
-[imagePath, videoPath].forEach((dir) => {
+function ensureDir(dir) {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
-});
+}
 
 const storage = multer.diskStorage({
-  destination: (_, file, cb) => {
-    if (file.mimetype.startsWith("image/")) {
-      cb(null, imagePath);
-    } else if (
-      file.mimetype === "video/mp4" ||
-      file.mimetype === "video/quicktime" ||
-      file.mimetype === "video/webm"
-    ) {
-      cb(null, videoPath);
-    } else {
-      cb(new Error("Invalid file type"));
+  destination: (req, file, cb) => {
+    try {
+      const tenantSlug = req.params?.tenantSlug || req.tenantSlug;
+
+      if (!tenantSlug) {
+        return cb(new Error("Tenant not resolved for upload"));
+      }
+
+      let uploadPath;
+
+      if (file.mimetype.startsWith("image/")) {
+        uploadPath = `/uploads/tenants/${tenantSlug}/images`;
+      } else if (
+        file.mimetype === "video/mp4" ||
+        file.mimetype === "video/quicktime" ||
+        file.mimetype === "video/webm"
+      ) {
+        uploadPath = `/uploads/tenants/${tenantSlug}/videos`;
+      } else {
+        return cb(new Error("Invalid file type"));
+      }
+
+      ensureDir(uploadPath);
+
+      cb(null, uploadPath);
+    } catch (err) {
+      cb(err);
     }
   },
 

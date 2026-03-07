@@ -22,10 +22,8 @@ export default function Header({ tenant }) {
   const [pages, setPages] = useState([]);
   const pathname = usePathname();
 
-  // Prefer tenant prop (TenantLayout should pass it), but fall back to parsing URL.
   const tenantSlug = useMemo(() => {
     if (tenant?.slug) return tenant.slug;
-
     const seg = (pathname || "").split("/").filter(Boolean)[0];
     return seg || null;
   }, [tenant?.slug, pathname]);
@@ -40,19 +38,14 @@ export default function Header({ tenant }) {
 
   const buildHref = (href) => {
     if (!tenantSlug) return href;
-
-    // Home
     if (href === "/") return basePath;
-
-    // Normal route like "/schedule"
     return `${basePath}${href}`;
   };
 
   useEffect(() => {
-    // Multi-tenant pages
     if (!tenantSlug) return;
 
-    fetch(`${API_BASE}/${tenantSlug}/pages`, { cache: "no-store" })
+    fetch(`${API_BASE}/api/${tenantSlug}/pages`, { cache: "no-store" })
       .then((res) => res.json())
       .then((data) => {
         const menuPages = (Array.isArray(data) ? data : [])
@@ -63,10 +56,9 @@ export default function Header({ tenant }) {
       .catch(() => setPages([]));
   }, [tenantSlug]);
 
-  // Keep your existing header behavior; only allow tenant overrides if provided.
-  const logoSrc = tenant?.logoUrl || "/ahsra-logo.png";
-  const fullName = tenant?.name || "Alabama High School Rodeo Association";
-  const shortName = tenant?.shortName || "AHSRA";
+  const logoSrc = tenant?.logoUrl || null;
+  const fullName = tenant?.name || "";
+  const shortName = tenant?.shortName || "";
 
   return (
     <header
@@ -75,27 +67,34 @@ export default function Header({ tenant }) {
       } text-white z-50`}
     >
       <div className="hero max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-        {/* Brand */}
         {!isHome ? (
           <Link
             href={buildHref("/")}
             className="flex items-center gap-3 font-semibold tracking-wide"
           >
-            <Image
-              src={logoSrc}
-              alt={fullName}
-              width={40}
-              height={40}
-              priority
-            />
-            <span className="hidden lg:inline text-lg">{fullName}</span>
-            <span className="lg:hidden text-lg">{shortName}</span>
+            {logoSrc && (
+              <Image
+                src={logoSrc}
+                alt={fullName || "logo"}
+                width={40}
+                height={40}
+                priority
+              />
+            )}
+
+            {fullName && (
+              <>
+                <span className="hidden lg:inline text-lg">{fullName}</span>
+                {shortName && (
+                  <span className="lg:hidden text-lg">{shortName}</span>
+                )}
+              </>
+            )}
           </Link>
         ) : (
           <div />
         )}
 
-        {/* Desktop Nav */}
         <nav className="hidden md:flex gap-6 text-sm font-medium">
           {STATIC_LINKS.map((l) => (
             <Link key={l.href} href={buildHref(l.href)}>
@@ -110,7 +109,6 @@ export default function Header({ tenant }) {
           ))}
         </nav>
 
-        {/* Mobile Toggle */}
         <button
           type="button"
           className="md:hidden text-xl"
@@ -121,7 +119,6 @@ export default function Header({ tenant }) {
         </button>
       </div>
 
-      {/* Mobile Menu */}
       {open && (
         <nav
           className={`md:hidden px-4 pb-4 flex flex-col gap-3 text-sm ${

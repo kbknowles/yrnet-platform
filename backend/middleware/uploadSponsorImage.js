@@ -1,4 +1,4 @@
-// filepath: backend/middleware/uploadPdf.js
+// filepath: backend/middleware/uploadSponsorImage.js
 
 import multer from "multer";
 import path from "path";
@@ -16,10 +16,10 @@ const storage = multer.diskStorage({
       const tenantSlug = req.params?.tenantSlug || req.tenant?.slug;
 
       if (!tenantSlug) {
-        return cb(new Error("Tenant not resolved for PDF upload"));
+        return cb(new Error("Tenant not resolved for sponsor upload"));
       }
 
-      const uploadDir = `/uploads/tenants/${tenantSlug}/pdfs`;
+      const uploadDir = `/uploads/tenants/${tenantSlug}/sponsors`;
 
       ensureDir(uploadDir);
 
@@ -31,28 +31,30 @@ const storage = multer.diskStorage({
 
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
-    const recordId = req.params.id;
+    const sponsorId = req.params.id;
 
     const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
 
-    if (!recordId) {
-      cb(null, `document-${unique}${ext}`);
+    if (!sponsorId) {
+      cb(null, `sponsor-${unique}${ext}`);
     } else {
-      cb(null, `document-${recordId}-${unique}${ext}`);
+      cb(null, `sponsor-${sponsorId}-${unique}${ext}`);
     }
   },
 });
 
-const uploadPdf = multer({
+const fileFilter = (_, file, cb) => {
+  if (file.mimetype.startsWith("image/")) {
+    cb(null, true);
+  } else {
+    cb(new Error("Only images allowed"), false);
+  }
+};
+
+const upload = multer({
   storage,
-  fileFilter: (_, file, cb) => {
-    if (file.mimetype === "application/pdf") {
-      cb(null, true);
-    } else {
-      cb(new Error("PDF files only"));
-    }
-  },
-  limits: { fileSize: 25 * 1024 * 1024 },
+  fileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 },
 });
 
-export default uploadPdf;
+export default upload;
