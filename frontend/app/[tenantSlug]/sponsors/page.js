@@ -1,16 +1,8 @@
-// filepath: frontend/app/sponsors/page.js
+// filepath: frontend/app/[tenantSlug]/sponsors/page.js
 
 import Image from "next/image";
-import { headers } from "next/headers";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
-
-function getTenantSlugFromHost(host) {
-  const hostname = (host || "").split(":")[0];
-  const parts = hostname.split(".");
-  if (parts.length >= 3) return parts[0];
-  return "demo";
-}
 
 function resolveImage(url) {
   if (!url) return null;
@@ -32,9 +24,8 @@ async function getSponsors(tenantSlug) {
   }
 }
 
-export default async function SponsorsPage() {
-  const h = await headers();
-  const tenantSlug = getTenantSlugFromHost(h.get("host"));
+export default async function SponsorsPage({ params }) {
+  const { tenantSlug } = await params;
 
   const sponsors = await getSponsors(tenantSlug);
 
@@ -108,14 +99,14 @@ export default async function SponsorsPage() {
         {/* Call to Action */}
         <section className="bg-white border rounded-xl p-12 text-center space-y-4 shadow-sm">
           <h2 className="text-2xl font-bold text-primary">
-            Become an AHSRA Sponsor
+            Become a Sponsor
           </h2>
           <p className="max-w-xl mx-auto text-gray-700">
             Sponsorship opportunities are available for events, athletes, and
             statewide exposure throughout the rodeo season.
           </p>
           <a
-            href="mailto:secretary@ahsra.org"
+            href="mailto:info@yrnet.org"
             className="inline-block mt-4 bg-primary text-white font-semibold px-6 py-3 rounded-md hover:opacity-90 transition"
           >
             Contact Us About Sponsorship
