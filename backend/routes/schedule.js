@@ -9,6 +9,7 @@ const router = express.Router({ mergeParams: true });
 /**
  * GET /:tenantSlug/schedule
  * Public schedule list (published rodeos, tenant-scoped)
+ * Returns structure expected by frontend SchedulePage
  */
 router.get("/", resolveTenant, async (req, res) => {
   try {
@@ -24,7 +25,12 @@ router.get("/", resolveTenant, async (req, res) => {
       },
     });
 
-    return res.json(rodeos || []);
+    const season = rodeos?.[0]?.season || null;
+
+    return res.json({
+      season,
+      events: rodeos || [],
+    });
   } catch (err) {
     console.error("SCHEDULE_API_ERROR", err);
     return res.status(500).json({ error: "Failed to load schedule" });
