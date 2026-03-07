@@ -85,8 +85,8 @@ export default function SchedulePage() {
       .then((data) => {
         const today = startOfToday();
 
-        if (data?.season?.name) {
-          setSeasonName(data.season.name);
+        if (data?.season?.year) {
+          setSeasonName(data.season.year);
         }
 
         const visible = (Array.isArray(data?.events) ? data.events : []).filter(
@@ -114,18 +114,17 @@ export default function SchedulePage() {
   }));
 
   return (
-
     <main className="bg-gray-50">
       {/* PAGE HEADER */}
       <section className="bg-secondary text-white/90">
         <div className="max-w-6xl mx-auto px-4 py-16 text-center space-y-6">
-           <h1 className="text-4xl md:text-5xl font-semibold text-white/90 tracking-tight">
+          <h1 className="text-4xl md:text-5xl font-semibold text-white/90 tracking-tight">
             {seasonName}
           </h1>
-          
+
           <div className="w-24 h-1 bg-accent mx-auto" />
 
-              <p className="text-lg text-white opacity-90 max-w-2xl mx-auto">
+          <p className="text-lg text-white opacity-90 max-w-2xl mx-auto">
             View upcoming rodeos, download to your calendar, and plan your
             season.
           </p>
@@ -174,7 +173,7 @@ export default function SchedulePage() {
 
               return (
                 <div
-                  key={e.id}
+                  key={e.slug}
                   data-slug={e.slug}
                   className={`bg-white border border-gray-300 rounded-lg p-6 shadow-sm hover:shadow-md transition ${
                     selectedSlug === e.slug ? "ring-2 ring-accent" : ""
