@@ -5,11 +5,15 @@ import SponsorZone from "components/sponsorship/SponsorZone";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
-function resolveImage(url) {
+function resolveImage(url, tenantSlug) {
   if (!url) return null;
   if (url.startsWith("http")) return url;
+
+  // legacy records (full path)
   if (url.startsWith("/uploads")) return `${API_BASE}${url}`;
-  return url;
+
+  // new records (filename only)
+  return `${API_BASE}/uploads/tenants/${tenantSlug}/images/${url}`;
 }
 
 async function getHomeData(tenantSlug) {
@@ -92,7 +96,7 @@ export default async function AthletesPage({ params }) {
                 {a.headshotUrl && (
                   <div className="w-full aspect-square bg-gray-100 rounded mb-4 overflow-hidden">
                     <img
-                      src={resolveImage(a.headshotUrl)}
+                      src={resolveImage(a.headshotUrl, tenantSlug)}
                       alt={`${a.firstName} ${a.lastName}`}
                       className="w-full h-full object-contain p-3"
                     />
