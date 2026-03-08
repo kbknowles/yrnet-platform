@@ -42,18 +42,13 @@ export default function AnnouncementsPage() {
     loadAnnouncements();
   }, [tenantSlug]);
 
-  const sorted = [...announcements].sort((a, b) => {
-    if (a.priority === "important" && b.priority !== "important") return -1;
-    if (a.priority !== "important" && b.priority === "important") return 1;
-
-    const aDate = new Date(a.publishAt || a.createdAt);
-    const bDate = new Date(b.publishAt || b.createdAt);
-
-    return bDate - aDate;
-  });
-
+const sorted = [...announcements].sort((a, b) => {
+  const aDate = new Date(a.publishAt || a.createdAt);
+  const bDate = new Date(b.publishAt || b.createdAt);
+  return bDate - aDate;
+});
   return (
-    <main className="max-w-6xl mx-auto px-4 py-12 space-y-8">
+    <main className="max-w-7xl mx-auto px-4 py-12 space-y-8">
       <h1 className="text-3xl font-bold">Announcements</h1>
 
       {loading && (
@@ -66,7 +61,7 @@ export default function AnnouncementsPage() {
         </p>
       )}
 
-      <div className="grid md:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {sorted.map((a) => {
           const poster =
             a.imageUrl &&
