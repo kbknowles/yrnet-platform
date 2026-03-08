@@ -7,20 +7,22 @@ import Image from "next/image";
 import AlbumSlideshow from "components/gallery/AlbumSlideshow";
 import SponsorZone from "components/sponsorship/SponsorZone";
 
-function resolveImage(url, API_BASE) {
-  if (!url) return null;
-  if (url.startsWith("http")) return url;
-  if (url.startsWith("/uploads")) return `${API_BASE}${url}`;
-  return url;
+function resolveImage(filename, API_BASE, tenantSlug) {
+  if (!filename) return null;
+  if (filename.startsWith("http")) return filename;
+
+  return `${API_BASE}/uploads/tenants/${tenantSlug}/gallery/${filename}`;
 }
 
 export default function GalleryView({ album, API_BASE }) {
   const [open, setOpen] = useState(false);
   const [startIndex, setStartIndex] = useState(0);
 
+  const tenantSlug = album?.tenant?.slug;
+
   const images = (album.images || []).map((img) => ({
     ...img,
-    imageUrl: resolveImage(img.imageUrl, API_BASE),
+    imageUrl: resolveImage(img.imageUrl, API_BASE, tenantSlug),
   }));
 
   const imageCount = images.length;

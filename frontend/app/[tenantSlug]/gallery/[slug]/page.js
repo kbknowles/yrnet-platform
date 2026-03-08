@@ -18,9 +18,23 @@ export default async function GalleryAlbumPage({ params }) {
 
   const album = await res.json();
 
+  // convert filenames to full URLs
+  const images =
+    album?.images?.map((img) => ({
+      ...img,
+      imageUrl: img.imageUrl
+        ? `${API_BASE}/uploads/tenants/${tenantSlug}/gallery/${img.imageUrl}`
+        : null,
+    })) || [];
+
+  const hydratedAlbum = {
+    ...album,
+    images,
+  };
+
   return (
     <GalleryView
-      album={album}
+      album={hydratedAlbum}
       API_BASE={API_BASE}
     />
   );

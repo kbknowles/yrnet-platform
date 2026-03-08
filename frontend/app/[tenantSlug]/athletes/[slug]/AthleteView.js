@@ -8,28 +8,14 @@ import Link from "next/link";
 import SponsorZone from "components/sponsorship/SponsorZone";
 import AlbumSlideshow from "components/gallery/AlbumSlideshow";
 
-function resolveMedia(API_BASE, url) {
-  if (!url) return null;
-  if (url.startsWith("http")) return url;
-  if (url.startsWith("/uploads")) return `${API_BASE}${url}`;
-  return url;
-}
-
 export default function AthleteView({ athlete, API_BASE }) {
   const [open, setOpen] = useState(false);
   const [startIndex, setStartIndex] = useState(0);
   const [videoOpen, setVideoOpen] = useState(false);
   const [activeVideo, setActiveVideo] = useState(null);
 
-  const actionImages =
-    athlete.actionPhotos?.map((p) =>
-      resolveMedia(API_BASE, p)
-    ) || [];
-
-  const videos =
-    athlete.videos
-      ?.slice(0, 4)
-      .map((v) => resolveMedia(API_BASE, v)) || [];
+  const actionImages = athlete.actionPhotos || [];
+  const videos = athlete.videos?.slice(0, 4) || [];
 
   const awards =
     athlete.awards?.filter((a) => a && a.trim() !== "") || [];
@@ -83,7 +69,7 @@ export default function AthleteView({ athlete, API_BASE }) {
           {athlete.headshotUrl && (
             <div className="relative w-full aspect-square rounded-xl bg-gray-100 shadow-md overflow-hidden md:col-span-2 flex items-center justify-center p-4">
               <Image
-                src={resolveMedia(API_BASE, athlete.headshotUrl)}
+                src={athlete.headshotUrl}
                 alt={`${athlete.firstName} ${athlete.lastName}`}
                 fill
                 unoptimized
