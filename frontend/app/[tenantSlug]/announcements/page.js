@@ -3,7 +3,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useTenantSlug } from "hooks/useTenantSlug";
+import { resolveTenantMedia } from "lib/media";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -18,7 +20,7 @@ export default function AnnouncementsPage() {
     async function loadAnnouncements() {
       try {
         const res = await fetch(
-          `${API_BASE}/api/${tenantSlug}/announcements`,
+          `${API_BASE}/${tenantSlug}/announcements`,
           { cache: "no-store" }
         );
 
@@ -51,8 +53,8 @@ export default function AnnouncementsPage() {
   });
 
   return (
-    <main className="max-w-4xl mx-auto px-4 py-10">
-      <h1 className="text-2xl font-bold mb-6">Announcements</h1>
+    <main className="max-w-6xl mx-auto px-4 py-12 space-y-8">
+      <h1 className="text-3xl font-bold">Announcements</h1>
 
       {loading && (
         <p className="text-sm text-gray-600">Loading announcements...</p>
@@ -64,40 +66,67 @@ export default function AnnouncementsPage() {
         </p>
       )}
 
-      <div className="space-y-4">
-        {sorted.map((a) => (
-          <div
-            key={a.id}
-            className={`rounded border p-4 ${
-              a.priority === "important"
-                ? "border-red-700 bg-red-50"
-                : "bg-white"
-            }`}
-          >
-            <div className="font-semibold">{a.title}</div>
+      <div className="grid md:grid-cols-2 gap-8">
+        {sorted.map((a) => {
+          const poster =
+            a.imageUrl &&
+            resolveTenantMedia({
+              tenantSlug,
+              folder: "announcements",
+              filename: a.imageUrl,
+              recordId: a.id,
+            });
 
-            {(a.publishAt || a.createdAt) && (
-              <div className="text-xs text-gray-500 mt-1">
-                {new Date(
-                  a.publishAt || a.createdAt
-                ).toLocaleDateString()}
+          return (
+            <div
+              key={a.id}
+              className={`rounded-lg border shadow-sm overflow-hidden ${
+                a.priority === "important"
+                  ? "border-red-700"
+                  : "border-gray-200"
+              }`}
+            >
+              {poster && (
+                <div className="relative w-full h-64 bg-gray-200">
+                  <Image
+                    src={poster}
+                    alt={a.title || "Announcement"}
+                    fill
+                    className="object-cover"
+                    unoptimized
+                  />
+                </div>
+              )}
+
+              <div className="p-5 space-y-3">
+                <div className="font-semibold text-lg">{a.title}</div>
+
+                {(a.publishAt || a.createdAt) && (
+                  <div className="text-xs text-gray-500">
+                    {new Date(
+                      a.publishAt || a.createdAt
+                    ).toLocaleDateString()}
+                  </div>
+                )}
+
+                {a.content && (
+                  <div className="text-sm text-gray-700 whitespace-pre-line">
+                    {a.content}
+                  </div>
+                )}
+
+                {a.slug && (
+                  <Link
+                    href={`/${tenantSlug}/announcements/${a.slug}`}
+                    className="inline-block text-sm text-primary hover:underline"
+                  >
+                    Read More →
+                  </Link>
+                )}
               </div>
-            )}
-
-            <div className="text-sm text-gray-700 mt-2">
-              {a.content}
             </div>
-
-            {a.slug && (
-              <Link
-                href={`/${tenantSlug}/announcements/${a.slug}`}
-                className="inline-block mt-3 text-sm text-primary hover:underline"
-              >
-                Read More →
-              </Link>
-            )}
-          </div>
-        ))}
+          );
+        })}
       </div>
     </main>
   );

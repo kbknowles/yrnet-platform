@@ -5,7 +5,8 @@ import GalleryView from "./GalleryView";
 export default async function GalleryAlbumPage({ params }) {
   const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
-  const { tenantSlug, slug } = params;
+  // Next.js 16 requires params to be awaited
+  const { tenantSlug, slug } = await params;
 
   const res = await fetch(
     `${API_BASE}/${tenantSlug}/gallery/${slug}`,
@@ -26,13 +27,12 @@ export default async function GalleryAlbumPage({ params }) {
     return `${API_BASE}/uploads/tenants/${tenantSlug}/gallery/${clean}`;
   }
 
-  const images =
-    Array.isArray(album?.images)
-      ? album.images.map((img) => ({
-          ...img,
-          imageUrl: resolveImage(img.imageUrl),
-        }))
-      : [];
+  const images = Array.isArray(album?.images)
+    ? album.images.map((img) => ({
+        ...img,
+        imageUrl: resolveImage(img.imageUrl),
+      }))
+    : [];
 
   const hydratedAlbum = {
     ...album,
