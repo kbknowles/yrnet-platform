@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import SponsorZone from "components/sponsorship/SponsorZone";
 import { useTenantSlug } from "hooks/useTenantSlug";
 import { resolveTenantMedia } from "lib/media";
 
@@ -17,112 +17,108 @@ export default function AnnouncementsPage() {
   useEffect(() => {
     if (!tenantSlug) return;
 
-    async function loadAnnouncements() {
-      try {
-        const res = await fetch(
-          `${API_BASE}/${tenantSlug}/announcements`,
-          { cache: "no-store" }
-        );
+    fetch(`${API_BASE}/${tenantSlug}/announcements`)
+      .then((r) => r.json())
+      .then((data) => {
+        const safeData = Array.isArray(data) ? data : [];
 
-        if (!res.ok) {
-          setAnnouncements([]);
-          return;
-        }
+        const sorted = [...safeData].sort((a, b) => {
+          const aDate = new Date(a.publishAt || a.createdAt);
+          const bDate = new Date(b.publishAt || b.createdAt);
+          return bDate - aDate;
+        });
 
-        const data = await res.json();
-        setAnnouncements(Array.isArray(data) ? data : []);
-      } catch (err) {
-        console.error("Failed to load announcements:", err);
-        setAnnouncements([]);
-      } finally {
+        setAnnouncements(sorted);
         setLoading(false);
-      }
-    }
-
-    loadAnnouncements();
+      })
+      .catch(() => setLoading(false));
   }, [tenantSlug]);
 
-const sorted = [...announcements].sort((a, b) => {
-  const aDate = new Date(a.publishAt || a.createdAt);
-  const bDate = new Date(b.publishAt || b.createdAt);
-  return bDate - aDate;
-});
+  if (loading) return <p className="p-6">Loading…</p>;
+
   return (
-    <main className="max-w-7xl mx-auto px-4 py-12 space-y-8">
-      <h1 className="text-3xl font-bold">Announcements</h1>
+    <main className="max-w-7xl mx-auto px-6 py-10 space-y-10">
+      <h1 className="text-2xl font-semibold">Announcements</h1>
 
-      {loading && (
-        <p className="text-sm text-gray-600">Loading announcements...</p>
-      )}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {announcements.map((a) => {
+          const imageSrc = a.imageUrl
+            ? resolveTenantMedia({
+                tenantSlug,
+                folder: "announcements",
+                filename: a.imageUrl,
+                recordId: a.id,
+              })
+            : null;
 
-      {!loading && sorted.length === 0 && (
-        <p className="text-sm text-gray-600">
-          No announcements have been published.
-        </p>
-      )}
+          const eventHref = a.rodeo?.slug
+            ? `/${tenantSlug}/rodeos/${a.rodeo.slug}`
+            : a.event?.slug
+              ? `/${tenantSlug}/rodeos/${a.event.slug}`
+              : null;
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {sorted.map((a) => {
-          const poster =
-            a.imageUrl &&
-            resolveTenantMedia({
-              tenantSlug,
-              folder: "announcements",
-              filename: a.imageUrl,
-              recordId: a.id,
-            });
+          const Wrapper = ({ children }) =>
+            eventHref ? (
+              <Link
+                href={eventHref}
+                className="border rounded shadow-sm overflow-hidden flex flex-col hover:shadow-md transition"
+              >
+                {children}
+              </Link>
+            ) : (
+              <div className="border rounded shadow-sm overflow-hidden flex flex-col">
+                {children}
+              </div>
+            );
 
           return (
-            <div
-              key={a.id}
-              className={`rounded-lg border shadow-sm overflow-hidden ${
-                a.priority === "important"
-                  ? "border-red-700"
-                  : "border-gray-200"
-              }`}
-            >
-              {poster && (
-                <div className="relative w-full h-64 bg-gray-200">
-                  <Image
-                    src={poster}
-                    alt={a.title || "Announcement"}
-                    fill
-                    className="object-cover"
-                    unoptimized
-                  />
-                </div>
+            <Wrapper key={a.id}>
+              <div className="p-3 border-b font-medium text-sm truncate">
+                {a.title}
+              </div>
+
+              {a.mode === "POSTER" && imageSrc && (
+                <img
+                  src={imageSrc}
+                  alt={a.title}
+                  className="w-full h-[240px] object-contain"
+                />
               )}
 
-              <div className="p-5 space-y-3">
-                <div className="font-semibold text-lg">{a.title}</div>
+              {a.content && (
+                <div
+                  className="p-4 text-sm text-slate-800 flex-1"
+                  dangerouslySetInnerHTML={{ __html: a.content }}
+                />
+              )}
 
-                {(a.publishAt || a.createdAt) && (
-                  <div className="text-xs text-gray-500">
-                    {new Date(
-                      a.publishAt || a.createdAt
-                    ).toLocaleDateString()}
-                  </div>
-                )}
-
-                {a.content && (
-                  <div className="text-sm text-gray-700 whitespace-pre-line">
-                    {a.content}
-                  </div>
-                )}
-
-                {a.slug && (
-                  <Link
-                    href={`/${tenantSlug}/announcements/${a.slug}`}
-                    className="inline-block text-sm text-primary hover:underline"
-                  >
-                    Read More →
-                  </Link>
-                )}
-              </div>
-            </div>
+              {eventHref && (
+                <div className="p-3 text-sm text-primary underline">
+                  View rodeo details →
+                </div>
+              )}
+            </Wrapper>
           );
         })}
       </div>
+
+      <section className="bg-white/90 py-4">
+        <div className="max-w-7xl mx-auto px-4 space-y-6">
+          <h2 className="text-2xl font-semibold text-center">
+            Thank You to Our Sponsors
+          </h2>
+
+          <div className="border-t-2 border-rose-700 w-20 mx-auto" />
+
+          <SponsorZone
+            tenantSlug={tenantSlug}
+            contentType="ANNOUNCEMENT"
+            contentId={null}
+            levels={["PREMIER", "FEATURED"]}
+            slots={4}
+          />
+        </div>
+      </section>
     </main>
   );
 }
