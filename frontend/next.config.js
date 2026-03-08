@@ -12,7 +12,7 @@ const nextConfig = {
       },
       {
         protocol: "https",
-        hostname: "ahsra-api.onrender.com",
+        hostname: "yrnet-api.onrender.com",
         pathname: "/uploads/**",
       },
     ],
