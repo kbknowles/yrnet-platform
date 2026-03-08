@@ -9,25 +9,35 @@ import {
   arrayMove,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-export default function GalleryReorder({ albumId, images }) {
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+
+export default function GalleryReorder({ albumId, images = [] }) {
   const [items, setItems] = useState(images);
+
+  useEffect(() => {
+    setItems(Array.isArray(images) ? images : []);
+  }, [images]);
 
   async function onDragEnd(e) {
     const { active, over } = e;
     if (!over || active.id === over.id) return;
 
-    const oldIndex = items.findIndex(i => i.id === active.id);
-    const newIndex = items.findIndex(i => i.id === over.id);
+    const oldIndex = items.findIndex((i) => i.id === active.id);
+    const newIndex = items.findIndex((i) => i.id === over.id);
 
-    const updated = arrayMove(items, oldIndex, newIndex)
-      .map((img, idx) => ({ ...img, sortOrder: idx }));
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const updated = arrayMove(items, oldIndex, newIndex).map((img, idx) => ({
+      ...img,
+      sortOrder: idx,
+    }));
 
     setItems(updated);
 
     await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/admin/gallery/albums/${albumId}/reorder`,
+      `${API_BASE}/api/admin/gallery/albums/${albumId}/reorder`,
       {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -38,10 +48,12 @@ export default function GalleryReorder({ albumId, images }) {
     );
   }
 
+  if (!items.length) return null;
+
   return (
     <DndContext collisionDetection={closestCenter} onDragEnd={onDragEnd}>
       <SortableContext
-        items={items.map(i => i.id)}
+        items={items.map((i) => i.id)}
         strategy={verticalListSortingStrategy}
       >
         <ul className="space-y-2">

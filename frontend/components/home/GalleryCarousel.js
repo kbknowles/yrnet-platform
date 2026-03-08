@@ -13,11 +13,13 @@ export default function GalleryCarousel({ albums = [] }) {
 
   if (!images.length) return null;
 
-  function normalizeImageUrl(src) {
-    if (!src) return "";
-    if (src.startsWith("http")) return src;
-    if (!API_BASE) return src;
-    return `${API_BASE}${src.startsWith("/") ? "" : "/"}${src}`;
+  function resolveGalleryImage(filename, imageId) {
+    if (!filename) return "";
+    if (filename.startsWith("http")) return filename;
+
+    const clean = filename.replace(/^\/+/, "");
+
+    return `${API_BASE}/uploads/tenants/${tenantSlug}/gallery/${imageId}/${clean}`;
   }
 
   return (
@@ -30,10 +32,12 @@ export default function GalleryCarousel({ albums = [] }) {
           >
             <div className="relative h-44 w-full">
               <Image
-                src={normalizeImageUrl(img.imageUrl)}
+                src={resolveGalleryImage(img.imageUrl, img.id)}
                 alt={img.caption || album?.title || "Gallery Image"}
                 fill
+                sizes="(max-width:768px) 50vw, 240px"
                 className="object-cover"
+                unoptimized
               />
             </div>
 

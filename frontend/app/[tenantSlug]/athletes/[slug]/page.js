@@ -6,21 +6,27 @@ import AthleteView from "./AthleteView";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 function hydrateMedia(athlete, tenantSlug) {
-  const resolve = (filename) => {
+  const resolveImage = (filename) => {
     if (!filename) return null;
     if (filename.startsWith("http")) return filename;
-    return `${API_BASE}/uploads/tenants/${tenantSlug}/images/${filename}`;
+
+    const clean = filename.replace(/^\/+/, "");
+    return `${API_BASE}/uploads/tenants/${tenantSlug}/images/${clean}`;
+  };
+
+  const resolveVideo = (filename) => {
+    if (!filename) return null;
+    if (filename.startsWith("http")) return filename;
+
+    const clean = filename.replace(/^\/+/, "");
+    return `${API_BASE}/uploads/tenants/${tenantSlug}/videos/${clean}`;
   };
 
   return {
     ...athlete,
-    headshotUrl: resolve(athlete.headshotUrl),
-    actionPhotos: (athlete.actionPhotos || []).map(resolve),
-    videos: (athlete.videos || []).map((v) =>
-      v.startsWith("http")
-        ? v
-        : `${API_BASE}/uploads/tenants/${tenantSlug}/videos/${v}`
-    ),
+    headshotUrl: resolveImage(athlete.headshotUrl),
+    actionPhotos: (athlete.actionPhotos || []).map(resolveImage),
+    videos: (athlete.videos || []).map(resolveVideo),
   };
 }
 
@@ -34,7 +40,7 @@ async function getAthlete(tenantSlug, slug) {
 }
 
 export default async function AthleteDetailPage({ params }) {
-  const { tenantSlug, slug } = await params;
+  const { tenantSlug, slug } = params;
 
   const athlete = await getAthlete(tenantSlug, slug);
 
@@ -48,6 +54,7 @@ export default async function AthleteDetailPage({ params }) {
     <AthleteView
       athlete={hydratedAthlete}
       API_BASE={API_BASE}
+      tenantSlug={tenantSlug}
     />
   );
 }

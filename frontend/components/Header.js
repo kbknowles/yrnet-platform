@@ -17,6 +17,14 @@ const STATIC_LINKS = [
   { title: "Leadership", href: "/leadership" },
 ];
 
+function resolveLogo(url) {
+  if (!url) return null;
+  if (url.startsWith("http")) return url;
+
+  const clean = url.replace(/^\/+/, "");
+  return `${API_BASE}/${clean}`;
+}
+
 export default function Header({ tenant }) {
   const [open, setOpen] = useState(false);
   const [pages, setPages] = useState([]);
@@ -56,7 +64,7 @@ export default function Header({ tenant }) {
       .catch(() => setPages([]));
   }, [tenantSlug]);
 
-  const logoSrc = tenant?.logoUrl || null;
+  const logoSrc = resolveLogo(tenant?.logoUrl);
   const fullName = tenant?.name || "";
   const shortName = tenant?.shortName || "";
 
@@ -79,6 +87,7 @@ export default function Header({ tenant }) {
                 width={40}
                 height={40}
                 priority
+                unoptimized
               />
             )}
 

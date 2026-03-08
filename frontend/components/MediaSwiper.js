@@ -9,45 +9,56 @@ import "swiper/css";
 import "swiper/css/zoom";
 import "swiper/css/navigation";
 
-const UPLOADS_BASE = process.env.NEXT_PUBLIC_UPLOADS_URL;
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 function resolveSrc(src) {
   if (!src) return "";
   if (src.startsWith("http")) return src;
-  return `${UPLOADS_BASE}${src}`;
+
+  const clean = src.replace(/^\/+/, "");
+  return `${API_BASE}/${clean}`;
 }
 
-export default function MediaSwiper({ items, thumbHeight = "h-[220px]" }) {
+export default function MediaSwiper({ items = [], thumbHeight = "h-[220px]" }) {
   const [open, setOpen] = useState(false);
   const [index, setIndex] = useState(0);
 
-  if (!items?.length) return null;
+  const safeItems = Array.isArray(items) ? items : [];
+
+  if (safeItems.length === 0) return null;
 
   return (
     <>
       {/* GRID */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {items.map((item, i) => (
-          <button
-            key={item.id || i}
-            onClick={() => {
-              setIndex(i);
-              setOpen(true);
-            }}
-            className="border rounded overflow-hidden"
-          >
-            <img
-              src={resolveSrc(item.imageUrl)}
-              alt={item.title || "Image"}
-              className={`w-full ${thumbHeight} object-contain block`}
-            />
-            {item.title && (
-              <div className="p-2 text-sm font-medium truncate">
-                {item.title}
-              </div>
-            )}
-          </button>
-        ))}
+        {safeItems.map((item, i) => {
+          const src = resolveSrc(item.imageUrl);
+
+          return (
+            <button
+              key={item.id || i}
+              onClick={() => {
+                setIndex(i);
+                setOpen(true);
+              }}
+              className="border rounded overflow-hidden"
+            >
+              {src && (
+                <img
+                  src={src}
+                  alt={item.title || "Image"}
+                  className={`w-full ${thumbHeight} object-contain block`}
+                />
+              )}
+
+              {item.title && (
+                <div className="p-2 text-sm font-medium truncate">
+                  {item.title}
+                </div>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* MODAL */}
@@ -68,24 +79,30 @@ export default function MediaSwiper({ items, thumbHeight = "h-[220px]" }) {
             slidesPerView={1}
             className="w-full h-full"
           >
-            {items.map((item, i) => (
-              <SwiperSlide key={item.id || i}>
-                <div
-                  className="swiper-zoom-container flex items-center justify-center h-full"
-                  style={{ transform: "translateZ(0)" }}
-                >
-                  <img
-                    src={resolveSrc(item.imageUrl)}
-                    alt={item.title || "Image"}
-                    className="max-w-full max-h-full object-contain block"
-                    style={{
-                      backfaceVisibility: "hidden",
-                      WebkitBackfaceVisibility: "hidden",
-                    }}
-                  />
-                </div>
-              </SwiperSlide>
-            ))}
+            {safeItems.map((item, i) => {
+              const src = resolveSrc(item.imageUrl);
+
+              return (
+                <SwiperSlide key={item.id || i}>
+                  <div
+                    className="swiper-zoom-container flex items-center justify-center h-full"
+                    style={{ transform: "translateZ(0)" }}
+                  >
+                    {src && (
+                      <img
+                        src={src}
+                        alt={item.title || "Image"}
+                        className="max-w-full max-h-full object-contain block"
+                        style={{
+                          backfaceVisibility: "hidden",
+                          WebkitBackfaceVisibility: "hidden",
+                        }}
+                      />
+                    )}
+                  </div>
+                </SwiperSlide>
+              );
+            })}
           </Swiper>
         </div>
       )}

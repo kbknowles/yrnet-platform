@@ -8,7 +8,7 @@ import Link from "next/link";
 import SponsorZone from "components/sponsorship/SponsorZone";
 import AlbumSlideshow from "components/gallery/AlbumSlideshow";
 
-export default function AthleteView({ athlete, API_BASE }) {
+export default function AthleteView({ athlete, API_BASE, tenantSlug }) {
   const [open, setOpen] = useState(false);
   const [startIndex, setStartIndex] = useState(0);
   const [videoOpen, setVideoOpen] = useState(false);
@@ -22,6 +22,15 @@ export default function AthleteView({ athlete, API_BASE }) {
 
   const socialLinks =
     athlete.socialLinks?.filter((s) => s && s.trim() !== "") || [];
+
+  function resolveImage(src) {
+    if (!src) return null;
+    if (src.startsWith("http")) return src;
+
+    const clean = src.replace(/^\/+/, "");
+
+    return `${API_BASE}/uploads/tenants/${tenantSlug}/images/${clean}`;
+  }
 
   useEffect(() => {
     function handleKey(e) {
@@ -40,7 +49,7 @@ export default function AthleteView({ athlete, API_BASE }) {
       <section className="bg-primary/95 text-white">
         <div className="max-w-5xl mx-auto px-4 py-16 space-y-3">
           <nav className="text-sm text-white/80">
-            <Link href="/athletes" className="hover:underline">
+            <Link href={`/${tenantSlug}/athletes`} className="hover:underline">
               Athletes
             </Link>
             <span className="mx-2">/</span>
@@ -69,7 +78,7 @@ export default function AthleteView({ athlete, API_BASE }) {
           {athlete.headshotUrl && (
             <div className="relative w-full aspect-square rounded-xl bg-gray-100 shadow-md overflow-hidden md:col-span-2 flex items-center justify-center p-4">
               <Image
-                src={athlete.headshotUrl}
+                src={resolveImage(athlete.headshotUrl)}
                 alt={`${athlete.firstName} ${athlete.lastName}`}
                 fill
                 unoptimized
@@ -173,7 +182,7 @@ export default function AthleteView({ athlete, API_BASE }) {
                   className="relative w-full aspect-[16/9] rounded-lg bg-gray-100 shadow-sm overflow-hidden cursor-pointer"
                 >
                   <Image
-                    src={photo}
+                    src={resolveImage(photo)}
                     alt="Action shot"
                     fill
                     unoptimized
@@ -210,13 +219,13 @@ export default function AthleteView({ athlete, API_BASE }) {
                 <div
                   key={idx}
                   onClick={() => {
-                    setActiveVideo(video);
+                    setActiveVideo(resolveImage(video));
                     setVideoOpen(true);
                   }}
                   className="relative aspect-[16/9] rounded-lg overflow-hidden cursor-pointer group bg-black"
                 >
                   <video
-                    src={video}
+                    src={resolveImage(video)}
                     preload="metadata"
                     muted
                     className="w-full h-full object-cover"
@@ -253,7 +262,7 @@ export default function AthleteView({ athlete, API_BASE }) {
           >
             <AlbumSlideshow
               images={actionImages.map((url) => ({
-                imageUrl: url,
+                imageUrl: resolveImage(url),
               }))}
               initialIndex={startIndex}
             />

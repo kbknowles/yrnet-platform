@@ -6,11 +6,10 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 function resolveImage(filename, tenantSlug) {
   if (!filename) return null;
-
   if (filename.startsWith("http")) return filename;
 
-  // filename only in DB
-  return `${API_BASE}/uploads/tenants/${tenantSlug}/sponsors/${filename}`;
+  const clean = filename.replace(/^\/+/, "");
+  return `${API_BASE}/uploads/tenants/${tenantSlug}/sponsors/${clean}`;
 }
 
 async function getSponsors(tenantSlug) {
@@ -27,9 +26,10 @@ async function getSponsors(tenantSlug) {
 }
 
 export default async function SponsorsPage({ params }) {
-  const { tenantSlug } = await params;
+  const { tenantSlug } = params;
 
   const sponsors = await getSponsors(tenantSlug);
+  const safeSponsors = Array.isArray(sponsors) ? sponsors : [];
 
   return (
     <main className="bg-gray-50">
@@ -60,13 +60,13 @@ export default async function SponsorsPage({ params }) {
             Support Our Sponsors
           </h2>
 
-          {sponsors.length === 0 ? (
+          {safeSponsors.length === 0 ? (
             <p className="text-center text-gray-600">
               Sponsor listings coming soon.
             </p>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-8 items-center">
-              {sponsors.map((s) => {
+              {safeSponsors.map((s) => {
                 const imageSrc = resolveImage(
                   s.logoUrl || s.bannerUrl,
                   tenantSlug
@@ -83,7 +83,7 @@ export default async function SponsorsPage({ params }) {
                     {imageSrc ? (
                       <Image
                         src={imageSrc}
-                        alt={s.name}
+                        alt={s.name || "Sponsor"}
                         width={256}
                         height={128}
                         unoptimized

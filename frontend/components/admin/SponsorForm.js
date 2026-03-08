@@ -4,6 +4,14 @@ import { useEffect, useState } from "react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
+function resolveImage(url) {
+  if (!url) return null;
+  if (url.startsWith("http")) return url;
+
+  const clean = url.replace(/^\/+/, "");
+  return `${API_BASE}/${clean}`;
+}
+
 export default function SponsorForm({
   sponsor,
   onSaved,
@@ -48,16 +56,10 @@ export default function SponsorForm({
       setLogoUrl(sponsor.logoUrl || "");
       setBannerUrl(sponsor.bannerUrl || "");
     }
-  }, [sponsor]);
+  }, [sponsor, isEdit]);
 
   function update(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
-  }
-
-  function resolveImage(url) {
-    if (!url) return null;
-    if (url.startsWith("http")) return url;
-    return `${API_BASE}${url}`;
   }
 
   /* ----------------------------
@@ -117,7 +119,6 @@ export default function SponsorForm({
 
       const saved = await res.json();
 
-      // Upload images AFTER record exists
       if (logoFile) await uploadFile(saved.id, logoFile, "logo");
       if (bannerFile) await uploadFile(saved.id, bannerFile, "banner");
 

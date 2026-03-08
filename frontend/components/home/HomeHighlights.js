@@ -1,5 +1,4 @@
 // filepath: frontend/components/home/HomeHighlights.js
-
 "use client";
 
 import Link from "next/link";
@@ -7,19 +6,34 @@ import { useTenantSlug } from "hooks/useTenantSlug";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
-function resolveMedia(url) {
-  if (!url) return null;
-  if (url.startsWith("http")) return url;
-  if (url.startsWith("/uploads")) return `${API_BASE}${url}`;
-  return `${API_BASE}${url}`;
+/*
+  Resolve announcement image path.
+
+  Handles:
+  - full external URLs
+  - stored filenames in DB
+  - tenant-scoped upload directory
+*/
+function resolveAnnouncementImage(filename, tenantSlug, announcementId) {
+  if (!filename) return "";
+  if (filename.startsWith("http")) return filename;
+
+  const clean = filename.replace(/^\/+/, "");
+
+  return `${API_BASE}/uploads/tenants/${tenantSlug}/announcements/${announcementId}/${clean}`;
 }
 
 export default function HomeHighlights({ rodeos, announcements }) {
   const tenantSlug = useTenantSlug();
 
+  // Defensive normalization
   const safeRodeos = Array.isArray(rodeos) ? rodeos : [];
   const safeAnnouncements = Array.isArray(announcements) ? announcements : [];
 
+  /*
+    Sort announcements newest first
+    publishAt takes precedence over createdAt
+  */
   const sorted = [...safeAnnouncements].sort((a, b) => {
     const aDate = new Date(a.publishAt || a.createdAt);
     const bDate = new Date(b.publishAt || b.createdAt);
@@ -28,6 +42,10 @@ export default function HomeHighlights({ rodeos, announcements }) {
 
   const featured = sorted[0];
 
+  /*
+    If the announcement is tied to a rodeo,
+    link directly to the rodeo page.
+  */
   const featuredHref = featured?.rodeo?.slug
     ? `/${tenantSlug}/rodeos/${featured.rodeo.slug}`
     : `/${tenantSlug}/announcements`;
@@ -35,6 +53,7 @@ export default function HomeHighlights({ rodeos, announcements }) {
   return (
     <section className="w-full mt-1">
       <div className="grid grid-cols-1 md:grid-cols-2">
+
         {/* Upcoming Rodeos */}
         <div className="bg-gray-900 hero flex justify-center">
           <div className="w-full max-w-xl p-6 md:p-8 flex flex-col">
@@ -55,11 +74,14 @@ export default function HomeHighlights({ rodeos, announcements }) {
                   >
                     <div>
                       <p className="font-medium">{rodeo.name}</p>
+
                       <p className="text-sm text-white/80">
                         {rodeo.startDate
                           ? new Date(rodeo.startDate).toLocaleDateString()
                           : ""}
-                        {rodeo.location?.name ? ` · ${rodeo.location.name}` : ""}
+                        {rodeo.location?.name
+                          ? ` · ${rodeo.location.name}`
+                          : ""}
                       </p>
                     </div>
 
@@ -94,15 +116,23 @@ export default function HomeHighlights({ rodeos, announcements }) {
 
             {featured ? (
               <div className="rounded-md shadow-sm overflow-hidden">
+
+                {/* Poster announcement */}
                 {featured.mode === "POSTER" && featured.imageUrl ? (
                   <Link href={featuredHref}>
                     <img
-                      src={resolveMedia(featured.imageUrl)}
+                      src={resolveAnnouncementImage(
+                        featured.imageUrl,
+                        tenantSlug,
+                        featured.id
+                      )}
                       alt={featured.title || "Announcement"}
                       className="w-full max-h-[420px] object-contain"
                     />
                   </Link>
                 ) : (
+
+                  /* Text announcement */
                   <div className="p-4 space-y-2">
                     <p className="font-medium">{featured.title}</p>
 
@@ -124,7 +154,9 @@ export default function HomeHighlights({ rodeos, announcements }) {
                 )}
               </div>
             ) : (
-              <p className="text-sm text-gray-600">No current announcements.</p>
+              <p className="text-sm text-gray-600">
+                No current announcements.
+              </p>
             )}
 
             <div className="pt-6">
@@ -137,6 +169,7 @@ export default function HomeHighlights({ rodeos, announcements }) {
             </div>
           </div>
         </div>
+
       </div>
     </section>
   );

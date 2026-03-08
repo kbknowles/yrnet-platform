@@ -11,7 +11,8 @@ function resolveImage(filename, API_BASE, tenantSlug) {
   if (!filename) return null;
   if (filename.startsWith("http")) return filename;
 
-  return `${API_BASE}/uploads/tenants/${tenantSlug}/gallery/${filename}`;
+  const clean = filename.replace(/^\/+/, "");
+  return `${API_BASE}/uploads/tenants/${tenantSlug}/gallery/${clean}`;
 }
 
 export default function GalleryView({ album, API_BASE }) {
@@ -20,7 +21,9 @@ export default function GalleryView({ album, API_BASE }) {
 
   const tenantSlug = album?.tenant?.slug;
 
-  const images = (album.images || []).map((img) => ({
+  const rawImages = Array.isArray(album?.images) ? album.images : [];
+
+  const images = rawImages.map((img) => ({
     ...img,
     imageUrl: resolveImage(img.imageUrl, API_BASE, tenantSlug),
   }));
@@ -42,7 +45,7 @@ export default function GalleryView({ album, API_BASE }) {
       <section className="bg-secondary text-white">
         <div className="max-w-6xl mx-auto px-4 py-20 text-center">
           <h1 className="hero text-4xl md:text-5xl font-semibold tracking-tight">
-            {album.title}
+            {album?.title || "Gallery"}
           </h1>
 
           <div className="w-24 h-1 bg-rose-700 mx-auto mt-4 mb-6" />
@@ -55,28 +58,34 @@ export default function GalleryView({ album, API_BASE }) {
 
       {/* GRID */}
       <section className="max-w-6xl mx-auto px-4 py-16">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
-          {images.map((img, i) => (
-            <div
-              key={img.id}
-              onClick={() => {
-                setStartIndex(i);
-                setOpen(true);
-              }}
-              className="relative aspect-square bg-gray-200 rounded-lg overflow-hidden cursor-pointer group"
-            >
-              <Image
-                src={img.imageUrl}
-                alt={img.caption || album.title}
-                fill
-                className="object-cover group-hover:scale-105 transition duration-300"
-                unoptimized
-              />
+        {images.length === 0 ? (
+          <p>No photos available.</p>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+            {images.map((img, i) => (
+              <div
+                key={img.id || i}
+                onClick={() => {
+                  setStartIndex(i);
+                  setOpen(true);
+                }}
+                className="relative aspect-square bg-gray-200 rounded-lg overflow-hidden cursor-pointer group"
+              >
+                {img.imageUrl && (
+                  <Image
+                    src={img.imageUrl}
+                    alt={img.caption || album?.title || "Gallery Image"}
+                    fill
+                    className="object-cover group-hover:scale-105 transition duration-300"
+                    unoptimized
+                  />
+                )}
 
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition" />
-            </div>
-          ))}
-        </div>
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition" />
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* MODAL */}

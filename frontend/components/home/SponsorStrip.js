@@ -1,13 +1,29 @@
+// filepath: frontend/components/home/SponsorStrip.js
 "use client";
 
 import { useEffect, useState } from "react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
+/*
+  SponsorStrip
+  --------------------------------------------------
+  Displays rotating sponsor logos in groups.
+
+  Behavior:
+  - Shows 4 sponsors at a time (desktop)
+  - Rotates every 4 seconds
+  - Falls back to sponsor name if logo is missing
+*/
+
 export default function SponsorStrip({ sponsors = [] }) {
   const [index, setIndex] = useState(0);
+
   const visibleCount = 4;
 
+  /*
+    Auto-rotate sponsors
+  */
   useEffect(() => {
     if (!sponsors || sponsors.length <= visibleCount) return;
 
@@ -20,10 +36,22 @@ export default function SponsorStrip({ sponsors = [] }) {
     return () => clearInterval(interval);
   }, [sponsors]);
 
+  /*
+    Resolve image path.
+
+    Handles:
+    - full external URLs
+    - stored relative paths
+    - uploads served from API
+  */
   function fullImagePath(path) {
     if (!path) return null;
+
     if (path.startsWith("http")) return path;
-    return `${API_BASE}${path.startsWith("/") ? "" : "/"}${path}`;
+
+    const clean = path.replace(/^\/+/, "");
+
+    return `${API_BASE}/${clean}`;
   }
 
   if (!sponsors || sponsors.length === 0) return null;
@@ -32,10 +60,13 @@ export default function SponsorStrip({ sponsors = [] }) {
 
   return (
     <section className="py-12 bg-white">
+
+      {/* Section title */}
       <h2 className="text-center text-lg font-semibold mb-6">
         Our Sponsors
       </h2>
 
+      {/* Sponsor grid */}
       <div className="max-w-6xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-6 transition-opacity duration-500">
         {visibleSponsors.map((s) => (
           <div
@@ -70,6 +101,7 @@ export default function SponsorStrip({ sponsors = [] }) {
           </div>
         ))}
       </div>
+
     </section>
   );
 }

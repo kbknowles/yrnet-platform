@@ -2,14 +2,24 @@
 
 import { useState, useEffect } from "react";
 
-export default function AlbumSlideshow({ images, initialIndex = 0 }) {
+function resolveSrc(src) {
+  if (!src) return "";
+  if (src.startsWith("http")) return src;
+
+  const base = process.env.NEXT_PUBLIC_UPLOADS_URL || process.env.NEXT_PUBLIC_API_URL || "";
+  const clean = src.replace(/^\/+/, "");
+
+  return `${base}/${clean}`;
+}
+
+export default function AlbumSlideshow({ images = [], initialIndex = 0 }) {
   const [index, setIndex] = useState(initialIndex);
 
   useEffect(() => {
     setIndex(initialIndex);
   }, [initialIndex]);
 
-  if (!images?.length) return null;
+  if (!images.length) return null;
 
   function next() {
     setIndex((i) => (i + 1) % images.length);
@@ -19,11 +29,14 @@ export default function AlbumSlideshow({ images, initialIndex = 0 }) {
     setIndex((i) => (i - 1 + images.length) % images.length);
   }
 
+  const current = images[index];
+
   return (
     <div className="space-y-4 relative">
       <div className="relative">
         <img
-          src={images[index].imageUrl}
+          src={resolveSrc(current.imageUrl)}
+          alt={current.caption || "Image"}
           className="rounded w-full max-h-[80vh] object-contain"
         />
 
@@ -42,9 +55,9 @@ export default function AlbumSlideshow({ images, initialIndex = 0 }) {
         </button>
       </div>
 
-      {images[index].caption && (
+      {current.caption && (
         <p className="text-sm text-gray-600 text-center">
-          {images[index].caption}
+          {current.caption}
         </p>
       )}
     </div>

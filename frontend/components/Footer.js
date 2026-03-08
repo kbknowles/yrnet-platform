@@ -7,6 +7,14 @@ import Image from "next/image";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
+function resolveLogo(url) {
+  if (!url) return null;
+  if (url.startsWith("http")) return url;
+
+  const clean = url.replace(/^\/+/, "");
+  return `${API_BASE}/${clean}`;
+}
+
 export default function Footer({ tenant }) {
   const [pages, setPages] = useState([]);
 
@@ -25,23 +33,22 @@ export default function Footer({ tenant }) {
       .catch(() => setPages([]));
   }, [tenant?.slug]);
 
+  const logoSrc = resolveLogo(tenant?.logoUrl);
+
   return (
     <footer className="bg-primary text-white text-sm py-10">
       <div className="max-w-6xl mx-auto px-4 space-y-6 text-center">
         {/* Logo */}
         <div className="flex justify-center">
-          {tenant?.logoUrl ? (
+          {logoSrc && (
             <Image
-              src={
-                tenant.logoUrl.startsWith("http")
-                  ? tenant.logoUrl
-                  : `${API_BASE}${tenant.logoUrl}`
-              }
-              alt={tenant.name}
+              src={logoSrc}
+              alt={tenant?.name || "Logo"}
               width={60}
               height={60}
+              unoptimized
             />
-          ) : null}
+          )}
         </div>
 
         {/* Footer Nav */}

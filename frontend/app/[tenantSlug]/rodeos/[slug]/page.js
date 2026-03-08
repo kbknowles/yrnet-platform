@@ -15,11 +15,13 @@ function getTenantSlugFromHost(host) {
   return "demo";
 }
 
-function resolveImage(url) {
+function resolveImage(url, tenantSlug) {
   if (!url) return null;
   if (url.startsWith("http")) return url;
-  if (url.startsWith("/uploads")) return `${API_BASE}${url}`;
-  return url;
+
+  const clean = url.replace(/^\/+/, "");
+
+  return `${API_BASE}/uploads/tenants/${tenantSlug}/announcements/${clean}`;
 }
 
 /* -------- AUTO LINK HELPER -------- */
@@ -49,7 +51,7 @@ export default async function EventPage({ params }) {
   const h = await headers();
   const tenantSlug = getTenantSlugFromHost(h.get("host"));
 
-  const { slug } = await params;
+  const { slug } = params;
   const event = await getEvent(tenantSlug, slug);
 
   if (!event) {
@@ -67,10 +69,16 @@ export default async function EventPage({ params }) {
       : null;
 
   const announcements =
-    event.announcements?.slice().sort((a, b) => a.sortOrder - b.sortOrder) ||
-    [];
+    Array.isArray(event.announcements)
+      ? event.announcements.slice().sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
+      : [];
 
-  const posters = announcements.filter((a) => a.mode === "POSTER" && a.imageUrl);
+  const posters = announcements
+    .filter((a) => a.mode === "POSTER" && a.imageUrl)
+    .map((a) => ({
+      ...a,
+      imageUrl: resolveImage(a.imageUrl, tenantSlug),
+    }));
 
   const standardAnnouncements = announcements.filter((a) => a.mode !== "POSTER");
 
@@ -86,11 +94,13 @@ export default async function EventPage({ params }) {
             {event.endDate && ` – ${formatDate(event.endDate)}`}
           </p>
 
-          {location?.name && <p className="text-sm text-gray-300">{location.name}</p>}
+          {location?.name && (
+            <p className="text-sm text-gray-300">{location.name}</p>
+          )}
 
           <div className="flex flex-wrap gap-4 pt-4">
             <Link
-              href="/schedule"
+              href={`/${tenantSlug}/schedule`}
               className="bg-rose-700 hover:bg-rose-800 text-white px-5 py-2 rounded-md text-sm font-medium"
             >
               Back to Schedule
@@ -190,7 +200,9 @@ export default async function EventPage({ params }) {
                     key={a.id}
                     className="bg-white border rounded-lg shadow-sm p-6 border-l-4 border-rose-700"
                   >
-                    {a.title && <div className="font-semibold mb-2">{a.title}</div>}
+                    {a.title && (
+                      <div className="font-semibold mb-2">{a.title}</div>
+                    )}
 
                     {a.content && (
                       <div

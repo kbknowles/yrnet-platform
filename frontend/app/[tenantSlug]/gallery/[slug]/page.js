@@ -5,7 +5,7 @@ import GalleryView from "./GalleryView";
 export default async function GalleryAlbumPage({ params }) {
   const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
-  const { tenantSlug, slug } = await params;
+  const { tenantSlug, slug } = params;
 
   const res = await fetch(
     `${API_BASE}/${tenantSlug}/gallery/${slug}`,
@@ -18,14 +18,21 @@ export default async function GalleryAlbumPage({ params }) {
 
   const album = await res.json();
 
-  // convert filenames to full URLs
+  function resolveImage(filename) {
+    if (!filename) return null;
+    if (filename.startsWith("http")) return filename;
+
+    const clean = filename.replace(/^\/+/, "");
+    return `${API_BASE}/uploads/tenants/${tenantSlug}/gallery/${clean}`;
+  }
+
   const images =
-    album?.images?.map((img) => ({
-      ...img,
-      imageUrl: img.imageUrl
-        ? `${API_BASE}/uploads/tenants/${tenantSlug}/gallery/${img.imageUrl}`
-        : null,
-    })) || [];
+    Array.isArray(album?.images)
+      ? album.images.map((img) => ({
+          ...img,
+          imageUrl: resolveImage(img.imageUrl),
+        }))
+      : [];
 
   const hydratedAlbum = {
     ...album,

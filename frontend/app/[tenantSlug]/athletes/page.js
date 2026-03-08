@@ -5,15 +5,13 @@ import SponsorZone from "components/sponsorship/SponsorZone";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
-function resolveImage(url, tenantSlug) {
-  if (!url) return null;
-  if (url.startsWith("http")) return url;
+function resolveAthleteImage(filename, tenantSlug) {
+  if (!filename) return null;
+  if (filename.startsWith("http")) return filename;
 
-  // legacy records (full path)
-  if (url.startsWith("/uploads")) return `${API_BASE}${url}`;
+  const clean = filename.replace(/^\/+/, "");
 
-  // new records (filename only)
-  return `${API_BASE}/uploads/tenants/${tenantSlug}/images/${url}`;
+  return `${API_BASE}/uploads/tenants/${tenantSlug}/images/${clean}`;
 }
 
 async function getHomeData(tenantSlug) {
@@ -21,9 +19,7 @@ async function getHomeData(tenantSlug) {
     cache: "no-store",
   });
 
-  if (!res.ok) {
-    return { tenant: null };
-  }
+  if (!res.ok) return { tenant: null };
 
   return res.json();
 }
@@ -38,6 +34,8 @@ async function getAthletes(tenantSlug) {
 }
 
 function formatEvent(label) {
+  if (!label) return "";
+
   return label
     .toLowerCase()
     .split("_")
@@ -46,7 +44,7 @@ function formatEvent(label) {
 }
 
 export default async function AthletesPage({ params }) {
-  const { tenantSlug } = await params;
+  const { tenantSlug } = params;
 
   const [homeData, athletes] = await Promise.all([
     getHomeData(tenantSlug),
@@ -55,12 +53,14 @@ export default async function AthletesPage({ params }) {
 
   const tenant = homeData?.tenant;
 
-  const activeAthletes = athletes
-    .filter((a) => a.isActive && a.slug)
+  const safeAthletes = Array.isArray(athletes) ? athletes : [];
+
+  const activeAthletes = safeAthletes
+    .filter((a) => a?.isActive && a?.slug)
     .sort((a, b) => {
-      const last = a.lastName.localeCompare(b.lastName);
+      const last = (a.lastName || "").localeCompare(b.lastName || "");
       if (last !== 0) return last;
-      return a.firstName.localeCompare(b.firstName);
+      return (a.firstName || "").localeCompare(b.firstName || "");
     });
 
   return (
@@ -96,7 +96,7 @@ export default async function AthletesPage({ params }) {
                 {a.headshotUrl && (
                   <div className="w-full aspect-square bg-gray-100 rounded mb-4 overflow-hidden">
                     <img
-                      src={resolveImage(a.headshotUrl, tenantSlug)}
+                      src={resolveAthleteImage(a.headshotUrl, tenantSlug)}
                       alt={`${a.firstName} ${a.lastName}`}
                       className="w-full h-full object-contain p-3"
                     />
@@ -109,7 +109,8 @@ export default async function AthletesPage({ params }) {
 
                 <div className="text-sm text-gray-700 mt-2 space-y-1">
                   {a.grade && <div>Grade {a.grade}</div>}
-                  {a.events?.length > 0 && (
+
+                  {Array.isArray(a.events) && a.events.length > 0 && (
                     <div className="text-xs text-gray-600 leading-snug">
                       {a.events.map(formatEvent).join(", ")}
                     </div>

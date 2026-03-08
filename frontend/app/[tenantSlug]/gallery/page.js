@@ -8,10 +8,10 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 function resolveImage(filename, tenantSlug) {
   if (!filename) return null;
-
   if (filename.startsWith("http")) return filename;
 
-  return `${API_BASE}/uploads/tenants/${tenantSlug}/gallery/${filename}`;
+  const clean = filename.replace(/^\/+/, "");
+  return `${API_BASE}/uploads/tenants/${tenantSlug}/gallery/${clean}`;
 }
 
 async function getHomeData(tenantSlug) {
@@ -36,7 +36,7 @@ async function getAlbums(tenantSlug) {
 }
 
 export default async function GalleryPage({ params }) {
-  const { tenantSlug } = await params;
+  const { tenantSlug } = params;
 
   const [homeData, albums] = await Promise.all([
     getHomeData(tenantSlug),
@@ -44,6 +44,7 @@ export default async function GalleryPage({ params }) {
   ]);
 
   const tenant = homeData?.tenant;
+  const safeAlbums = Array.isArray(albums) ? albums : [];
 
   return (
     <main className="bg-gray-50">
@@ -65,11 +66,11 @@ export default async function GalleryPage({ params }) {
 
       {/* ALBUM GRID */}
       <section className="max-w-7xl mx-auto px-4 py-16 space-y-12">
-        {!Array.isArray(albums) || albums.length === 0 ? (
+        {safeAlbums.length === 0 ? (
           <p>No albums available.</p>
         ) : (
           <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-8">
-            {albums.map((album) => {
+            {safeAlbums.map((album) => {
               const cover = album.images?.[0];
               const imageCount = album.images?.length || 0;
 
@@ -85,7 +86,7 @@ export default async function GalleryPage({ params }) {
                     {imageSrc && (
                       <Image
                         src={imageSrc}
-                        alt={album.title}
+                        alt={album.title || "Gallery Album"}
                         fill
                         className="object-cover group-hover:scale-105 transition duration-300"
                         unoptimized

@@ -11,33 +11,50 @@ import "swiper/css/navigation";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
-export default function PosterGallery({ posters }) {
+function resolvePoster(url) {
+  if (!url) return null;
+  if (url.startsWith("http")) return url;
+
+  const clean = url.replace(/^\/+/, "");
+  return `${API_BASE}/${clean}`;
+}
+
+export default function PosterGallery({ posters = [] }) {
   const [open, setOpen] = useState(false);
   const [index, setIndex] = useState(0);
+
+  const safePosters = Array.isArray(posters) ? posters : [];
 
   return (
     <>
       {/* GRID */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {posters.map((p, i) => (
-          <button
-            key={p.id}
-            onClick={() => {
-              setIndex(i);
-              setOpen(true);
-            }}
-            className="border rounded overflow-hidden"
-          >
-            <img
-              src={`${API_BASE}${p.imageUrl}`}
-              alt={p.title}
-              className="w-full h-[220px] object-contain block"
-            />
-            <div className="p-2 text-sm font-medium truncate">
-              {p.title}
-            </div>
-          </button>
-        ))}
+        {safePosters.map((p, i) => {
+          const src = resolvePoster(p.imageUrl);
+
+          return (
+            <button
+              key={p.id || i}
+              onClick={() => {
+                setIndex(i);
+                setOpen(true);
+              }}
+              className="border rounded overflow-hidden"
+            >
+              {src && (
+                <img
+                  src={src}
+                  alt={p.title || "Poster"}
+                  className="w-full h-[220px] object-contain block"
+                />
+              )}
+
+              <div className="p-2 text-sm font-medium truncate">
+                {p.title}
+              </div>
+            </button>
+          );
+        })}
       </div>
 
       {/* MODAL */}
@@ -58,24 +75,30 @@ export default function PosterGallery({ posters }) {
             slidesPerView={1}
             className="w-full h-full"
           >
-            {posters.map((p) => (
-              <SwiperSlide key={p.id}>
-                <div
-                  className="swiper-zoom-container flex items-center justify-center h-full"
-                  style={{ transform: "translateZ(0)" }} // 🔑 iOS repaint
-                >
-                  <img
-                    src={`${API_BASE}${p.imageUrl}`}
-                    alt={p.title}
-                    className="max-w-full max-h-full object-contain block"
-                    style={{
-                      backfaceVisibility: "hidden",
-                      WebkitBackfaceVisibility: "hidden",
-                    }}
-                  />
-                </div>
-              </SwiperSlide>
-            ))}
+            {safePosters.map((p, i) => {
+              const src = resolvePoster(p.imageUrl);
+
+              return (
+                <SwiperSlide key={p.id || i}>
+                  <div
+                    className="swiper-zoom-container flex items-center justify-center h-full"
+                    style={{ transform: "translateZ(0)" }}
+                  >
+                    {src && (
+                      <img
+                        src={src}
+                        alt={p.title || "Poster"}
+                        className="max-w-full max-h-full object-contain block"
+                        style={{
+                          backfaceVisibility: "hidden",
+                          WebkitBackfaceVisibility: "hidden",
+                        }}
+                      />
+                    )}
+                  </div>
+                </SwiperSlide>
+              );
+            })}
           </Swiper>
         </div>
       )}

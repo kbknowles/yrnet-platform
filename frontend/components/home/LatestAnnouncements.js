@@ -7,7 +7,9 @@ import { useTenantSlug } from "hooks/useTenantSlug";
 export default function LatestAnnouncements({ announcements = [] }) {
   const tenantSlug = useTenantSlug();
 
-  const sorted = [...announcements].sort((a, b) => {
+  const safeAnnouncements = Array.isArray(announcements) ? announcements : [];
+
+  const sorted = [...safeAnnouncements].sort((a, b) => {
     if (a.priority === "important" && b.priority !== "important") return -1;
     if (a.priority !== "important" && b.priority === "important") return 1;
 
@@ -33,7 +35,15 @@ export default function LatestAnnouncements({ announcements = [] }) {
           >
             <div className="font-semibold">{a.title}</div>
 
-            <div className="text-sm text-gray-600 mt-1">
+            {(a.publishAt || a.createdAt) && (
+              <div className="text-xs text-gray-500 mt-1">
+                {new Date(
+                  a.publishAt || a.createdAt
+                ).toLocaleDateString()}
+              </div>
+            )}
+
+            <div className="text-sm text-gray-600 mt-2">
               {a.content}
             </div>
 
