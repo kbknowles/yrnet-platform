@@ -2,11 +2,13 @@
 "use client";
 
 import Image from "next/image";
+import { useTenantSlug } from "hooks/useTenantSlug";
 
 export default function GalleryCarousel({ albums = [] }) {
   const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+  const tenantSlug = useTenantSlug();
 
-  const album = albums[0];
+  const album = albums?.[0];
   const images = album?.images || [];
 
   if (!images.length) return null;
@@ -29,7 +31,7 @@ export default function GalleryCarousel({ albums = [] }) {
             <div className="relative h-44 w-full">
               <Image
                 src={normalizeImageUrl(img.imageUrl)}
-                alt={img.caption || album.title}
+                alt={img.caption || album?.title || "Gallery Image"}
                 fill
                 className="object-cover"
               />

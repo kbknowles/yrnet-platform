@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL || "";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
 export default function SponsorStrip({ sponsors = [] }) {
   const [index, setIndex] = useState(0);
@@ -24,7 +23,7 @@ export default function SponsorStrip({ sponsors = [] }) {
   function fullImagePath(path) {
     if (!path) return null;
     if (path.startsWith("http")) return path;
-    return `${API_BASE}${path}`;
+    return `${API_BASE}${path.startsWith("/") ? "" : "/"}${path}`;
   }
 
   if (!sponsors || sponsors.length === 0) return null;

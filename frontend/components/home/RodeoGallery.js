@@ -3,10 +3,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useTenantSlug } from "hooks/useTenantSlug";
 
 export default function RodeoGallery({ albums = [] }) {
   const API_BASE = process.env.NEXT_PUBLIC_API_URL;
   const isDev = process.env.NODE_ENV !== "production";
+  const tenantSlug = useTenantSlug();
 
   if (!albums.length) return null;
 
@@ -25,6 +27,13 @@ export default function RodeoGallery({ albums = [] }) {
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .slice(0, 4);
 
+  function normalizeImageUrl(src) {
+    if (!src) return "";
+    if (src.startsWith("http")) return src;
+    if (!API_BASE) return src;
+    return `${API_BASE}${src.startsWith("/") ? "" : "/"}${src}`;
+  }
+
   return (
     <section className="py-12 bg-slate-50">
       <div className="max-w-6xl mx-auto px-4">
@@ -34,7 +43,7 @@ export default function RodeoGallery({ albums = [] }) {
           </h2>
 
           <Link
-            href={`/gallery/${latestAlbum.slug}`}
+            href={`/${tenantSlug}/gallery/${latestAlbum.slug}`}
             className="text-sm text-primary hover:underline"
           >
             View More →
@@ -45,12 +54,12 @@ export default function RodeoGallery({ albums = [] }) {
           {latestImages.map((img) => (
             <Link
               key={img.id}
-              href={`/gallery/${latestAlbum.slug}`}
+              href={`/${tenantSlug}/gallery/${latestAlbum.slug}`}
               className="bg-white rounded-lg border shadow-sm overflow-hidden"
             >
               <div className="relative h-48 w-full">
                 <Image
-                  src={`${API_BASE}${img.imageUrl}`}
+                  src={normalizeImageUrl(img.imageUrl)}
                   alt={img.caption || latestAlbum.title}
                   fill
                   sizes="(max-width: 768px) 50vw, 25vw"

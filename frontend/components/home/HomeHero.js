@@ -3,6 +3,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useTenantSlug } from "hooks/useTenantSlug";
 
 function splitTenantName(name) {
   if (typeof name !== "string") {
@@ -25,6 +26,8 @@ function splitTenantName(name) {
 }
 
 export default function HomeHero({ tenantName }) {
+  const tenantSlug = useTenantSlug();
+
   const { line1, line2 } = splitTenantName(tenantName);
 
   return (
@@ -60,7 +63,7 @@ export default function HomeHero({ tenantName }) {
 
           <div className="mt-6 sm:mt-8">
             <Link
-              href="/learn-more"
+              href={`/${tenantSlug}/learn-more`}
               className="inline-flex items-center justify-center rounded-md bg-white px-6 py-3 text-sm sm:text-base font-medium text-gray-900 hover:bg-gray-100 transition"
             >
               Learn More
