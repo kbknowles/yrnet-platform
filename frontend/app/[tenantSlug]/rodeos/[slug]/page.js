@@ -23,6 +23,21 @@ function autoLink(text) {
 }
 
 /*
+  Resolve announcement poster image.
+
+  Storage structure:
+  /uploads/tenants/{tenantSlug}/announcements/{announcementId}/{filename}
+*/
+function resolveAnnouncementImage(filename, tenantSlug, announcementId) {
+  if (!filename) return "";
+  if (filename.startsWith("http")) return filename;
+
+  const clean = filename.replace(/^\/+/, "");
+
+  return `${API_BASE}/uploads/tenants/${tenantSlug}/announcements/${announcementId}/${clean}`;
+}
+
+/*
   Fetch rodeo from API.
 */
 async function getRodeo(tenantSlug, slug) {
@@ -64,9 +79,12 @@ export default async function RodeoPage({ params }) {
     rodeo.announcements?.slice().sort((a, b) => a.sortOrder - b.sortOrder) ||
     [];
 
-  const posters = announcements.filter(
-    (a) => a.mode === "POSTER" && a.imageUrl
-  );
+  const posters = announcements
+    .filter((a) => a.mode === "POSTER" && a.imageUrl)
+    .map((a) => ({
+      ...a,
+      imageUrl: resolveAnnouncementImage(a.imageUrl, tenantSlug, a.id),
+    }));
 
   const standardAnnouncements = announcements.filter(
     (a) => a.mode !== "POSTER"
@@ -74,11 +92,9 @@ export default async function RodeoPage({ params }) {
 
   return (
     <main className="bg-gray-50">
-
       {/* HERO */}
       <section className="bg-secondary text-white">
         <div className="max-w-7xl mx-auto px-4 py-14 space-y-4">
-
           <h1 className="text-white text-4xl font-bold">{rodeo.name}</h1>
 
           <p className="text-lg text-gray-300">
@@ -87,13 +103,10 @@ export default async function RodeoPage({ params }) {
           </p>
 
           {location?.name && (
-            <p className="text-sm text-gray-300">
-              {location.name}
-            </p>
+            <p className="text-sm text-gray-300">{location.name}</p>
           )}
 
           <div className="flex flex-wrap gap-4 pt-4">
-
             <Link
               href={`/${tenantSlug}/schedule`}
               className="bg-rose-700 hover:bg-rose-800 text-white px-5 py-2 rounded-md text-sm font-medium"
@@ -113,23 +126,17 @@ export default async function RodeoPage({ params }) {
                 Get Directions
               </a>
             )}
-
           </div>
-
         </div>
       </section>
 
       {/* CONTENT */}
       <section className="max-w-7xl mx-auto px-4 py-12 space-y-12">
-
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-
           {/* LEFT COLUMN */}
           <div className="space-y-8">
-
             {rodeo.generalInfo && (
               <div className="bg-white rounded-lg shadow-sm border p-6">
-
                 <h2 className="text-lg font-semibold mb-3 border-l-4 border-rose-700 pl-3">
                   General Information
                 </h2>
@@ -140,13 +147,11 @@ export default async function RodeoPage({ params }) {
                     __html: autoLink(rodeo.generalInfo),
                   }}
                 />
-
               </div>
             )}
 
             {location && (
               <div className="bg-white rounded-lg shadow-sm border p-6 space-y-6">
-
                 <div>
                   <h2 className="text-lg font-semibold mb-3 border-l-4 border-rose-700 pl-3">
                     Location
@@ -161,7 +166,6 @@ export default async function RodeoPage({ params }) {
 
                 {fullAddress && (
                   <div className="space-y-3">
-
                     <div className="h-[260px] border rounded-md overflow-hidden">
                       <iframe
                         width="100%"
@@ -183,41 +187,36 @@ export default async function RodeoPage({ params }) {
                     >
                       Open in Google Maps
                     </a>
-
                   </div>
                 )}
-
               </div>
             )}
-
           </div>
 
           {/* RIGHT COLUMN */}
           <div className="lg:col-span-2 space-y-8">
+            {/* ANNOUNCEMENTS HEADER */}
+            {announcements.length > 0 && (
+              <h2 className="text-xl font-semibold">Announcements</h2>
+            )}
 
+            {/* POSTER SWIPER */}
             {posters.length > 0 && (
               <div className="bg-white rounded-lg shadow-sm border p-4">
                 <MediaSwiper items={posters} />
               </div>
             )}
 
+            {/* STANDARD ANNOUNCEMENTS */}
             {standardAnnouncements.length > 0 && (
               <div className="space-y-5">
-
-                <h2 className="text-xl font-semibold">
-                  Announcements
-                </h2>
-
                 {standardAnnouncements.map((a) => (
                   <div
                     key={a.id}
                     className="bg-white border rounded-lg shadow-sm p-6 border-l-4 border-rose-700"
                   >
-
                     {a.title && (
-                      <div className="font-semibold mb-2">
-                        {a.title}
-                      </div>
+                      <div className="font-semibold mb-2">{a.title}</div>
                     )}
 
                     {a.content && (
@@ -228,23 +227,17 @@ export default async function RodeoPage({ params }) {
                         }}
                       />
                     )}
-
                   </div>
                 ))}
-
               </div>
             )}
-
           </div>
-
         </div>
-
       </section>
 
       {/* SPONSORS */}
       <section className="bg-white/90 py-4">
         <div className="max-w-7xl mx-auto px-4 space-y-6">
-
           <h2 className="text-2xl font-semibold text-center">
             Thank You to Our Sponsors
           </h2>
@@ -257,10 +250,8 @@ export default async function RodeoPage({ params }) {
             contentId={null}
             slots={4}
           />
-
         </div>
       </section>
-
     </main>
   );
 }
