@@ -9,16 +9,22 @@ const router = express.Router({ mergeParams: true });
 /**
  * GET /:tenantSlug/rodeos
  * Public, published rodeos only (tenant-scoped)
+ * Returns upcoming rodeos ordered by start date
  */
 router.get("/", resolveTenant, async (req, res) => {
   try {
     const limitRaw = req.query.limit;
     const limit = limitRaw ? Number(limitRaw) : undefined;
 
+    const today = new Date();
+
     const rodeos = await prisma.rodeo.findMany({
       where: {
         tenantId: req.tenantId,
         status: "published",
+        endDate: {
+          gte: today, // show rodeos that have not finished yet
+        },
       },
       orderBy: { startDate: "asc" },
       take: Number.isFinite(limit) ? limit : undefined,

@@ -6,7 +6,21 @@ import { useTenantSlug } from "hooks/useTenantSlug";
 
 export default function UpcomingRodeos({ rodeos = [] }) {
   const tenantSlug = useTenantSlug();
-  const visible = Array.isArray(rodeos) ? rodeos.slice(0, 3) : [];
+
+  /*
+    Show the NEXT three upcoming rodeos.
+    - Remove past rodeos
+    - Sort by soonest date
+  */
+  const today = new Date();
+
+  const sorted = Array.isArray(rodeos)
+    ? [...rodeos]
+        .filter((r) => r.startDate && new Date(r.startDate) >= today)
+        .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
+    : [];
+
+  const visible = sorted.slice(0, 3);
 
   return (
     <section className="hero">
