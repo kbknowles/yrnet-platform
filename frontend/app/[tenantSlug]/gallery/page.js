@@ -36,7 +36,7 @@ async function getAlbums(tenantSlug) {
 }
 
 export default async function GalleryPage({ params }) {
-  const { tenantSlug } = params;
+  const { tenantSlug } = await params;
 
   const [homeData, albums] = await Promise.all([
     getHomeData(tenantSlug),

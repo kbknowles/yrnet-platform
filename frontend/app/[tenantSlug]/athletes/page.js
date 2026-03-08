@@ -44,7 +44,7 @@ function formatEvent(label) {
 }
 
 export default async function AthletesPage({ params }) {
-  const { tenantSlug } = params;
+  const { tenantSlug } = await params;
 
   const [homeData, athletes] = await Promise.all([
     getHomeData(tenantSlug),

@@ -26,7 +26,7 @@ async function getSponsors(tenantSlug) {
 }
 
 export default async function SponsorsPage({ params }) {
-  const { tenantSlug } = params;
+  const { tenantSlug } = await params;
 
   const sponsors = await getSponsors(tenantSlug);
   const safeSponsors = Array.isArray(sponsors) ? sponsors : [];

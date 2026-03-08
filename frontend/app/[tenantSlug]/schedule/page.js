@@ -146,7 +146,7 @@ export default function SchedulePage() {
               </p>
 
               <Link
-                href={`/rodeos/${nextEvent.slug}`}
+                href={`/${tenantSlug}/rodeos/${nextEvent.slug}`}
                 className="inline-block bg-accent text-white px-8 py-3 rounded-md text-sm font-semibold hover:opacity-90 transition"
               >
                 View Event Details
@@ -181,7 +181,7 @@ export default function SchedulePage() {
                 >
                   <div className="flex justify-between items-start">
                     <Link
-                      href={`/events/${e.slug}`}
+                      href={`/${tenantSlug}/rodeos/${e.slug}`}
                       className="text-xl font-semibold text-primary hover:text-accent transition"
                     >
                       {e.name}
@@ -219,7 +219,7 @@ export default function SchedulePage() {
                     </a>
 
                     <a
-                      href={`/api/calendar/${e.slug}.ics`}
+                      href={`${API_BASE}/${tenantSlug}/calendar/${e.slug}.ics`}
                       className="underline text-primary hover:text-accent"
                     >
                       Download .ics
@@ -236,7 +236,7 @@ export default function SchedulePage() {
               <div className="text-sm uppercase tracking-wide text-gray-600 mb-3">
                 Season Partner
               </div>
-              <SponsorZone contentType="SEASON" contentId={1} slots={1} />
+              <SponsorZone tenantSlug={tenantSlug} contentType="SEASON" contentId={1} slots={1} />
             </div>
 
             <div className="bg-white border border-gray-300 rounded-lg p-4 shadow-sm">
@@ -271,6 +271,7 @@ export default function SchedulePage() {
           <div className="border-t-2 border-primary w-20 mx-auto" />
 
           <SponsorZone
+            tenantSlug={tenantSlug}
             contentType="SEASON"
             contentId={null}
             levels={["PREMIER", "FEATURED"]}
