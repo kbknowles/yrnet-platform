@@ -146,7 +146,7 @@ export default function SchedulePage() {
               </p>
 
               <Link
-                href={`/events/${nextEvent.slug}`}
+                href={`/rodeos/${nextEvent.slug}`}
                 className="inline-block bg-accent text-white px-8 py-3 rounded-md text-sm font-semibold hover:opacity-90 transition"
               >
                 View Event Details
