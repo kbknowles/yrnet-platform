@@ -55,10 +55,11 @@ export default async function TenantHomePage(props) {
   const rodeosRaw = homeData?.upcomingRodeos || homeData?.rodeos || [];
   const rodeos = Array.isArray(rodeosRaw) ? rodeosRaw : [];
 
-  const sortedRodeos = [...rodeos]
-    .filter((r) => r?.startDate)
-    .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
-    .slice(0, 3);
+  /*
+    The backend already returns rodeos in the correct order.
+    Just take the first three.
+  */
+  const sortedRodeos = rodeos.slice(0, 3);
 
   return (
     <>
