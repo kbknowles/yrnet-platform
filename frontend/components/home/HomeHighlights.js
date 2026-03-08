@@ -3,6 +3,7 @@
 "use client";
 
 import Link from "next/link";
+import { useTenantSlug } from "hooks/useTenantSlug";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -14,6 +15,8 @@ function resolveMedia(url) {
 }
 
 export default function HomeHighlights({ rodeos, announcements }) {
+  const tenantSlug = useTenantSlug();
+
   const safeRodeos = Array.isArray(rodeos) ? rodeos : [];
   const safeAnnouncements = Array.isArray(announcements) ? announcements : [];
 
@@ -26,8 +29,8 @@ export default function HomeHighlights({ rodeos, announcements }) {
   const featured = sorted[0];
 
   const featuredHref = featured?.rodeo?.slug
-    ? `/rodeos/${featured.rodeo.slug}`
-    : "/announcements";
+    ? `/${tenantSlug}/rodeos/${featured.rodeo.slug}`
+    : `/${tenantSlug}/announcements`;
 
   return (
     <section className="w-full mt-1">
@@ -61,7 +64,7 @@ export default function HomeHighlights({ rodeos, announcements }) {
                     </div>
 
                     <Link
-                      href={`/rodeos/${rodeo.slug}`}
+                      href={`/${tenantSlug}/rodeos/${rodeo.slug}`}
                       className="text-sm font-medium bg-white text-primary px-4 py-2 rounded-md"
                     >
                       View Details
@@ -73,7 +76,7 @@ export default function HomeHighlights({ rodeos, announcements }) {
 
             <div className="pt-6">
               <Link
-                href="/schedule"
+                href={`/${tenantSlug}/schedule`}
                 className="text-sm font-medium underline underline-offset-4"
               >
                 View Full Schedule →
@@ -126,7 +129,7 @@ export default function HomeHighlights({ rodeos, announcements }) {
 
             <div className="pt-6">
               <Link
-                href="/announcements"
+                href={`/${tenantSlug}/announcements`}
                 className="text-sm font-medium text-accent underline underline-offset-4"
               >
                 View All Announcements →
