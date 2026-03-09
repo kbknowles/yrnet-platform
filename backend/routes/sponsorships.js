@@ -18,7 +18,7 @@ const router = express.Router({ mergeParams: true });
  *
  * Stops once slots are filled.
  */
-router.get("/:tenantSlug/resolve", resolveTenant, async (req, res) => {
+router.get("/resolve", resolveTenant, async (req, res) => {
   try {
     const now = new Date();
     const { contentType, contentId, slots } = req.query;
@@ -41,8 +41,7 @@ router.get("/:tenantSlug/resolve", resolveTenant, async (req, res) => {
     };
 
     // Normalize GLOBAL → null
-    const normalizedType =
-      contentType === "GLOBAL" ? null : contentType;
+    const normalizedType = contentType === "GLOBAL" ? null : contentType;
 
     const contentHierarchy = [null, "SEASON", "RODEO", "ATHLETE"];
     const levelHierarchy = ["PREMIER", "FEATURED", "STANDARD", "SUPPORTER"];
@@ -82,9 +81,7 @@ router.get("/:tenantSlug/resolve", resolveTenant, async (req, res) => {
     const startIndex = contentHierarchy.indexOf(normalizedType);
 
     const orderedContentTypes =
-      startIndex >= 0
-        ? contentHierarchy.slice(startIndex)
-        : contentHierarchy;
+      startIndex >= 0 ? contentHierarchy.slice(startIndex) : contentHierarchy;
 
     for (const type of orderedContentTypes) {
       for (const level of levelHierarchy) {
