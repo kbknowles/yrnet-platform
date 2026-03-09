@@ -1,7 +1,8 @@
-// filepath: frontend/app/admin/announcements/page.js
+// filepath: frontend/app/[tenantSlug]/admin/announcements/page.js
 "use client";
 
 import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -20,6 +21,8 @@ const EMPTY = {
 };
 
 export default function AdminAnnouncementsPage() {
+  const { tenantSlug } = useParams();
+
   const [announcements, setAnnouncements] = useState([]);
   const [events, setEvents] = useState([]);
   const [seasons, setSeasons] = useState([]);
@@ -28,12 +31,16 @@ export default function AdminAnnouncementsPage() {
   const [uploading, setUploading] = useState(false);
 
   async function loadAll() {
+    if (!tenantSlug) return;
+
     setLoading(true);
+
     const [a, e, s] = await Promise.all([
-      fetch(`${API_BASE}/api/admin/announcements`).then((r) => r.json()),
-      fetch(`${API_BASE}/api/admin/events`).then((r) => r.json()),
-      fetch(`${API_BASE}/api/admin/seasons`).then((r) => r.json()),
+      fetch(`${API_BASE}/${tenantSlug}/admin/announcements`).then((r) => r.json()),
+      fetch(`${API_BASE}/${tenantSlug}/admin/events`).then((r) => r.json()),
+      fetch(`${API_BASE}/${tenantSlug}/admin/seasons`).then((r) => r.json()),
     ]);
+
     setAnnouncements(a || []);
     setEvents(e || []);
     setSeasons(s || []);
@@ -42,7 +49,7 @@ export default function AdminAnnouncementsPage() {
 
   useEffect(() => {
     loadAll();
-  }, []);
+  }, [tenantSlug]);
 
   async function save() {
     const payload = {
@@ -50,7 +57,7 @@ export default function AdminAnnouncementsPage() {
       eventId: active.eventId ? Number(active.eventId) : null,
       seasonId: active.seasonId ? Number(active.seasonId) : null,
       sortOrder: Number(active.sortOrder) || 0,
-      content: active.content || "", // HTML supported
+      content: active.content || "",
       published: Boolean(active.published),
       publishAt: active.publishAt ? new Date(active.publishAt) : null,
       expireAt: active.expireAt ? new Date(active.expireAt) : null,
@@ -62,8 +69,8 @@ export default function AdminAnnouncementsPage() {
 
     const method = active.id ? "PUT" : "POST";
     const url = active.id
-      ? `${API_BASE}/api/admin/announcements/${active.id}`
-      : `${API_BASE}/api/admin/announcements`;
+      ? `${API_BASE}/${tenantSlug}/admin/announcements/${active.id}`
+      : `${API_BASE}/${tenantSlug}/admin/announcements`;
 
     await fetch(url, {
       method,
@@ -79,7 +86,7 @@ export default function AdminAnnouncementsPage() {
     if (!id) return;
     if (!confirm("Delete this announcement?")) return;
 
-    await fetch(`${API_BASE}/api/admin/announcements/${id}`, {
+    await fetch(`${API_BASE}/${tenantSlug}/admin/announcements/${id}`, {
       method: "DELETE",
     });
 
@@ -88,13 +95,13 @@ export default function AdminAnnouncementsPage() {
   }
 
   async function uploadPoster(file) {
-    if (!file) return;
+    if (!file || !tenantSlug) return;
 
     setUploading(true);
     let announcement = active;
 
     if (!announcement.id) {
-      const res = await fetch(`${API_BASE}/api/admin/announcements`, {
+      const res = await fetch(`${API_BASE}/${tenantSlug}/admin/announcements`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -113,13 +120,13 @@ export default function AdminAnnouncementsPage() {
     form.append("file", file);
 
     const uploadRes = await fetch(
-      `${API_BASE}/api/admin/announcements/upload/${announcement.id}/poster`,
+      `${API_BASE}/${tenantSlug}/admin/announcements/upload/${announcement.id}/poster`,
       { method: "POST", body: form }
     );
 
     const data = await uploadRes.json();
 
-    await fetch(`${API_BASE}/api/admin/announcements/${announcement.id}`, {
+    await fetch(`${API_BASE}/${tenantSlug}/admin/announcements/${announcement.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

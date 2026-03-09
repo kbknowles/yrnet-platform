@@ -46,7 +46,7 @@ function resolveMedia(url) {
   return url;
 }
 
-export default function AthleteForm({ slug, mode = "create" }) {
+export default function AthleteForm({ slug, tenantSlug, mode = "create" }) {
   const [form, setForm] = useState(EMPTY_FORM);
 
   const [headshotFile, setHeadshotFile] = useState(null);
@@ -61,10 +61,13 @@ export default function AthleteForm({ slug, mode = "create" }) {
   }
 
   useEffect(() => {
-    if (mode !== "edit" || !slug) return;
+    if (mode !== "edit" || !slug || !tenantSlug) return;
 
     async function load() {
-      const res = await fetch(`${API_BASE}/api/admin/athletes/${slug}`);
+      const res = await fetch(
+        `${API_BASE}/${tenantSlug}/admin/athletes/${slug}`
+      );
+
       if (!res.ok) {
         alert("Failed to load athlete");
         return;
@@ -84,7 +87,7 @@ export default function AthleteForm({ slug, mode = "create" }) {
     }
 
     load();
-  }, [mode, slug]);
+  }, [mode, slug, tenantSlug]);
 
   function removeExistingActionPhoto(index) {
     update("actionPhotos", form.actionPhotos.filter((_, i) => i !== index));
@@ -121,7 +124,9 @@ export default function AthleteForm({ slug, mode = "create" }) {
     videoFiles.forEach((file) => formData.append("videos", file));
 
     const res = await fetch(
-      `${API_BASE}/api/admin/athletes${mode === "edit" ? `/${slug}` : ""}`,
+      `${API_BASE}/${tenantSlug}/admin/athletes${
+        mode === "edit" ? `/${slug}` : ""
+      }`,
       {
         method: mode === "edit" ? "PUT" : "POST",
         body: formData,
@@ -134,7 +139,7 @@ export default function AthleteForm({ slug, mode = "create" }) {
       return;
     }
 
-    window.location.href = "/admin/athletes";
+    window.location.href = `/${tenantSlug}/admin/athletes`;
   }
 
   if (loading) return <p className="p-6">Loading…</p>;
@@ -144,25 +149,37 @@ export default function AthleteForm({ slug, mode = "create" }) {
 
       {/* BASIC INFO */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <input required placeholder="First Name"
+        <input
+          required
+          placeholder="First Name"
           value={form.firstName}
-          onChange={(e) => update("firstName", e.target.value)} />
+          onChange={(e) => update("firstName", e.target.value)}
+        />
 
-        <input required placeholder="Last Name"
+        <input
+          required
+          placeholder="Last Name"
           value={form.lastName}
-          onChange={(e) => update("lastName", e.target.value)} />
+          onChange={(e) => update("lastName", e.target.value)}
+        />
 
-        <input placeholder="School"
+        <input
+          placeholder="School"
           value={form.school}
-          onChange={(e) => update("school", e.target.value)} />
+          onChange={(e) => update("school", e.target.value)}
+        />
 
-        <input placeholder="Grade"
+        <input
+          placeholder="Grade"
           value={form.grade}
-          onChange={(e) => update("grade", e.target.value)} />
+          onChange={(e) => update("grade", e.target.value)}
+        />
 
-        <input placeholder="Hometown"
+        <input
+          placeholder="Hometown"
           value={form.hometown}
-          onChange={(e) => update("hometown", e.target.value)} />
+          onChange={(e) => update("hometown", e.target.value)}
+        />
       </section>
 
       {/* BIO */}

@@ -1,13 +1,16 @@
-// filepath: frontend/app/admin/page.js
+// filepath: frontend/app/[tenantSlug]/admin/page.js
 
 "use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 export default function AdminIndexPage() {
+  const { tenantSlug } = useParams();
+
   const [stats, setStats] = useState({
     activeSeason: "—",
     upcomingEvent: "—",
@@ -16,11 +19,15 @@ export default function AdminIndexPage() {
   });
 
   useEffect(() => {
+    if (!tenantSlug) return;
+
     async function loadStats() {
       try {
-        const res = await fetch(`${API_BASE}/api/admin/dashboard`, {
-          cache: "no-store",
-        });
+        const res = await fetch(
+          `${API_BASE}/${tenantSlug}/admin/dashboard`,
+          { cache: "no-store" }
+        );
+
         if (!res.ok) return;
 
         const data = await res.json();
@@ -37,7 +44,9 @@ export default function AdminIndexPage() {
     }
 
     loadStats();
-  }, []);
+  }, [tenantSlug]);
+
+  const base = `/${tenantSlug}/admin`;
 
   return (
     <main className="max-w-6xl mx-auto px-4 py-10 space-y-8">
@@ -74,21 +83,21 @@ export default function AdminIndexPage() {
         <div className="md:col-span-2 space-y-8">
 
           <AdminGroup title="Season">
-            <AdminItem href="/admin/seasons" label="Rodeo Season" />
-            <AdminItem href="/admin/rodeos" label="Rodeos" />
-            <AdminItem href="/admin/locations" label="Locations" />
+            <AdminItem href={`${base}/seasons`} label="Rodeo Season" />
+            <AdminItem href={`${base}/rodeos`} label="Rodeos" />
+            <AdminItem href={`${base}/locations`} label="Locations" />
           </AdminGroup>
 
           <AdminGroup title="People">
-            <AdminItem href="/admin/athletes" label="Athletes" />
-            <AdminItem href="/admin/officers" label="Officers" />
-            <AdminItem href="/admin/sponsors" label="Sponsors" />
+            <AdminItem href={`${base}/athletes`} label="Athletes" />
+            <AdminItem href={`${base}/officers`} label="Officers" />
+            <AdminItem href={`${base}/sponsors`} label="Sponsors" />
           </AdminGroup>
 
           <AdminGroup title="Website">
-            <AdminItem href="/admin/announcements" label="Announcements" />
-            <AdminItem href="/admin/gallery" label="Gallery" />
-            <AdminItem href="/admin/pages" label="Pages" />
+            <AdminItem href={`${base}/announcements`} label="Announcements" />
+            <AdminItem href={`${base}/gallery`} label="Gallery" />
+            <AdminItem href={`${base}/pages`} label="Pages" />
           </AdminGroup>
 
         </div>
@@ -100,19 +109,19 @@ export default function AdminIndexPage() {
           </h2>
 
           <div className="space-y-3 text-sm">
-            <Link href="/" className="block text-primary hover:underline">
+            <Link href={`/${tenantSlug}`} className="block text-primary hover:underline">
               View Website
             </Link>
-            <Link href="/admin/announcements/new" className="block text-primary hover:underline">
+            <Link href={`${base}/announcements/new`} className="block text-primary hover:underline">
               Add Announcement
             </Link>
-            <Link href="/admin/events/new" className="block text-primary hover:underline">
+            <Link href={`${base}/events/new`} className="block text-primary hover:underline">
               Add Event
             </Link>
-            <Link href="/admin/athletes/new" className="block text-primary hover:underline">
+            <Link href={`${base}/athletes/new`} className="block text-primary hover:underline">
               Add Athlete
             </Link>
-            <Link href="/admin/sponsors/new" className="block text-primary hover:underline">
+            <Link href={`${base}/sponsors/new`} className="block text-primary hover:underline">
               Add Sponsor
             </Link>
           </div>

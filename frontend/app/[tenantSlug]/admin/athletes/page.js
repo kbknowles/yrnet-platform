@@ -1,9 +1,8 @@
-// filepath: frontend/app/admin/athletes/page.js
+// filepath: frontend/app/[tenantSlug]/admin/athletes/page.js
 
 import Link from "next/link";
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL || "";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
 function resolveImage(url) {
   if (!url) return null;
@@ -12,9 +11,9 @@ function resolveImage(url) {
   return url;
 }
 
-async function getAthletes() {
+async function getAthletes(tenantSlug) {
   try {
-    const res = await fetch(`${API_BASE}/api/admin/athletes`, {
+    const res = await fetch(`${API_BASE}/${tenantSlug}/admin/athletes`, {
       cache: "no-store",
     });
 
@@ -31,14 +30,16 @@ async function getAthletes() {
   }
 }
 
-export default async function AthletesAdminPage() {
-  const athletes = await getAthletes();
+export default async function AthletesAdminPage({ params }) {
+  const { tenantSlug } = await params;
+
+  const athletes = await getAthletes(tenantSlug);
 
   return (
     <main className="max-w-6xl mx-auto px-4 py-10">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Athletes</h1>
-        <Link href="/admin/athletes/new" className="btn-primary">
+        <Link href={`/${tenantSlug}/admin/athletes/new`} className="btn-primary">
           Add Athlete
         </Link>
       </div>
@@ -74,7 +75,7 @@ export default async function AthletesAdminPage() {
                 <div className="space-y-1">
                   <h2 className="text-lg font-semibold">
                     <Link
-                      href={`/athletes/${a.slug}`}
+                      href={`/${tenantSlug}/athletes/${a.slug}`}
                       className="text-primary hover:underline"
                       target="_blank"
                     >
@@ -117,7 +118,7 @@ export default async function AthletesAdminPage() {
 
                 <div className="mt-3">
                   <Link
-                    href={`/admin/athletes/${a.slug}`}
+                    href={`/${tenantSlug}/admin/athletes/${a.slug}`}
                     className="text-primary text-sm font-medium"
                   >
                     Edit Athlete →
