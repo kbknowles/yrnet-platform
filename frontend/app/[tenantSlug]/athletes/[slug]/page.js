@@ -2,25 +2,24 @@
 
 import { notFound } from "next/navigation";
 import AthleteView from "./AthleteView";
+import { resolveTenantMedia } from "lib/media";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 function hydrateMedia(athlete, tenantSlug) {
-  const resolveImage = (filename) => {
-    if (!filename) return null;
-    if (filename.startsWith("http")) return filename;
+  const resolveImage = (filename) =>
+    resolveTenantMedia({
+      tenantSlug,
+      folder: "images",
+      filename,
+    });
 
-    const clean = filename.replace(/^\/+/, "");
-    return `${API_BASE}/uploads/tenants/${tenantSlug}/images/${clean}`;
-  };
-
-  const resolveVideo = (filename) => {
-    if (!filename) return null;
-    if (filename.startsWith("http")) return filename;
-
-    const clean = filename.replace(/^\/+/, "");
-    return `${API_BASE}/uploads/tenants/${tenantSlug}/videos/${clean}`;
-  };
+  const resolveVideo = (filename) =>
+    resolveTenantMedia({
+      tenantSlug,
+      folder: "videos",
+      filename,
+    });
 
   return {
     ...athlete,
@@ -40,7 +39,7 @@ async function getAthlete(tenantSlug, slug) {
 }
 
 export default async function AthleteDetailPage({ params }) {
-  const { tenantSlug, slug } = params;
+  const { tenantSlug, slug } = await params;
 
   const athlete = await getAthlete(tenantSlug, slug);
 

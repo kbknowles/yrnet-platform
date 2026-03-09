@@ -46,19 +46,19 @@ export default function AthleteView({ athlete, API_BASE, tenantSlug }) {
   return (
     <main className="bg-gray-50">
       {/* HERO */}
-      <section className="bg-primary/95 text-white">
+      <section className="bg-secondary text-white">
         <div className="max-w-5xl mx-auto px-4 py-16 space-y-3">
           <nav className="text-sm text-white/80">
             <Link href={`/${tenantSlug}/athletes`} className="hover:underline">
               Athletes
             </Link>
-            <span className="mx-2">/</span>
-            <span>
+            <span className="text-white mx-2">/</span>
+            <span className="text-white">
               {athlete.firstName} {athlete.lastName}
             </span>
           </nav>
 
-          <h1 className="text-4xl font-bold">
+          <h1 className="hero text-4xl font-bold">
             {athlete.firstName} {athlete.lastName}
           </h1>
 
