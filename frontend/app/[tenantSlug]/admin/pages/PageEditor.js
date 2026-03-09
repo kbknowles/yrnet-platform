@@ -25,7 +25,7 @@ export default function PageEditor({ title, form, setForm, onSave }) {
       if (!tenantSlug) return;
 
       try {
-        const res = await fetch(`${API_BASE}/api/${tenantSlug}/admin/pages`, {
+        const res = await fetch(`${API_BASE}/${tenantSlug}/admin/pages`, {
           cache: "no-store",
         });
 

@@ -18,7 +18,7 @@ export default function AdminSeasonsPage() {
   const [active, setActive] = useState(null);
 
   async function load() {
-    const res = await fetch(`${API_BASE}/api/${tenantSlug}/admin/seasons`);
+    const res = await fetch(`${API_BASE}/${tenantSlug}/admin/seasons`);
     setSeasons(await res.json());
     setLoading(false);
   }
@@ -45,7 +45,7 @@ export default function AdminSeasonsPage() {
 
   async function remove(id) {
     if (!confirm("Delete season?")) return;
-    const res = await fetch(`${API_BASE}/api/${tenantSlug}/admin/seasons/${id}`, {
+    const res = await fetch(`${API_BASE}/${tenantSlug}/admin/seasons/${id}`, {
       method: "DELETE",
     });
 

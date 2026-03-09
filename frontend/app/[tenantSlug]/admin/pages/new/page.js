@@ -30,7 +30,7 @@ export default function NewPage() {
   async function save() {
     if (!tenantSlug) return;
 
-    await fetch(`${API_BASE}/api/${tenantSlug}/admin/pages`, {
+    await fetch(`${API_BASE}/${tenantSlug}/admin/pages`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

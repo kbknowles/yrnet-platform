@@ -40,7 +40,7 @@ export default function EditPage() {
     async function load() {
       setLoading(true);
 
-      const res = await fetch(`${API_BASE}/api/${tenantSlug}/admin/pages`);
+      const res = await fetch(`${API_BASE}/${tenantSlug}/admin/pages`);
       const pages = await res.json();
 
       const page = Array.isArray(pages)
@@ -68,7 +68,7 @@ export default function EditPage() {
       content: toParagraphs(form.content),
     };
 
-    await fetch(`${API_BASE}/api/${tenantSlug}/admin/pages/${id}`, {
+    await fetch(`${API_BASE}/${tenantSlug}/admin/pages/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(formatted),

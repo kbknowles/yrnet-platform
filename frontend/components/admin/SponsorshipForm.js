@@ -44,7 +44,7 @@ export default function SponsorshipForm({
   useEffect(() => {
     async function loadSponsors() {
       try {
-        const res = await fetch(`${API_BASE}/api/${tenantSlug}/admin/sponsors`);
+        const res = await fetch(`${API_BASE}/${tenantSlug}/admin/sponsors`);
         if (!res.ok) return;
         const data = await res.json();
         setSponsors(Array.isArray(data) ? data : []);

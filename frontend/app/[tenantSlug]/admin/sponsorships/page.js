@@ -10,7 +10,7 @@ export default function SponsorshipsPage() {
   const [editing, setEditing] = useState(null);
 
   async function load() {
-    const res = await fetch(`${API_BASE}/api/${tenantSlug}/admin/sponsorships`);
+    const res = await fetch(`${API_BASE}/${tenantSlug}/admin/sponsorships`);
     const data = await res.json();
     setItems(Array.isArray(data) ? data : []);
   }

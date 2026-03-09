@@ -12,7 +12,7 @@ export default function OfficersPage() {
 
   async function load() {
     setLoading(true);
-    const res = await fetch(`${API_BASE}/api/${tenantSlug}/officers`);
+    const res = await fetch(`${API_BASE}/${tenantSlug}/officers`);
     const data = await res.json();
     setOfficers(data || []);
     setLoading(false);

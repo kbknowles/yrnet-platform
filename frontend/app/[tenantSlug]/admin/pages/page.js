@@ -20,7 +20,7 @@ export default function AdminPagesPage() {
   useEffect(() => {
     if (!tenantSlug) return;
 
-    fetch(`${API_BASE}/api/${tenantSlug}/admin/pages`)
+    fetch(`${API_BASE}/${tenantSlug}/admin/pages`)
       .then((res) => res.json())
       .then((data) => {
         setPages(Array.isArray(data) ? data : []);
@@ -47,7 +47,7 @@ export default function AdminPagesPage() {
   async function savePage(page) {
     setSavingId(page.id);
 
-    await fetch(`${API_BASE}/api/${tenantSlug}/admin/pages/${page.id}`, {
+    await fetch(`${API_BASE}/${tenantSlug}/admin/pages/${page.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

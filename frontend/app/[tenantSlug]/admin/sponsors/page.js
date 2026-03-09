@@ -15,7 +15,7 @@ export default function SponsorsAdminPage() {
   async function fetchSponsors() {
     try {
       setLoading(true);
-      const res = await fetch(`${API_BASE}/api/${tenantSlug}/admin/sponsors`);
+      const res = await fetch(`${API_BASE}/${tenantSlug}/admin/sponsors`);
       if (!res.ok) throw new Error();
       const data = await res.json();
       setSponsors(Array.isArray(data) ? data : []);

@@ -18,7 +18,7 @@ export default function AdminGalleryPage() {
   async function loadAlbums() {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/${tenantSlug}/${tenantSlug}/${tenantSlug}/${tenantSlug}/${tenantSlug}/admin/gallery`, {
+      const res = await fetch(`${API_BASE}/${tenantSlug}/${tenantSlug}/${tenantSlug}/${tenantSlug}/${tenantSlug}/admin/gallery`, {
         cache: "no-store",
       });
 
@@ -39,7 +39,7 @@ export default function AdminGalleryPage() {
 
   async function refreshActiveAlbum(id) {
     try {
-      const res = await fetch(`${API_BASE}/api/${tenantSlug}/admin/gallery`, {
+      const res = await fetch(`${API_BASE}/${tenantSlug}/admin/gallery`, {
         cache: "no-store",
       });
 
@@ -64,7 +64,7 @@ export default function AdminGalleryPage() {
       seasonId: seasonId ? parseInt(seasonId, 10) : null,
     };
 
-    const res = await fetch(`${API_BASE}/api/${tenantSlug}/admin/gallery`, {
+    const res = await fetch(`${API_BASE}/${tenantSlug}/admin/gallery`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -80,7 +80,7 @@ export default function AdminGalleryPage() {
   async function deleteAlbum(id) {
     if (!confirm("Delete this album and all images?")) return;
 
-    await fetch(`${API_BASE}/api/${tenantSlug}/admin/gallery/${id}`, {
+    await fetch(`${API_BASE}/${tenantSlug}/admin/gallery/${id}`, {
       method: "DELETE",
     });
 
@@ -116,7 +116,7 @@ export default function AdminGalleryPage() {
   async function deleteImage(imageId) {
     if (!activeAlbum) return;
 
-    await fetch(`${API_BASE}/api/${tenantSlug}/admin/gallery/images/${imageId}`, {
+    await fetch(`${API_BASE}/${tenantSlug}/admin/gallery/images/${imageId}`, {
       method: "DELETE",
     });
 

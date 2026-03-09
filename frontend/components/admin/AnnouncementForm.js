@@ -19,7 +19,7 @@ export default function AnnouncementForm({ onCreated }) {
   useEffect(() => {
     async function load() {
       const [eRes, sRes] = await Promise.all([
-        fetch(`${API_BASE}/api/${tenantSlug}/admin/rodeos`),
+        fetch(`${API_BASE}/${tenantSlug}/admin/rodeos`),
         fetch(`${API_BASE}/api/admin/seasons`),
       ]);
 
@@ -38,7 +38,7 @@ export default function AnnouncementForm({ onCreated }) {
   async function handleSubmit(e) {
     e.preventDefault();
 
-    await fetch(`${API_BASE}/api/${tenantSlug}/admin/announcements`, {
+    await fetch(`${API_BASE}/${tenantSlug}/admin/announcements`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

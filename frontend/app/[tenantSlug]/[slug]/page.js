@@ -7,7 +7,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 async function getPage(tenantSlug, slug) {
   const res = await fetch(
-    `${API_BASE}/api/${tenantSlug}/pages/${encodeURIComponent(slug)}`,
+    `${API_BASE}/${tenantSlug}/pages/${encodeURIComponent(slug)}`,
     { cache: "no-store" }
   );
 
