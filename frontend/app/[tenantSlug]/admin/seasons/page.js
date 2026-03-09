@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -13,22 +14,45 @@ const EMPTY_SEASON = {
 };
 
 export default function AdminSeasonsPage() {
+  const params = useParams();
+
+  const tenantSlug = Array.isArray(params?.tenantSlug)
+    ? params.tenantSlug[0]
+    : params?.tenantSlug;
+
   const [seasons, setSeasons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState(null);
 
   async function load() {
-    const res = await fetch(`${API_BASE}/${tenantSlug}/admin/seasons`);
-    setSeasons(await res.json());
-    setLoading(false);
+    if (!tenantSlug) return;
+
+    setLoading(true);
+
+    try {
+      const res = await fetch(
+        `${API_BASE}/${tenantSlug}/admin/seasons`,
+        { cache: "no-store" }
+      );
+
+      const data = await res.json();
+      setSeasons(Array.isArray(data) ? data : []);
+    } catch {
+      setSeasons([]);
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
     load();
-  }, []);
+  }, [tenantSlug]);
 
   async function save() {
+    if (!active || !tenantSlug) return;
+
     const isEdit = Boolean(active.id);
+
     const url = isEdit
       ? `${API_BASE}/${tenantSlug}/admin/seasons/${active.id}`
       : `${API_BASE}/${tenantSlug}/admin/seasons`;
@@ -44,10 +68,12 @@ export default function AdminSeasonsPage() {
   }
 
   async function remove(id) {
-    if (!confirm("Delete season?")) return;
-    const res = await fetch(`${API_BASE}/${tenantSlug}/admin/seasons/${id}`, {
-      method: "DELETE",
-    });
+    if (!confirm("Delete season?") || !tenantSlug) return;
+
+    const res = await fetch(
+      `${API_BASE}/${tenantSlug}/admin/seasons/${id}`,
+      { method: "DELETE" }
+    );
 
     if (!res.ok) {
       const data = await res.json();
@@ -87,8 +113,8 @@ export default function AdminSeasonsPage() {
             {seasons.map((s) => (
               <tr key={s.id} className="border-t">
                 <td className="p-3">{s.year}</td>
-                <td className="p-3">{s.startDate.slice(0, 10)}</td>
-                <td className="p-3">{s.endDate.slice(0, 10)}</td>
+                <td className="p-3">{s.startDate?.slice(0, 10)}</td>
+                <td className="p-3">{s.endDate?.slice(0, 10)}</td>
                 <td className="p-3">{s.active ? "Yes" : "No"}</td>
                 <td className="p-3 text-right space-x-3">
                   <button
@@ -106,6 +132,17 @@ export default function AdminSeasonsPage() {
                 </td>
               </tr>
             ))}
+
+            {seasons.length === 0 && (
+              <tr>
+                <td
+                  colSpan="5"
+                  className="p-6 text-center text-gray-500"
+                >
+                  No seasons found.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -129,7 +166,7 @@ export default function AdminSeasonsPage() {
             <input
               type="date"
               className="w-full border p-2"
-              value={active.startDate?.slice(0, 10)}
+              value={active.startDate?.slice(0, 10) || ""}
               onChange={(e) =>
                 setActive({ ...active, startDate: e.target.value })
               }
@@ -138,7 +175,7 @@ export default function AdminSeasonsPage() {
             <input
               type="date"
               className="w-full border p-2"
-              value={active.endDate?.slice(0, 10)}
+              value={active.endDate?.slice(0, 10) || ""}
               onChange={(e) =>
                 setActive({ ...active, endDate: e.target.value })
               }

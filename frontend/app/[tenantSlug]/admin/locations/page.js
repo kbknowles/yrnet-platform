@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -20,20 +21,28 @@ const EMPTY_LOCATION = {
 };
 
 export default function AdminLocationsPage() {
+  const params = useParams();
+
+  const tenantSlug = Array.isArray(params?.tenantSlug)
+    ? params.tenantSlug[0]
+    : params?.tenantSlug;
+
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState(null);
 
   async function load() {
+    if (!tenantSlug) return;
+
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/${tenantSlug}/admin/locations`, {
-        cache: "no-store",
-      });
+      const res = await fetch(
+        `${API_BASE}/${tenantSlug}/admin/locations`,
+        { cache: "no-store" }
+      );
 
       if (!res.ok) {
         setLocations([]);
-        setLoading(false);
         return;
       }
 
@@ -48,7 +57,7 @@ export default function AdminLocationsPage() {
 
   useEffect(() => {
     load();
-  }, []);
+  }, [tenantSlug]);
 
   function normalizePayload(l) {
     return {
@@ -67,9 +76,10 @@ export default function AdminLocationsPage() {
   }
 
   async function save() {
-    if (!active) return;
+    if (!active || !tenantSlug) return;
 
     const isEdit = Boolean(active.id);
+
     const url = isEdit
       ? `${API_BASE}/${tenantSlug}/admin/locations/${active.id}`
       : `${API_BASE}/${tenantSlug}/admin/locations`;
@@ -85,7 +95,7 @@ export default function AdminLocationsPage() {
   }
 
   async function remove(id) {
-    if (!confirm("Delete location?")) return;
+    if (!confirm("Delete location?") || !tenantSlug) return;
 
     await fetch(`${API_BASE}/${tenantSlug}/admin/locations/${id}`, {
       method: "DELETE",
@@ -163,6 +173,17 @@ export default function AdminLocationsPage() {
                 </td>
               </tr>
             ))}
+
+            {locations.length === 0 && (
+              <tr>
+                <td
+                  colSpan="5"
+                  className="p-6 text-center text-gray-500"
+                >
+                  No locations found.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

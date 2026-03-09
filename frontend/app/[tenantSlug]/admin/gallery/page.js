@@ -2,9 +2,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 
 export default function AdminGalleryPage() {
   const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+
+  const params = useParams();
+  const tenantSlug = Array.isArray(params?.tenantSlug)
+    ? params.tenantSlug[0]
+    : params?.tenantSlug;
 
   const [albums, setAlbums] = useState([]);
   const [title, setTitle] = useState("");
@@ -16,15 +22,16 @@ export default function AdminGalleryPage() {
   const [caption, setCaption] = useState("");
 
   async function loadAlbums() {
+    if (!tenantSlug) return;
+
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/${tenantSlug}/${tenantSlug}/${tenantSlug}/${tenantSlug}/${tenantSlug}/admin/gallery`, {
+      const res = await fetch(`${API_BASE}/${tenantSlug}/admin/gallery`, {
         cache: "no-store",
       });
 
       if (!res.ok) {
         setAlbums([]);
-        setLoading(false);
         return;
       }
 
@@ -38,6 +45,8 @@ export default function AdminGalleryPage() {
   }
 
   async function refreshActiveAlbum(id) {
+    if (!tenantSlug) return;
+
     try {
       const res = await fetch(`${API_BASE}/${tenantSlug}/admin/gallery`, {
         cache: "no-store",
@@ -46,18 +55,20 @@ export default function AdminGalleryPage() {
       if (!res.ok) return;
 
       const data = await res.json();
-      const updated = data.find((a) => a.id === id);
+      const safeData = Array.isArray(data) ? data : [];
+      const updated = safeData.find((a) => a.id === id);
+
       if (updated) setActiveAlbum(updated);
-      setAlbums(Array.isArray(data) ? data : []);
+      setAlbums(safeData);
     } catch {}
   }
 
   useEffect(() => {
     loadAlbums();
-  }, []);
+  }, [tenantSlug]);
 
   async function createAlbum() {
-    if (!title.trim()) return;
+    if (!title.trim() || !tenantSlug) return;
 
     const payload = {
       title: title.trim(),
@@ -78,7 +89,7 @@ export default function AdminGalleryPage() {
   }
 
   async function deleteAlbum(id) {
-    if (!confirm("Delete this album and all images?")) return;
+    if (!confirm("Delete this album and all images?") || !tenantSlug) return;
 
     await fetch(`${API_BASE}/${tenantSlug}/admin/gallery/${id}`, {
       method: "DELETE",
@@ -92,7 +103,7 @@ export default function AdminGalleryPage() {
   }
 
   async function uploadImage() {
-    if (!uploadFile || !activeAlbum) return;
+    if (!uploadFile || !activeAlbum || !tenantSlug) return;
 
     const formData = new FormData();
     formData.append("image", uploadFile);
@@ -114,7 +125,7 @@ export default function AdminGalleryPage() {
   }
 
   async function deleteImage(imageId) {
-    if (!activeAlbum) return;
+    if (!activeAlbum || !tenantSlug) return;
 
     await fetch(`${API_BASE}/${tenantSlug}/admin/gallery/images/${imageId}`, {
       method: "DELETE",
@@ -188,6 +199,14 @@ export default function AdminGalleryPage() {
                 </td>
               </tr>
             ))}
+
+            {albums.length === 0 && (
+              <tr>
+                <td colSpan="3" className="p-6 text-center text-gray-500">
+                  No albums found.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -256,6 +275,12 @@ export default function AdminGalleryPage() {
                   </div>
                 </div>
               ))}
+
+              {(activeAlbum.images || []).length === 0 && (
+                <div className="col-span-full text-center text-gray-500 py-6">
+                  No images found.
+                </div>
+              )}
             </div>
           </div>
         </div>

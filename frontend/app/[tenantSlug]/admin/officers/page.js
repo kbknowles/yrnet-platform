@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -10,21 +11,16 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 ========================= */
 
 const ROLE_OPTIONS = [
-  // Adult – Executive
   { value: "PRESIDENT", label: "President" },
   { value: "VICE_PRESIDENT", label: "Vice President" },
   { value: "SECOND_VICE_PRESIDENT", label: "2nd Vice President" },
   { value: "SECRETARY", label: "Secretary" },
   { value: "TREASURER", label: "Treasurer" },
   { value: "POINTS_SECRETARY", label: "Points Secretary" },
-
-  // Adult – Directors
   { value: "NATIONAL_DIRECTOR", label: "National Director" },
   { value: "STATE_DIRECTOR", label: "State Director" },
   { value: "REGION_DIRECTOR", label: "Region Director" },
   { value: "BOARD_MEMBER", label: "Board Member" },
-
-  // Student
   { value: "STUDENT_PRESIDENT", label: "Student President" },
   { value: "STUDENT_VICE_PRESIDENT", label: "Student Vice President" },
   { value: "STUDENT_SECRETARY", label: "Student Secretary" },
@@ -44,29 +40,50 @@ const TYPE_OPTIONS = [
 ========================= */
 
 export default function AdminOfficersPage() {
+  const params = useParams();
+
+  const tenantSlug = Array.isArray(params?.tenantSlug)
+    ? params.tenantSlug[0]
+    : params?.tenantSlug;
+
   const [officers, setOfficers] = useState([]);
   const [seasons, setSeasons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState(null);
 
   async function load() {
-    setLoading(true);
-    const [officerRes, seasonRes] = await Promise.all([
-      fetch(`${API_BASE}/${tenantSlug}/admin/officers`),
-      fetch(`${API_BASE}/${tenantSlug}/admin/seasons`),
-    ]);
+    if (!tenantSlug) return;
 
-    setOfficers(await officerRes.json());
-    setSeasons(await seasonRes.json());
-    setLoading(false);
+    setLoading(true);
+
+    try {
+      const [officerRes, seasonRes] = await Promise.all([
+        fetch(`${API_BASE}/${tenantSlug}/admin/officers`, { cache: "no-store" }),
+        fetch(`${API_BASE}/${tenantSlug}/admin/seasons`, { cache: "no-store" }),
+      ]);
+
+      const officersData = await officerRes.json();
+      const seasonsData = await seasonRes.json();
+
+      setOfficers(Array.isArray(officersData) ? officersData : []);
+      setSeasons(Array.isArray(seasonsData) ? seasonsData : []);
+    } catch {
+      setOfficers([]);
+      setSeasons([]);
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
     load();
-  }, []);
+  }, [tenantSlug]);
 
   async function save() {
+    if (!active || !tenantSlug) return;
+
     const method = active.id ? "PUT" : "POST";
+
     const url = active.id
       ? `${API_BASE}/${tenantSlug}/admin/officers/${active.id}`
       : `${API_BASE}/${tenantSlug}/admin/officers`;
@@ -90,10 +107,12 @@ export default function AdminOfficersPage() {
   }
 
   async function remove(id) {
-    if (!confirm("Delete officer?")) return;
+    if (!confirm("Delete officer?") || !tenantSlug) return;
+
     await fetch(`${API_BASE}/${tenantSlug}/admin/officers/${id}`, {
       method: "DELETE",
     });
+
     load();
   }
 
@@ -111,7 +130,7 @@ export default function AdminOfficersPage() {
               type: "EXECUTIVE",
               email: "",
               phone: "",
-              seasonId: seasons.find(s => s.active)?.id || seasons[0]?.id,
+              seasonId: seasons.find((s) => s.active)?.id || seasons[0]?.id,
               active: true,
             })
           }
@@ -134,7 +153,7 @@ export default function AdminOfficersPage() {
             </tr>
           </thead>
           <tbody>
-            {officers.map(o => (
+            {officers.map((o) => (
               <tr key={o.id} className="border-t hover:bg-slate-50">
                 <td className="p-3 font-medium">{o.name}</td>
                 <td className="p-3">{o.role}</td>
@@ -157,11 +176,21 @@ export default function AdminOfficersPage() {
                 </td>
               </tr>
             ))}
+
+            {officers.length === 0 && (
+              <tr>
+                <td
+                  colSpan="6"
+                  className="p-6 text-center text-gray-500"
+                >
+                  No officers found.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
 
-      {/* MODAL */}
       {active && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white w-full max-w-lg rounded shadow-lg p-6 space-y-4">
@@ -173,15 +202,19 @@ export default function AdminOfficersPage() {
               className="w-full border rounded p-2"
               placeholder="Full Name"
               value={active.name}
-              onChange={e => setActive({ ...active, name: e.target.value })}
+              onChange={(e) =>
+                setActive({ ...active, name: e.target.value })
+              }
             />
 
             <select
               className="w-full border rounded p-2"
               value={active.role}
-              onChange={e => setActive({ ...active, role: e.target.value })}
+              onChange={(e) =>
+                setActive({ ...active, role: e.target.value })
+              }
             >
-              {ROLE_OPTIONS.map(r => (
+              {ROLE_OPTIONS.map((r) => (
                 <option key={r.value} value={r.value}>
                   {r.label}
                 </option>
@@ -191,9 +224,11 @@ export default function AdminOfficersPage() {
             <select
               className="w-full border rounded p-2"
               value={active.type}
-              onChange={e => setActive({ ...active, type: e.target.value })}
+              onChange={(e) =>
+                setActive({ ...active, type: e.target.value })
+              }
             >
-              {TYPE_OPTIONS.map(t => (
+              {TYPE_OPTIONS.map((t) => (
                 <option key={t.value} value={t.value}>
                   {t.label}
                 </option>
@@ -204,24 +239,28 @@ export default function AdminOfficersPage() {
               className="w-full border rounded p-2"
               placeholder="Internal Email (not public)"
               value={active.email || ""}
-              onChange={e => setActive({ ...active, email: e.target.value })}
+              onChange={(e) =>
+                setActive({ ...active, email: e.target.value })
+              }
             />
 
             <input
               className="w-full border rounded p-2"
               placeholder="Phone (internal)"
               value={active.phone || ""}
-              onChange={e => setActive({ ...active, phone: e.target.value })}
+              onChange={(e) =>
+                setActive({ ...active, phone: e.target.value })
+              }
             />
 
             <select
               className="w-full border rounded p-2"
               value={active.seasonId}
-              onChange={e =>
+              onChange={(e) =>
                 setActive({ ...active, seasonId: e.target.value })
               }
             >
-              {seasons.map(s => (
+              {seasons.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.year} {s.active ? "(Current)" : ""}
                 </option>
@@ -232,7 +271,7 @@ export default function AdminOfficersPage() {
               <input
                 type="checkbox"
                 checked={active.active}
-                onChange={e =>
+                onChange={(e) =>
                   setActive({ ...active, active: e.target.checked })
                 }
               />

@@ -1,27 +1,39 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import SponsorshipForm from  "components/admin/SponsorshipForm";
+import { useParams } from "next/navigation";
+import SponsorshipForm from "components/admin/SponsorshipForm";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
 export default function SponsorshipsPage() {
+  const params = useParams();
+
+  const tenantSlug = Array.isArray(params?.tenantSlug)
+    ? params.tenantSlug[0]
+    : params?.tenantSlug;
+
   const [items, setItems] = useState([]);
   const [editing, setEditing] = useState(null);
 
   async function load() {
-    const res = await fetch(`${API_BASE}/${tenantSlug}/admin/sponsorships`);
+    if (!tenantSlug) return;
+
+    const res = await fetch(
+      `${API_BASE}/${tenantSlug}/admin/sponsorships`,
+      { cache: "no-store" }
+    );
+
     const data = await res.json();
     setItems(Array.isArray(data) ? data : []);
   }
 
   useEffect(() => {
     load();
-  }, []);
+  }, [tenantSlug]);
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
-
       <div className="flex justify-between">
         <h1 className="text-2xl font-bold">Sponsorships</h1>
         <button
@@ -68,10 +80,13 @@ export default function SponsorshipsPage() {
 
               <button
                 onClick={async () => {
+                  if (!tenantSlug) return;
+
                   await fetch(
                     `${API_BASE}/${tenantSlug}/admin/sponsorships/${item.id}`,
                     { method: "DELETE" }
                   );
+
                   load();
                 }}
                 className="px-3 py-1 border rounded text-red-600"
@@ -81,6 +96,12 @@ export default function SponsorshipsPage() {
             </div>
           </div>
         ))}
+
+        {items.length === 0 && (
+          <div className="p-6 text-center text-gray-500">
+            No sponsorships found.
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,11 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import SponsorForm from "components/admin/SponsorForm";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
 export default function SponsorsAdminPage() {
+  const params = useParams();
+
+  const tenantSlug = Array.isArray(params?.tenantSlug)
+    ? params.tenantSlug[0]
+    : params?.tenantSlug;
+
   const [sponsors, setSponsors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState(null);
@@ -13,14 +20,22 @@ export default function SponsorsAdminPage() {
   const [error, setError] = useState(null);
 
   async function fetchSponsors() {
+    if (!tenantSlug) return;
+
     try {
       setLoading(true);
-      const res = await fetch(`${API_BASE}/${tenantSlug}/admin/sponsors`);
+      const res = await fetch(
+        `${API_BASE}/${tenantSlug}/admin/sponsors`,
+        { cache: "no-store" }
+      );
+
       if (!res.ok) throw new Error();
+
       const data = await res.json();
       setSponsors(Array.isArray(data) ? data : []);
     } catch {
       setError("Unable to load sponsors.");
+      setSponsors([]);
     } finally {
       setLoading(false);
     }
@@ -28,13 +43,12 @@ export default function SponsorsAdminPage() {
 
   useEffect(() => {
     fetchSponsors();
-  }, []);
+  }, [tenantSlug]);
 
   if (loading) return <div className="p-6">Loading...</div>;
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
-
       {/* Header */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Sponsors</h1>
@@ -93,11 +107,14 @@ export default function SponsorsAdminPage() {
 
                 <button
                   onClick={async () => {
-                    if (!confirm("Delete this sponsor?")) return;
+                    if (!confirm("Delete this sponsor?") || !tenantSlug)
+                      return;
+
                     await fetch(
                       `${API_BASE}/${tenantSlug}/admin/sponsors/${s.id}`,
                       { method: "DELETE" }
                     );
+
                     fetchSponsors();
                   }}
                   className="px-3 py-1 border rounded text-red-600"
@@ -121,8 +138,13 @@ export default function SponsorsAdminPage() {
             )}
           </div>
         ))}
-      </div>
 
+        {sponsors.length === 0 && (
+          <div className="p-6 text-center text-gray-500">
+            No sponsors found.
+          </div>
+        )}
+      </div>
     </div>
   );
 }
