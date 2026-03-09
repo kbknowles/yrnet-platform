@@ -1,4 +1,3 @@
-// filepath: frontend/app/[tenantSlug]/admin/settings/page.js
 "use client";
 
 import { useEffect, useState } from "react";
@@ -33,11 +32,11 @@ export default function TenantSettingsPage() {
       setSettings(data);
 
       if (data.logoUrl) {
-        setLogoPreview(
-          data.logoUrl.startsWith("http")
-            ? data.logoUrl
-            : `${API_BASE}${data.logoUrl}`
-        );
+        const url = data.logoUrl.startsWith("http")
+          ? data.logoUrl
+          : `${API_BASE}${data.logoUrl}`;
+
+        setLogoPreview(url);
       }
     } catch {
     } finally {
@@ -49,6 +48,13 @@ export default function TenantSettingsPage() {
     load();
   }, [tenantSlug]);
 
+  function updateField(field, value) {
+    setSettings((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  }
+
   async function save() {
     await fetch(`${API_BASE}/${tenantSlug}/admin/settings`, {
       method: "PUT",
@@ -56,7 +62,7 @@ export default function TenantSettingsPage() {
       body: JSON.stringify(settings),
     });
 
-    alert("Settings updated");
+    alert("Settings saved");
   }
 
   async function uploadLogo() {
@@ -73,7 +79,10 @@ export default function TenantSettingsPage() {
       }
     );
 
-    if (!res.ok) return;
+    if (!res.ok) {
+      alert("Upload failed");
+      return;
+    }
 
     const data = await res.json();
 
@@ -100,68 +109,70 @@ export default function TenantSettingsPage() {
     <main className="max-w-4xl mx-auto p-6 space-y-8">
       <h1 className="text-2xl font-bold">Tenant Settings</h1>
 
+      {/* BASIC */}
       <div className="space-y-4 border rounded p-6">
         <h2 className="font-semibold">Basic Information</h2>
 
-        <input
-          className="border rounded p-2 w-full"
-          value={settings.name || ""}
-          onChange={(e) =>
-            setSettings({ ...settings, name: e.target.value })
-          }
-        />
+        <div>
+          <label className="text-sm font-medium">Name</label>
+          <input
+            className="border rounded p-2 w-full"
+            value={settings.name || ""}
+            onChange={(e) => updateField("name", e.target.value)}
+          />
+        </div>
 
-        <input
-          className="border rounded p-2 w-full bg-gray-100"
-          value={settings.slug || ""}
-          disabled
-        />
+        <div>
+          <label className="text-sm font-medium">Slug</label>
+          <input
+            className="border rounded p-2 w-full bg-gray-100"
+            value={settings.slug || ""}
+            disabled
+          />
+        </div>
 
-        <input
-          className="border rounded p-2 w-full"
-          value={settings.domain || ""}
-          onChange={(e) =>
-            setSettings({ ...settings, domain: e.target.value })
-          }
-        />
+        <div>
+          <label className="text-sm font-medium">Domain</label>
+          <input
+            className="border rounded p-2 w-full"
+            value={settings.domain || ""}
+            onChange={(e) => updateField("domain", e.target.value)}
+          />
+        </div>
       </div>
 
+      {/* COLORS */}
       <div className="space-y-4 border rounded p-6">
-        <h2 className="font-semibold">Branding</h2>
+        <h2 className="font-semibold">Colors</h2>
 
-        <input
-          type="color"
-          value={settings.primaryColor || "#000000"}
-          onChange={(e) =>
-            setSettings({ ...settings, primaryColor: e.target.value })
-          }
+        <ColorRow
+          label="Primary"
+          value={settings.primaryColor}
+          onChange={(v) => updateField("primaryColor", v)}
         />
 
-        <input
-          type="color"
-          value={settings.secondaryColor || "#000000"}
-          onChange={(e) =>
-            setSettings({ ...settings, secondaryColor: e.target.value })
-          }
+        <ColorRow
+          label="Secondary"
+          value={settings.secondaryColor}
+          onChange={(v) => updateField("secondaryColor", v)}
         />
 
-        <input
-          type="color"
-          value={settings.accentColor || "#000000"}
-          onChange={(e) =>
-            setSettings({ ...settings, accentColor: e.target.value })
-          }
+        <ColorRow
+          label="Accent"
+          value={settings.accentColor}
+          onChange={(v) => updateField("accentColor", v)}
         />
       </div>
 
+      {/* LOGO */}
       <div className="space-y-4 border rounded p-6">
         <h2 className="font-semibold">Logo</h2>
 
         {logoPreview && (
           <img
             src={logoPreview}
-            alt="Logo"
-            className="h-20"
+            alt="Logo preview"
+            className="h-20 object-contain"
           />
         )}
 
@@ -169,6 +180,10 @@ export default function TenantSettingsPage() {
           type="file"
           onChange={(e) => setLogoFile(e.target.files?.[0] || null)}
         />
+
+        <p className="text-xs text-gray-500">
+          Recommended size: 512×512 PNG
+        </p>
 
         <button
           onClick={uploadLogo}
@@ -178,12 +193,37 @@ export default function TenantSettingsPage() {
         </button>
       </div>
 
-      <button
-        onClick={save}
-        className="bg-primary text-white px-6 py-2 rounded"
-      >
-        Save Settings
-      </button>
+      <div>
+        <button
+          onClick={save}
+          className="bg-primary text-white px-6 py-2 rounded"
+        >
+          Save Settings
+        </button>
+      </div>
     </main>
+  );
+}
+
+function ColorRow({ label, value, onChange }) {
+  const color = value || "#000000";
+
+  return (
+    <div className="flex items-center gap-4">
+      <label className="w-28 text-sm">{label}</label>
+
+      <input
+        type="color"
+        value={color}
+        onChange={(e) => onChange(e.target.value)}
+      />
+
+      <input
+        className="border rounded p-1 text-sm w-28"
+        value={color}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="#000000"
+      />
+    </div>
   );
 }

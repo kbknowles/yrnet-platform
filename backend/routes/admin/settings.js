@@ -91,7 +91,7 @@ router.put("/", resolveTenant, async (req, res) => {
 router.post(
   "/logo",
   resolveTenant,
-  uploadImage.single("logo"),
+  uploadImage.single("file"),
   async (req, res) => {
     try {
       if (!req.file) {
