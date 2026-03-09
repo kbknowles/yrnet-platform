@@ -1,20 +1,32 @@
-// filepath: frontend/app/admin/pages/page.js
+// filepath: frontend/app/[tenantSlug]/admin/pages/page.js
 "use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 export default function AdminPagesPage() {
+  const params = useParams();
+
+  const tenantSlug = Array.isArray(params?.tenantSlug)
+    ? params.tenantSlug[0]
+    : params?.tenantSlug;
+
   const [pages, setPages] = useState([]);
   const [savingId, setSavingId] = useState(null);
 
   useEffect(() => {
-    fetch(`${API_BASE}/api/admin/pages`)
+    if (!tenantSlug) return;
+
+    fetch(`${API_BASE}/api/${tenantSlug}/admin/pages`)
       .then((res) => res.json())
-      .then(setPages);
-  }, []);
+      .then((data) => {
+        setPages(Array.isArray(data) ? data : []);
+      })
+      .catch(() => setPages([]));
+  }, [tenantSlug]);
 
   const menuPages = pages
     .filter((p) => p.showInMenu)
@@ -35,7 +47,7 @@ export default function AdminPagesPage() {
   async function savePage(page) {
     setSavingId(page.id);
 
-    await fetch(`${API_BASE}/api/admin/pages/${page.id}`, {
+    await fetch(`${API_BASE}/api/${tenantSlug}/admin/pages/${page.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -55,7 +67,11 @@ export default function AdminPagesPage() {
         <h1 className="text-2xl font-bold text-primary">
           Pages & Navigation
         </h1>
-        <Link href="/admin/pages/new" className="btn-primary">
+
+        <Link
+          href={`/${tenantSlug}/admin/pages/new`}
+          className="btn-primary"
+        >
           Add Page
         </Link>
       </header>
@@ -96,6 +112,7 @@ export default function AdminPagesPage() {
                   updatePage(p.id, "showInMenu", v)
                 }
               />
+
               <Toggle
                 label="Footer"
                 checked={p.showInFooter}
@@ -103,6 +120,7 @@ export default function AdminPagesPage() {
                   updatePage(p.id, "showInFooter", v)
                 }
               />
+
               <Toggle
                 label="Placeholder"
                 checked={p.isPlaceholder}
@@ -136,7 +154,7 @@ export default function AdminPagesPage() {
                 </button>
 
                 <Link
-                  href={`/admin/pages/${p.id}`}
+                  href={`/${tenantSlug}/admin/pages/${p.id}`}
                   className="text-gray-600 underline"
                 >
                   Edit

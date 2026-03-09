@@ -1,35 +1,48 @@
-// filepath: frontend/app/admin/pages/PageEditor.js
+// filepath: frontend/app/[tenantSlug]/admin/pages/PageEditor.js
 
 "use client";
 
 import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 export default function PageEditor({ title, form, setForm, onSave }) {
-  const [mode, setMode] = useState("edit"); // edit | preview
+  const params = useParams();
+
+  const tenantSlug = Array.isArray(params?.tenantSlug)
+    ? params.tenantSlug[0]
+    : params?.tenantSlug;
+
+  const [mode, setMode] = useState("edit");
   const [pages, setPages] = useState([]);
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [linkType, setLinkType] = useState("internal");
   const [linkValue, setLinkValue] = useState("");
 
-  /* ----------------------------
-     Load pages for link picker
-  ----------------------------- */
   useEffect(() => {
     async function loadPages() {
-      const res = await fetch(`${API_BASE}/api/admin/pages`);
-      const data = await res.json();
-      setPages(data);
-    }
-    loadPages();
-  }, []);
+      if (!tenantSlug) return;
 
-  /* ----------------------------
-     Text helpers
-  ----------------------------- */
+      try {
+        const res = await fetch(`${API_BASE}/api/${tenantSlug}/admin/pages`, {
+          cache: "no-store",
+        });
+
+        const data = await res.json();
+        setPages(Array.isArray(data) ? data : []);
+      } catch {
+        setPages([]);
+      }
+    }
+
+    loadPages();
+  }, [tenantSlug]);
+
   function wrap(tag) {
     const el = document.getElementById("content");
+    if (!el) return;
+
     const start = el.selectionStart;
     const end = el.selectionEnd;
 
@@ -43,13 +56,15 @@ export default function PageEditor({ title, form, setForm, onSave }) {
 
   function insertLink() {
     const el = document.getElementById("content");
+    if (!el) return;
+
     const start = el.selectionStart;
     const end = el.selectionEnd;
     const selected = el.value.slice(start, end) || "link";
 
     const href =
       linkType === "internal"
-        ? `/${linkValue}`
+        ? `/${tenantSlug}/${linkValue}`
         : linkValue;
 
     const before = el.value.slice(0, start);
@@ -66,7 +81,6 @@ export default function PageEditor({ title, form, setForm, onSave }) {
     <main className="max-w-5xl mx-auto px-4 py-10 space-y-6">
       <h1 className="text-2xl font-bold">{title}</h1>
 
-      {/* Title */}
       <input
         className="w-full border p-3"
         placeholder="Page title"
@@ -76,7 +90,6 @@ export default function PageEditor({ title, form, setForm, onSave }) {
         }
       />
 
-      {/* Hero Subtitle */}
       <input
         className="w-full border p-3"
         placeholder="Hero subtitle (optional)"
@@ -86,7 +99,6 @@ export default function PageEditor({ title, form, setForm, onSave }) {
         }
       />
 
-      {/* Slug */}
       <input
         className="w-full border p-3"
         placeholder="Slug (example: welcome)"
@@ -96,7 +108,6 @@ export default function PageEditor({ title, form, setForm, onSave }) {
         }
       />
 
-      {/* NAV TOGGLES */}
       <div className="flex gap-6">
         <label className="flex items-center gap-2">
           <input
@@ -121,29 +132,30 @@ export default function PageEditor({ title, form, setForm, onSave }) {
         </label>
       </div>
 
-      {/* Toolbar */}
       <div className="flex flex-wrap gap-2 border p-3 bg-gray-50">
-        <button onClick={() => wrap("h2")} className="btn">
+        <button type="button" onClick={() => wrap("h2")} className="btn">
           Heading
         </button>
-        <button onClick={() => wrap("strong")} className="btn">
+        <button type="button" onClick={() => wrap("strong")} className="btn">
           Bold
         </button>
-        <button onClick={() => wrap("ul")} className="btn">
+        <button type="button" onClick={() => wrap("ul")} className="btn">
           Bullet List
         </button>
-        <button onClick={() => setShowLinkModal(true)} className="btn">
+        <button type="button" onClick={() => setShowLinkModal(true)} className="btn">
           Link
         </button>
 
         <div className="ml-auto flex gap-2">
           <button
+            type="button"
             onClick={() => setMode("edit")}
             className={`btn ${mode === "edit" ? "btn-active" : ""}`}
           >
             Edit
           </button>
           <button
+            type="button"
             onClick={() => setMode("preview")}
             className={`btn ${mode === "preview" ? "btn-active" : ""}`}
           >
@@ -152,7 +164,6 @@ export default function PageEditor({ title, form, setForm, onSave }) {
         </div>
       </div>
 
-      {/* Editor / Preview */}
       {mode === "edit" ? (
         <textarea
           id="content"
@@ -169,7 +180,6 @@ export default function PageEditor({ title, form, setForm, onSave }) {
         />
       )}
 
-      {/* Status + Save */}
       <div className="flex items-center justify-between">
         <select
           className="border p-2"
@@ -190,7 +200,6 @@ export default function PageEditor({ title, form, setForm, onSave }) {
         </button>
       </div>
 
-      {/* Link Picker Modal */}
       {showLinkModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white p-6 w-full max-w-md space-y-4">

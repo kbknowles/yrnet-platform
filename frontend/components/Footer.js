@@ -21,7 +21,7 @@ export default function Footer({ tenant }) {
   useEffect(() => {
     if (!tenant?.slug) return;
 
-    fetch(`${API_BASE}/pages?tenant=${tenant.slug}`)
+    fetch(`${API_BASE}/${tenant.slug}/pages`)
       .then((res) => res.json())
       .then((data) => {
         const footerPages = (Array.isArray(data) ? data : [])

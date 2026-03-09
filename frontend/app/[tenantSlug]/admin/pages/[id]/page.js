@@ -1,4 +1,4 @@
-// filepath: frontend/app/admin/pages/[id]/page.js
+// filepath: frontend/app/[tenantSlug]/admin/pages/[id]/page.js
 "use client";
 
 import { useEffect, useState } from "react";
@@ -20,22 +20,32 @@ function toParagraphs(text = "") {
 }
 
 export default function EditPage() {
-  const { id } = useParams();
+  const params = useParams();
   const router = useRouter();
+
+  const tenantSlug = Array.isArray(params?.tenantSlug)
+    ? params.tenantSlug[0]
+    : params?.tenantSlug;
+
+  const id = Array.isArray(params?.id)
+    ? params.id[0]
+    : params?.id;
 
   const [form, setForm] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!id) return;
+    if (!tenantSlug || !id) return;
 
     async function load() {
       setLoading(true);
 
-      const res = await fetch(`${API_BASE}/api/admin/pages`);
+      const res = await fetch(`${API_BASE}/api/${tenantSlug}/admin/pages`);
       const pages = await res.json();
 
-      const page = pages.find((p) => p.id === Number(id));
+      const page = Array.isArray(pages)
+        ? pages.find((p) => p.id === Number(id))
+        : null;
 
       if (page) {
         setForm({
@@ -50,7 +60,7 @@ export default function EditPage() {
     }
 
     load();
-  }, [id]);
+  }, [tenantSlug, id]);
 
   async function save() {
     const formatted = {
@@ -58,13 +68,13 @@ export default function EditPage() {
       content: toParagraphs(form.content),
     };
 
-    await fetch(`${API_BASE}/api/admin/pages/${id}`, {
+    await fetch(`${API_BASE}/api/${tenantSlug}/admin/pages/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(formatted),
     });
 
-    router.push("/admin/pages");
+    router.push(`/${tenantSlug}/admin/pages`);
   }
 
   if (loading) return <div className="p-8">Loading…</div>;

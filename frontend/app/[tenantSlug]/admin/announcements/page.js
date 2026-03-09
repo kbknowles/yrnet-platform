@@ -37,7 +37,7 @@ export default function AdminAnnouncementsPage() {
 
     const [a, e, s] = await Promise.all([
       fetch(`${API_BASE}/${tenantSlug}/admin/announcements`).then((r) => r.json()),
-      fetch(`${API_BASE}/${tenantSlug}/admin/events`).then((r) => r.json()),
+      fetch(`${API_BASE}/${tenantSlug}/admin/rodeos`).then((r) => r.json()),
       fetch(`${API_BASE}/${tenantSlug}/admin/seasons`).then((r) => r.json()),
     ]);
 

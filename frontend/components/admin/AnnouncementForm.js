@@ -19,7 +19,7 @@ export default function AnnouncementForm({ onCreated }) {
   useEffect(() => {
     async function load() {
       const [eRes, sRes] = await Promise.all([
-        fetch(`${API_BASE}/api/admin/events`),
+        fetch(`${API_BASE}/api/admin/rodeos`),
         fetch(`${API_BASE}/api/admin/seasons`),
       ]);
 
