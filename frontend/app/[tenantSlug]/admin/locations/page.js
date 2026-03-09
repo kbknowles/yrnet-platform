@@ -27,7 +27,7 @@ export default function AdminLocationsPage() {
   async function load() {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/admin/locations`, {
+      const res = await fetch(`${API_BASE}/api/${tenantSlug}/admin/locations`, {
         cache: "no-store",
       });
 
@@ -87,7 +87,7 @@ export default function AdminLocationsPage() {
   async function remove(id) {
     if (!confirm("Delete location?")) return;
 
-    await fetch(`${API_BASE}/api/admin/locations/${id}`, {
+    await fetch(`${API_BASE}/api/${tenantSlug}/admin/locations/${id}`, {
       method: "DELETE",
     });
 

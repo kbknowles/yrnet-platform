@@ -26,8 +26,8 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
   async function loadMeta() {
     const [s, l] = await Promise.all([
-      fetch(`${API_BASE}/api/admin/seasons`).then((r) => r.json()),
-      fetch(`${API_BASE}/api/admin/locations`).then((r) => r.json()),
+      fetch(`${API_BASE}/api/${tenantSlug}/admin/seasons`).then((r) => r.json()),
+      fetch(`${API_BASE}/api/${tenantSlug}/admin/locations`).then((r) => r.json()),
     ]);
 
     setSeasons(s);
@@ -37,7 +37,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
   async function handleSubmit(e) {
     e.preventDefault();
 
-    await fetch(`${API_BASE}/api/admin/rodeos`, {
+    await fetch(`${API_BASE}/api/${tenantSlug}/admin/rodeos`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

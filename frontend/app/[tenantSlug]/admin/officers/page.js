@@ -52,8 +52,8 @@ export default function AdminOfficersPage() {
   async function load() {
     setLoading(true);
     const [officerRes, seasonRes] = await Promise.all([
-      fetch(`${API_BASE}/api/admin/officers`),
-      fetch(`${API_BASE}/api/admin/seasons`),
+      fetch(`${API_BASE}/api/${tenantSlug}/admin/officers`),
+      fetch(`${API_BASE}/api/${tenantSlug}/admin/seasons`),
     ]);
 
     setOfficers(await officerRes.json());
@@ -91,7 +91,7 @@ export default function AdminOfficersPage() {
 
   async function remove(id) {
     if (!confirm("Delete officer?")) return;
-    await fetch(`${API_BASE}/api/admin/officers/${id}`, {
+    await fetch(`${API_BASE}/api/${tenantSlug}/admin/officers/${id}`, {
       method: "DELETE",
     });
     load();
