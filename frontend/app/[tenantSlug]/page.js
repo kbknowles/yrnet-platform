@@ -44,23 +44,17 @@ export default async function TenantHomePage(props) {
     notFound();
   }
 
-  const [homeData, announcements, galleryAlbums] = await Promise.all([
-    safeFetch(`${API_BASE}/${tenantSlug}/home`),
+  const [rodeos, announcements, galleryAlbums] = await Promise.all([
+    safeFetch(`${API_BASE}/${tenantSlug}/rodeos`),
     safeFetch(`${API_BASE}/${tenantSlug}/announcements?published=true`),
     softFetch(`${API_BASE}/${tenantSlug}/gallery`, []),
   ]);
 
-  const tenantName = homeData?.tenant?.name || "";
+  const tenantName = rodeos?.[0]?.season?.year
+    ? "Alabama High School Rodeo Association"
+    : "";
 
-  const rodeosRaw = homeData?.rodeos || homeData?.upcomingRodeos || [];
-  const rodeos = Array.isArray(rodeosRaw) ? rodeosRaw : [];
-
-  const today = new Date();
-
-  const nextThree = rodeos
-    .filter((r) => r.startDate && new Date(r.startDate) >= today)
-    .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
-    .slice(0, 3);
+  const nextThree = Array.isArray(rodeos) ? rodeos.slice(0, 3) : [];
 
   return (
     <>
