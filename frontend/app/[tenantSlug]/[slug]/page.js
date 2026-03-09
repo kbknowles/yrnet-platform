@@ -31,7 +31,7 @@ export default async function CustomPage({ params }) {
       {/* HERO */}
       <section className="bg-secondary text-white/90 py-16 px-4">
         <div className="max-w-6xl mx-auto text-center space-y-6">
-          <h1 className="mb-4 text-4xl font-semibold tracking-tight md:text-5xl lg:text-6xl">
+          <h1 className="mb-4 text-white text-4xl font-semibold tracking-tight md:text-5xl lg:text-6xl">
             {page.title}
           </h1>
 
