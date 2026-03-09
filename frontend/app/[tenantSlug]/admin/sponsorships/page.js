@@ -69,7 +69,7 @@ export default function SponsorshipsPage() {
               <button
                 onClick={async () => {
                   await fetch(
-                    `${API_BASE}/api/admin/sponsorships/${item.id}`,
+                    `${API_BASE}/${tenantSlug}/admin/sponsorships/${item.id}`,
                     { method: "DELETE" }
                   );
                   load();

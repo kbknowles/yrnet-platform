@@ -8,7 +8,7 @@ const router = express.Router({ mergeParams: true });
 
 /* ---------------- */
 /* GET ALL LOCATIONS (Tenant Scoped) */
-/* GET /api/:tenantSlug/admin/locations */
+/* GET /:tenantSlug/admin/locations */
 /* ---------------- */
 router.get("/", resolveTenant, async (req, res) => {
   try {
@@ -26,7 +26,7 @@ router.get("/", resolveTenant, async (req, res) => {
 
 /* ---------------- */
 /* CREATE LOCATION (Tenant Scoped) */
-/* POST /api/:tenantSlug/admin/locations */
+/* POST /:tenantSlug/admin/locations */
 /* ---------------- */
 router.post("/", resolveTenant, async (req, res) => {
   try {
@@ -57,7 +57,7 @@ router.post("/", resolveTenant, async (req, res) => {
 
 /* ---------------- */
 /* UPDATE LOCATION (Tenant Scoped) */
-/* PUT /api/:tenantSlug/admin/locations/:id */
+/* PUT /:tenantSlug/admin/locations/:id */
 /* ---------------- */
 router.put("/:id", resolveTenant, async (req, res) => {
   try {
@@ -97,7 +97,7 @@ router.put("/:id", resolveTenant, async (req, res) => {
 
 /* ---------------- */
 /* DELETE LOCATION (Tenant Scoped) */
-/* DELETE /api/:tenantSlug/admin/locations/:id */
+/* DELETE /:tenantSlug/admin/locations/:id */
 /* ---------------- */
 router.delete("/:id", resolveTenant, async (req, res) => {
   try {

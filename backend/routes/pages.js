@@ -8,7 +8,7 @@ const router = express.Router({ mergeParams: true });
 
 /* ------------------------------ */
 /* GET ALL PUBLISHED PAGES */
-/* GET /api/:tenantSlug/pages */
+/* GET /:tenantSlug/pages */
 /* ------------------------------ */
 router.get("/", resolveTenant, async (req, res) => {
   try {
@@ -38,7 +38,7 @@ router.get("/", resolveTenant, async (req, res) => {
 
 /* ------------------------------ */
 /* GET PAGE BY SLUG */
-/* GET /api/:tenantSlug/pages/:slug */
+/* GET /:tenantSlug/pages/:slug */
 /* ------------------------------ */
 router.get("/:slug", resolveTenant, async (req, res) => {
   try {

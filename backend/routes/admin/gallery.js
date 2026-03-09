@@ -25,7 +25,7 @@ function deleteFileIfExists(filePath) {
 
 /* -------------------------- */
 /* CREATE ALBUM (Tenant Scoped) */
-/* POST /api/:tenantSlug/admin/gallery */
+/* POST /:tenantSlug/admin/gallery */
 /* -------------------------- */
 
 router.post("/", resolveTenant, async (req, res) => {
@@ -53,7 +53,7 @@ router.post("/", resolveTenant, async (req, res) => {
 
 /* -------------------------- */
 /* UPDATE ALBUM (Tenant Scoped) */
-/* PUT /api/:tenantSlug/admin/gallery/:id */
+/* PUT /:tenantSlug/admin/gallery/:id */
 /* -------------------------- */
 
 router.put("/:id", resolveTenant, async (req, res) => {
@@ -86,7 +86,7 @@ router.put("/:id", resolveTenant, async (req, res) => {
 
 /* -------------------------- */
 /* DELETE ALBUM + IMAGES (Tenant Scoped) */
-/* DELETE /api/:tenantSlug/admin/gallery/:id */
+/* DELETE /:tenantSlug/admin/gallery/:id */
 /* -------------------------- */
 
 router.delete("/:id", resolveTenant, async (req, res) => {
@@ -121,7 +121,7 @@ router.delete("/:id", resolveTenant, async (req, res) => {
 
 /* -------------------------- */
 /* LIST ALBUMS + IMAGES (Tenant Scoped) */
-/* GET /api/:tenantSlug/admin/gallery */
+/* GET /:tenantSlug/admin/gallery */
 /* -------------------------- */
 
 router.get("/", resolveTenant, async (req, res) => {
@@ -145,7 +145,7 @@ router.get("/", resolveTenant, async (req, res) => {
 
 /* -------------------------- */
 /* UPLOAD IMAGE TO ALBUM (Tenant Scoped) */
-/* POST /api/:tenantSlug/admin/gallery/:id/images */
+/* POST /:tenantSlug/admin/gallery/:id/images */
 /* -------------------------- */
 
 router.post(
@@ -189,7 +189,7 @@ router.post(
 
 /* -------------------------- */
 /* UPDATE IMAGE SORT ORDER (Tenant Scoped) */
-/* PUT /api/:tenantSlug/admin/gallery/images/:id/order */
+/* PUT /:tenantSlug/admin/gallery/images/:id/order */
 /* -------------------------- */
 
 router.put("/images/:id/order", resolveTenant, async (req, res) => {
@@ -221,7 +221,7 @@ router.put("/images/:id/order", resolveTenant, async (req, res) => {
 
 /* -------------------------- */
 /* DELETE IMAGE (Tenant Scoped) */
-/* DELETE /api/:tenantSlug/admin/gallery/images/:id */
+/* DELETE /:tenantSlug/admin/gallery/images/:id */
 /* -------------------------- */
 
 router.delete("/images/:id", resolveTenant, async (req, res) => {

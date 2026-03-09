@@ -97,8 +97,8 @@ export default function SponsorshipForm({
     try {
       const method = isEdit ? "PUT" : "POST";
       const url = isEdit
-        ? `${API_BASE}/api/admin/sponsorships/${sponsorship.id}`
-        : `${API_BASE}/api/admin/sponsorships`;
+        ? `${API_BASE}/${tenantSlug}/admin/sponsorships/${sponsorship.id}`
+        : `${API_BASE}/${tenantSlug}/admin/sponsorships`;
 
       const res = await fetch(url, {
         method,

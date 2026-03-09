@@ -18,7 +18,7 @@ export default function OfficerForm({ seasons, onCreated }) {
     e.preventDefault();
 
     await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/admin/officers`,
+      `${process.env.NEXT_PUBLIC_API_URL}/admin/officers`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },

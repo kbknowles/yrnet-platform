@@ -8,7 +8,7 @@ const router = express.Router({ mergeParams: true });
 
 /* ------------------------------ */
 /* GET ALL PAGES (Tenant Scoped) */
-/* GET /api/:tenantSlug/admin/pages */
+/* GET /:tenantSlug/admin/pages */
 /* ------------------------------ */
 router.get("/", resolveTenant, async (req, res) => {
   try {
@@ -26,7 +26,7 @@ router.get("/", resolveTenant, async (req, res) => {
 
 /* ------------------------------ */
 /* CREATE PAGE (Tenant Scoped) */
-/* POST /api/:tenantSlug/admin/pages */
+/* POST /:tenantSlug/admin/pages */
 /* ------------------------------ */
 router.post("/", resolveTenant, async (req, res) => {
   try {
@@ -72,7 +72,7 @@ router.post("/", resolveTenant, async (req, res) => {
 
 /* ------------------------------ */
 /* UPDATE PAGE (Tenant Scoped) */
-/* PUT /api/:tenantSlug/admin/pages/:id */
+/* PUT /:tenantSlug/admin/pages/:id */
 /* ------------------------------ */
 router.put("/:id", resolveTenant, async (req, res) => {
   try {
@@ -128,7 +128,7 @@ router.put("/:id", resolveTenant, async (req, res) => {
 
 /* ------------------------------ */
 /* DELETE PAGE (Tenant Scoped) */
-/* DELETE /api/:tenantSlug/admin/pages/:id */
+/* DELETE /:tenantSlug/admin/pages/:id */
 /* ------------------------------ */
 router.delete("/:id", resolveTenant, async (req, res) => {
   try {

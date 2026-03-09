@@ -1,6 +1,6 @@
 export async function getUpcomingEvents(limit = 3) {
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/schedule`,
+    `${process.env.NEXT_PUBLIC_API_URL}/schedule`,
     { cache: "no-store" }
   );
 

@@ -6,7 +6,7 @@ export default function GalleryImageForm({ albumId, onUploaded }) {
     const formData = new FormData(e.target);
 
     await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/admin/gallery/${albumId}/images`,
+      `${process.env.NEXT_PUBLIC_API_URL}/admin/gallery/${albumId}/images`,
       { method: "POST", body: formData }
     );
 

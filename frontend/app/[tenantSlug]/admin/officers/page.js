@@ -68,8 +68,8 @@ export default function AdminOfficersPage() {
   async function save() {
     const method = active.id ? "PUT" : "POST";
     const url = active.id
-      ? `${API_BASE}/api/admin/officers/${active.id}`
-      : `${API_BASE}/api/admin/officers`;
+      ? `${API_BASE}/${tenantSlug}/admin/officers/${active.id}`
+      : `${API_BASE}/${tenantSlug}/admin/officers`;
 
     await fetch(url, {
       method,

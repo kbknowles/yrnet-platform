@@ -8,7 +8,7 @@ const router = express.Router({ mergeParams: true });
 
 /* ---------------- */
 /* GET ALL SEASONS (Tenant Scoped) */
-/* GET /api/:tenantSlug/admin/seasons */
+/* GET /:tenantSlug/admin/seasons */
 /* ---------------- */
 router.get("/", resolveTenant, async (req, res) => {
   try {
@@ -26,7 +26,7 @@ router.get("/", resolveTenant, async (req, res) => {
 
 /* ---------------- */
 /* CREATE SEASON (Tenant Scoped) */
-/* POST /api/:tenantSlug/admin/seasons */
+/* POST /:tenantSlug/admin/seasons */
 /* ---------------- */
 router.post("/", resolveTenant, async (req, res) => {
   try {
@@ -55,7 +55,7 @@ router.post("/", resolveTenant, async (req, res) => {
 
 /* ---------------- */
 /* UPDATE SEASON (Tenant Scoped) */
-/* PUT /api/:tenantSlug/admin/seasons/:id */
+/* PUT /:tenantSlug/admin/seasons/:id */
 /* ---------------- */
 router.put("/:id", resolveTenant, async (req, res) => {
   try {
@@ -89,7 +89,7 @@ router.put("/:id", resolveTenant, async (req, res) => {
 
 /* ---------------- */
 /* DELETE SEASON (Tenant Scoped) */
-/* DELETE /api/:tenantSlug/admin/seasons/:id */
+/* DELETE /:tenantSlug/admin/seasons/:id */
 /* ---------------- */
 router.delete("/:id", resolveTenant, async (req, res) => {
   try {

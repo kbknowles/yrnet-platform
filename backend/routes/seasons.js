@@ -21,7 +21,7 @@ router.get("/", resolveTenant, async (req, res) => {
 
     res.json(seasons || []);
   } catch (err) {
-    console.error("GET /api/:tenantSlug/seasons failed", err);
+    console.error("GET /:tenantSlug/seasons failed", err);
     res.status(500).json({ error: "Failed to load seasons" });
   }
 });

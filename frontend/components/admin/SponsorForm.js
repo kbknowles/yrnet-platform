@@ -71,8 +71,8 @@ export default function SponsorForm({
 
     const endpoint =
       type === "logo"
-        ? `${API_BASE}/api/admin/sponsors/${id}/upload-logo`
-        : `${API_BASE}/api/admin/sponsors/${id}/upload-banner`;
+        ? `${API_BASE}/${tenantSlug}/admin/sponsors/${id}/upload-logo`
+        : `${API_BASE}/${tenantSlug}/admin/sponsors/${id}/upload-banner`;
 
     const res = await fetch(endpoint, {
       method: "POST",
@@ -100,8 +100,8 @@ export default function SponsorForm({
     try {
       const method = isEdit ? "PUT" : "POST";
       const url = isEdit
-        ? `${API_BASE}/api/admin/sponsors/${sponsor.id}`
-        : `${API_BASE}/api/admin/sponsors`;
+        ? `${API_BASE}/${tenantSlug}/admin/sponsors/${sponsor.id}`
+        : `${API_BASE}/${tenantSlug}/admin/sponsors`;
 
       const res = await fetch(url, {
         method,

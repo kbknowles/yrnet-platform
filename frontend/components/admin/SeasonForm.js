@@ -14,7 +14,7 @@ export default function SeasonForm({ onCreated }) {
     e.preventDefault();
 
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/admin/seasons`,
+      `${process.env.NEXT_PUBLIC_API_URL}/admin/seasons`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },

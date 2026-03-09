@@ -12,7 +12,7 @@ const PUBLIC_API_URL =
 
 /* ---------------------------- */
 /* UPLOAD PDF (Tenant Scoped) */
-/* POST /api/:tenantSlug/admin/uploads/pdf */
+/* POST /:tenantSlug/admin/uploads/pdf */
 /* ---------------------------- */
 router.post(
   "/pdf",
@@ -36,7 +36,7 @@ router.post(
 
 /* ---------------------------- */
 /* UPLOAD IMAGE (Tenant Scoped) */
-/* POST /api/:tenantSlug/admin/uploads/image */
+/* POST /:tenantSlug/admin/uploads/image */
 /* ---------------------------- */
 router.post(
   "/image",

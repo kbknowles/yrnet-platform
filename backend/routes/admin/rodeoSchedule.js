@@ -35,7 +35,7 @@ router.get("/:tenantSlug/:rodeoId", resolveTenant, async (req, res) => {
 });
 
 /**
- * POST /api/:tenantSlug/admin/rodeo-schedule-items
+ * POST /:tenantSlug/admin/rodeo-schedule-items
  * Creates a schedule item (tenant scoped)
  */
 router.post("/:tenantSlug", resolveTenant, async (req, res) => {
@@ -72,7 +72,7 @@ router.post("/:tenantSlug", resolveTenant, async (req, res) => {
 });
 
 /**
- * PUT /api/:tenantSlug/admin/rodeo-schedule-items/:id
+ * PUT /:tenantSlug/admin/rodeo-schedule-items/:id
  * Updates a schedule item (tenant scoped)
  */
 router.put("/:tenantSlug/item/:id", resolveTenant, async (req, res) => {
@@ -113,7 +113,7 @@ router.put("/:tenantSlug/item/:id", resolveTenant, async (req, res) => {
 });
 
 /**
- * DELETE /api/:tenantSlug/admin/rodeo-schedule-items/:id
+ * DELETE /:tenantSlug/admin/rodeo-schedule-items/:id
  * Deletes a schedule item (tenant scoped)
  */
 router.delete("/:tenantSlug/item/:id", resolveTenant, async (req, res) => {

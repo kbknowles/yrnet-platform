@@ -37,7 +37,7 @@ export default function GalleryReorder({ albumId, images = [] }) {
     setItems(updated);
 
     await fetch(
-      `${API_BASE}/api/admin/gallery/albums/${albumId}/reorder`,
+      `${API_BASE}/${tenantSlug}/admin/gallery/albums/${albumId}/reorder`,
       {
         method: "PUT",
         headers: { "Content-Type": "application/json" },

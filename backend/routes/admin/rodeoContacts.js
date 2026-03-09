@@ -8,7 +8,7 @@ const router = express.Router({ mergeParams: true });
 
 /* ---------------------------- */
 /* GET CONTACTS FOR RODEO (Tenant Scoped) */
-/* GET /api/:tenantSlug/admin/rodeo-contacts/rodeo/:rodeoId */
+/* GET /:tenantSlug/admin/rodeo-contacts/rodeo/:rodeoId */
 /* ---------------------------- */
 router.get(
   "/:tenantSlug/rodeo/:rodeoId",
@@ -40,7 +40,7 @@ router.get(
 
 /* ---------------------------- */
 /* CREATE RODEO CONTACT (Tenant Scoped) */
-/* POST /api/:tenantSlug/admin/rodeo-contacts */
+/* POST /:tenantSlug/admin/rodeo-contacts */
 /* ---------------------------- */
 router.post("/:tenantSlug", resolveTenant, async (req, res) => {
   try {
@@ -73,7 +73,7 @@ router.post("/:tenantSlug", resolveTenant, async (req, res) => {
 
 /* ---------------------------- */
 /* UPDATE RODEO CONTACT (Tenant Scoped) */
-/* PUT /api/:tenantSlug/admin/rodeo-contacts/:id */
+/* PUT /:tenantSlug/admin/rodeo-contacts/:id */
 /* ---------------------------- */
 router.put("/:tenantSlug/:id", resolveTenant, async (req, res) => {
   try {
@@ -111,7 +111,7 @@ router.put("/:tenantSlug/:id", resolveTenant, async (req, res) => {
 
 /* ---------------------------- */
 /* DELETE RODEO CONTACT (Tenant Scoped) */
-/* DELETE /api/:tenantSlug/admin/rodeo-contacts/:id */
+/* DELETE /:tenantSlug/admin/rodeo-contacts/:id */
 /* ---------------------------- */
 router.delete("/:tenantSlug/:id", resolveTenant, async (req, res) => {
   try {

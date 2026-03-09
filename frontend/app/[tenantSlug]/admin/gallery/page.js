@@ -99,7 +99,7 @@ export default function AdminGalleryPage() {
     formData.append("caption", caption);
 
     const res = await fetch(
-      `${API_BASE}/api/admin/gallery/${activeAlbum.id}/images`,
+      `${API_BASE}/${tenantSlug}/admin/gallery/${activeAlbum.id}/images`,
       {
         method: "POST",
         body: formData,

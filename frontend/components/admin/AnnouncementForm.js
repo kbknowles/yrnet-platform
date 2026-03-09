@@ -20,7 +20,7 @@ export default function AnnouncementForm({ onCreated }) {
     async function load() {
       const [eRes, sRes] = await Promise.all([
         fetch(`${API_BASE}/${tenantSlug}/admin/rodeos`),
-        fetch(`${API_BASE}/api/admin/seasons`),
+        fetch(`${API_BASE}/${tenantSlug}/admin/seasons`),
       ]);
 
       const [eData, sData] = await Promise.all([

@@ -71,8 +71,8 @@ export default function AdminLocationsPage() {
 
     const isEdit = Boolean(active.id);
     const url = isEdit
-      ? `${API_BASE}/api/admin/locations/${active.id}`
-      : `${API_BASE}/api/admin/locations`;
+      ? `${API_BASE}/${tenantSlug}/admin/locations/${active.id}`
+      : `${API_BASE}/${tenantSlug}/admin/locations`;
 
     await fetch(url, {
       method: isEdit ? "PUT" : "POST",

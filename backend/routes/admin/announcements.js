@@ -46,7 +46,7 @@ router.get("/", resolveTenant, async (req, res) => {
 
 /* ============================
    CREATE
-   POST /api/:tenantSlug/admin/announcements
+   POST /:tenantSlug/admin/announcements
 ============================ */
 router.post("/", resolveTenant, async (req, res) => {
   try {
@@ -90,7 +90,7 @@ router.post("/", resolveTenant, async (req, res) => {
 
 /* ============================
    UPDATE
-   PUT /api/:tenantSlug/admin/announcements/:id
+   PUT /:tenantSlug/admin/announcements/:id
 ============================ */
 router.put("/:id", resolveTenant, async (req, res) => {
   try {
@@ -144,7 +144,7 @@ router.put("/:id", resolveTenant, async (req, res) => {
 
 /* ============================
    DELETE
-   DELETE /api/:tenantSlug/admin/announcements/:id
+   DELETE /:tenantSlug/admin/announcements/:id
 ============================ */
 router.delete("/:id", resolveTenant, async (req, res) => {
   try {

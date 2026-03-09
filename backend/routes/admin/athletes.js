@@ -98,7 +98,7 @@ router.get("/:slug", resolveTenant, async (req, res) => {
 
 /* ----------------------------
    CREATE (Tenant Scoped)
-POST /api/:tenantSlug/admin/athletes
+POST /:tenantSlug/admin/athletes
 ----------------------------- */
 
 router.post(
@@ -170,7 +170,7 @@ router.post(
 
 /* ----------------------------
    UPDATE (Tenant Scoped)
-PUT /api/:tenantSlug/admin/athletes/:slug
+PUT /:tenantSlug/admin/athletes/:slug
 ----------------------------- */
 
 router.put(
@@ -305,7 +305,7 @@ router.put(
 
 /* ----------------------------
    DELETE (Tenant Scoped)
-DELETE /api/:tenantSlug/admin/athletes/:slug
+DELETE /:tenantSlug/admin/athletes/:slug
 ----------------------------- */
 
 router.delete("/:slug", resolveTenant, async (req, res) => {

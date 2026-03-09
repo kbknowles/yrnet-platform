@@ -95,7 +95,7 @@ export default function SponsorsAdminPage() {
                   onClick={async () => {
                     if (!confirm("Delete this sponsor?")) return;
                     await fetch(
-                      `${API_BASE}/api/admin/sponsors/${s.id}`,
+                      `${API_BASE}/${tenantSlug}/admin/sponsors/${s.id}`,
                       { method: "DELETE" }
                     );
                     fetchSponsors();

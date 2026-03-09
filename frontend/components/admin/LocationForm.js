@@ -18,7 +18,7 @@ export default function LocationForm({ onCreated }) {
     e.preventDefault();
 
     await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/admin/locations`,
+      `${process.env.NEXT_PUBLIC_API_URL}/admin/locations`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },

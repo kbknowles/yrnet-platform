@@ -30,8 +30,8 @@ export default function AdminSeasonsPage() {
   async function save() {
     const isEdit = Boolean(active.id);
     const url = isEdit
-      ? `${API_BASE}/api/admin/seasons/${active.id}`
-      : `${API_BASE}/api/admin/seasons`;
+      ? `${API_BASE}/${tenantSlug}/admin/seasons/${active.id}`
+      : `${API_BASE}/${tenantSlug}/admin/seasons`;
 
     await fetch(url, {
       method: isEdit ? "PUT" : "POST",

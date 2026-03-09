@@ -5,7 +5,7 @@ export async function uploadPdf(file, id) {
   formData.append("file", file);
 
   const res = await fetch(
-    `${API_BASE}/api/admin/documents/${id}`,
+    `${API_BASE}/${tenantSlug}/admin/documents/${id}`,
     {
       method: "PUT",
       body: formData,

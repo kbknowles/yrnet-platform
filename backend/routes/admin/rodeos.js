@@ -8,7 +8,7 @@ const router = express.Router({ mergeParams: true });
 
 /* ---------------- */
 /* GET ALL RODEOS (Tenant Scoped) */
-/* GET /api/:tenantSlug/admin/rodeos */
+/* GET /:tenantSlug/admin/rodeos */
 /* ---------------- */
 router.get("/", resolveTenant, async (req, res) => {
   try {
@@ -33,7 +33,7 @@ router.get("/", resolveTenant, async (req, res) => {
 
 /* ---------------- */
 /* GET RODEO BY SLUG (Tenant Scoped) */
-/* GET /api/:tenantSlug/admin/rodeos/:slug */
+/* GET /:tenantSlug/admin/rodeos/:slug */
 /* ---------------- */
 router.get("/:slug", resolveTenant, async (req, res) => {
   try {
@@ -64,7 +64,7 @@ router.get("/:slug", resolveTenant, async (req, res) => {
 
 /* ---------------- */
 /* CREATE RODEO (Tenant Scoped) */
-/* POST /api/:tenantSlug/admin/rodeos */
+/* POST /:tenantSlug/admin/rodeos */
 /* ---------------- */
 router.post("/", resolveTenant, async (req, res) => {
   try {
@@ -124,7 +124,7 @@ router.post("/", resolveTenant, async (req, res) => {
 
 /* ---------------- */
 /* UPDATE RODEO (Tenant Scoped) */
-/* PUT /api/:tenantSlug/admin/rodeos/:slug */
+/* PUT /:tenantSlug/admin/rodeos/:slug */
 /* ---------------- */
 router.put("/:slug", resolveTenant, async (req, res) => {
   try {
@@ -185,7 +185,7 @@ router.put("/:slug", resolveTenant, async (req, res) => {
 
 /* ---------------- */
 /* DELETE RODEO (Tenant Scoped) */
-/* DELETE /api/:tenantSlug/admin/rodeos/:slug */
+/* DELETE /:tenantSlug/admin/rodeos/:slug */
 /* ---------------- */
 router.delete("/:slug", resolveTenant, async (req, res) => {
   try {

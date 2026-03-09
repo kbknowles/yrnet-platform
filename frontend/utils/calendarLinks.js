@@ -10,6 +10,6 @@ export function buildCalendarLinks(event) {
 
   return {
     google: `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${start}/${end}&details=${details}&location=${location}`,
-    ics: `/api/calendar/${event.slug}.ics`
+    ics: `/calendar/${event.slug}.ics`
   };
 }

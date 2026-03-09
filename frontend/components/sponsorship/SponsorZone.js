@@ -69,7 +69,7 @@ export default function SponsorZone({
         params.append("slots", slots);
 
         const res = await fetch(
-          `${API_BASE}/api/sponsorships/resolve?${params.toString()}`,
+          `${API_BASE}/sponsorships/resolve?${params.toString()}`,
           { cache: "no-store" }
         );
 
