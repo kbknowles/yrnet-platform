@@ -11,6 +11,51 @@ import SponsorZone from "../../components/sponsorship/SponsorZone";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
+function startOfToday() {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+}
+
+function endOfDayFromISO(dateVal) {
+  if (!dateVal) return null;
+
+  const raw =
+    typeof dateVal === "string"
+      ? dateVal
+      : new Date(dateVal).toISOString();
+
+  const ymd = raw.slice(0, 10);
+  const [y, m, d] = ymd.split("-").map(Number);
+
+  return new Date(y, m - 1, d, 23, 59, 59, 999);
+}
+
+function sortSchedule(events) {
+  const now = new Date();
+  const today = startOfToday();
+
+  return [...events].sort((a, b) => {
+    const aStart = endOfDayFromISO(a.startDate);
+    const aEnd = endOfDayFromISO(a.endDate || a.startDate);
+    const bStart = endOfDayFromISO(b.startDate);
+    const bEnd = endOfDayFromISO(b.endDate || b.startDate);
+
+    const aIsCurrent = aStart <= now && aEnd >= today;
+    const bIsCurrent = bStart <= now && bEnd >= today;
+
+    if (aIsCurrent && !bIsCurrent) return -1;
+    if (!aIsCurrent && bIsCurrent) return 1;
+
+    const aIsFuture = aStart > now;
+    const bIsFuture = bStart > now;
+
+    if (aIsFuture && bIsFuture) return aStart - bStart;
+    if (!aIsFuture && !bIsFuture) return bStart - aStart;
+
+    return aIsFuture ? -1 : 1;
+  });
+}
+
 async function safeFetch(url) {
   const res = await fetch(url, { cache: "no-store" });
 
@@ -55,11 +100,14 @@ export default async function TenantHomePage(props) {
   const rodeosRaw = homeData?.upcomingRodeos || homeData?.rodeos || [];
   const rodeos = Array.isArray(rodeosRaw) ? rodeosRaw : [];
 
-  /*
-    The backend already returns rodeos in the correct order.
-    Just take the first three.
-  */
-  const sortedRodeos = rodeos.slice(0, 3);
+  const today = startOfToday();
+
+  const visibleRodeos = rodeos.filter((r) => {
+    const eventEnd = endOfDayFromISO(r.endDate || r.startDate);
+    return eventEnd && eventEnd >= today;
+  });
+
+  const sortedRodeos = sortSchedule(visibleRodeos).slice(0, 3);
 
   return (
     <>
