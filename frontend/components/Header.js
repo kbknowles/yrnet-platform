@@ -25,6 +25,11 @@ function resolveLogo(url) {
   return `${API_BASE}/${clean}`;
 }
 
+function label(slug) {
+  if (!slug) return "";
+  return slug.charAt(0).toUpperCase() + slug.slice(1);
+}
+
 export default function Header({ tenant }) {
   const [open, setOpen] = useState(false);
   const [pages, setPages] = useState([]);
@@ -114,7 +119,7 @@ export default function Header({ tenant }) {
 
           {pages.map((p) => (
             <Link key={p.slug} href={`${basePath}/${p.slug}`}>
-              {p.title}
+              {label(p.slug)}
             </Link>
           ))}
         </nav>
@@ -141,7 +146,7 @@ export default function Header({ tenant }) {
               href: buildHref(l.href),
             })),
             ...pages.map((p) => ({
-              title: p.title,
+              title: label(p.slug),
               href: `${basePath}/${p.slug}`,
             })),
           ].map((l) => (

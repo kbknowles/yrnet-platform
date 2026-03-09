@@ -54,11 +54,11 @@ export default function Footer({ tenant }) {
         <nav className="flex flex-wrap justify-center gap-4">
           {pages.map((p) => (
             <Link
-              key={p.slug}
+              key={p.slug?.charAt(0).toUpperCase() + p.slug?.slice(1)}
               href={`/${tenant?.slug}/${p.slug}`}
               className="text-gray-200 hover:text-accent transition"
             >
-              {p.title}
+              {p.slug?.toUpperCase()}
             </Link>
           ))}
         </nav>

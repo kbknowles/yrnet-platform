@@ -200,7 +200,7 @@ function MenuPreview({ title, pages }) {
               className="flex justify-between items-center"
             >
               <span>
-                {p.slug?.toUpperCase()}
+                {p.slug?.charAt(0).toUpperCase() + p.slug?.slice(1)}
                 {p.isPlaceholder && (
                   <span className="text-xs text-gray-500">
                     {" "} (coming soon)
