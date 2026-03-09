@@ -40,7 +40,7 @@ router.get("/", resolveTenant, async (req, res) => {
 });
 
 /* ---------------- */
-/* UPDATE SETTINGS */
+/* UPDATE TENANT SETTINGS */
 /* PUT /:tenantSlug/admin/settings */
 /* ---------------- */
 router.put("/", resolveTenant, async (req, res) => {
@@ -64,6 +64,17 @@ router.put("/", resolveTenant, async (req, res) => {
         accentColor: accentColor || null,
         active: active === undefined ? undefined : Boolean(active),
       },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        domain: true,
+        primaryColor: true,
+        secondaryColor: true,
+        accentColor: true,
+        logoUrl: true,
+        active: true,
+      },
     });
 
     return res.json(updated);
@@ -74,7 +85,7 @@ router.put("/", resolveTenant, async (req, res) => {
 });
 
 /* ---------------- */
-/* LOGO UPLOAD */
+/* UPLOAD LOGO */
 /* POST /:tenantSlug/admin/settings/logo */
 /* ---------------- */
 router.post(
@@ -94,9 +105,15 @@ router.post(
       const updated = await prisma.tenant.update({
         where: { id: req.tenantId },
         data: { logoUrl },
+        select: {
+          logoUrl: true,
+        },
       });
 
-      return res.json(updated);
+      return res.json({
+        success: true,
+        logoUrl: updated.logoUrl,
+      });
     } catch (err) {
       console.error("ADMIN_SETTINGS_LOGO_UPLOAD_ERROR", err);
       return res.status(500).json({ error: "Failed to upload logo" });

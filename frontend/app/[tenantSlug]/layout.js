@@ -1,7 +1,17 @@
+// filepath: frontend/app/[tenantSlug]/layout.js
+
 import Header from "components/Header";
 import Footer from "components/Footer";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+
+function resolveLogo(url) {
+  if (!url) return null;
+  if (url.startsWith("http")) return url;
+
+  const clean = url.replace(/^\/+/, "");
+  return `${API_BASE}/${clean}`;
+}
 
 export default async function TenantLayout({ children, params }) {
   const { tenantSlug } = await params;
@@ -33,6 +43,8 @@ export default async function TenantLayout({ children, params }) {
     logoUrl: homeData?.tenant?.logoUrl || null,
   };
 
+  const logoSrc = resolveLogo(tenant.logoUrl);
+
   const style = {
     "--primary": tenant.primaryColor,
     "--secondary": tenant.secondaryColor,
@@ -40,10 +52,14 @@ export default async function TenantLayout({ children, params }) {
   };
 
   return (
-    <div style={style} className="flex flex-col min-h-screen">
-      <Header tenant={tenant} />
-      <main className="flex-1">{children}</main>
-      <Footer tenant={tenant} />
-    </div>
+    <>
+      {logoSrc && <link rel="icon" href={logoSrc} />}
+
+      <div style={style} className="flex flex-col min-h-screen">
+        <Header tenant={tenant} />
+        <main className="flex-1">{children}</main>
+        <Footer tenant={tenant} />
+      </div>
+    </>
   );
 }

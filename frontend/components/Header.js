@@ -84,8 +84,9 @@ export default function Header({ tenant }) {
               <Image
                 src={logoSrc}
                 alt={fullName || "logo"}
-                width={40}
-                height={40}
+                width={48}
+                height={48}
+                className="h-10 w-auto object-contain"
                 priority
                 unoptimized
               />

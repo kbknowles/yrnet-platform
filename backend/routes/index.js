@@ -20,6 +20,9 @@ import adminGalleryRouter from "./admin/gallery.js";
 import adminPagesRouter from "./admin/pages.js";
 import adminUploadsRouter from "./admin/uploads.js";
 import adminAthletesRouter from "./admin/athletes.js";
+import adminSettingsRouter from "./admin/settings.js";
+
+
 
 /* =========================
    PUBLIC ROUTES
@@ -63,6 +66,7 @@ router.use("/:tenantSlug/admin/gallery", adminGalleryRouter);
 router.use("/:tenantSlug/admin/pages", adminPagesRouter);
 router.use("/:tenantSlug/admin/uploads", adminUploadsRouter);
 router.use("/:tenantSlug/admin/athletes", adminAthletesRouter);
+router.use("/:tenantSlug/admin/settings", adminSettingsRouter);
 
 /* ---------- Public ---------- */
 

@@ -38,20 +38,19 @@ export default function Footer({ tenant }) {
   return (
     <footer className="bg-primary text-white text-sm py-10">
       <div className="max-w-6xl mx-auto px-4 space-y-6 text-center">
-        {/* Logo */}
         <div className="flex justify-center">
           {logoSrc && (
             <Image
               src={logoSrc}
               alt={tenant?.name || "Logo"}
-              width={60}
-              height={60}
+              width={80}
+              height={80}
+              className="h-16 w-auto object-contain"
               unoptimized
             />
           )}
         </div>
 
-        {/* Footer Nav */}
         <nav className="flex flex-wrap justify-center gap-4">
           {pages.map((p) => (
             <Link
