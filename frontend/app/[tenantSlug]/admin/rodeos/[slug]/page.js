@@ -1,4 +1,4 @@
-// filepath: frontend/app/admin/events/[slug]/page.js
+// filepath: frontend/app/[tenantSlug]/admin/rodeos/[slug]/page.js
 "use client";
 
 import { useEffect, useState } from "react";
@@ -14,13 +14,23 @@ function formatForDateInput(date) {
   return d.toISOString().slice(0, 10);
 }
 
-export default function AdminEditEventPage() {
+function toISO(date) {
+  if (!date) return null;
+  const d = new Date(date);
+  if (isNaN(d)) return null;
+  return d.toISOString();
+}
+
+export default function AdminEditRodeoPage() {
   const params = useParams();
   const router = useRouter();
-  const slug = params?.slug;
+
+  const slug = Array.isArray(params?.slug) ? params.slug[0] : params?.slug;
+  const tenantSlug = Array.isArray(params?.tenantSlug)
+    ? params.tenantSlug[0]
+    : params?.tenantSlug;
 
   const [loading, setLoading] = useState(true);
-  const [eventId, setEventId] = useState(null);
 
   const [form, setForm] = useState({
     name: "",
@@ -31,12 +41,12 @@ export default function AdminEditEventPage() {
   });
 
   useEffect(() => {
-    if (!slug) return;
+    if (!slug || !tenantSlug) return;
 
-    async function loadEvent() {
+    async function loadRodeo() {
       try {
         const res = await fetch(
-          `${API_BASE}/api/admin/events/${encodeURIComponent(slug)}`,
+          `${API_BASE}/${tenantSlug}/admin/rodeos/${encodeURIComponent(slug)}`,
           { cache: "no-store" }
         );
 
@@ -47,8 +57,6 @@ export default function AdminEditEventPage() {
 
         const data = await res.json();
 
-        setEventId(data.id);
-
         setForm({
           name: data.name || "",
           slug: data.slug || "",
@@ -57,35 +65,41 @@ export default function AdminEditEventPage() {
           status: data.status || "draft",
         });
       } catch (err) {
-        console.error("Failed to load event", err);
+        console.error("Failed to load rodeo", err);
       } finally {
         setLoading(false);
       }
     }
 
-    loadEvent();
-  }, [slug]);
+    loadRodeo();
+  }, [slug, tenantSlug]);
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!eventId) return;
+
+    const payload = {
+      ...form,
+      startDate: toISO(form.startDate),
+      endDate: toISO(form.endDate),
+    };
 
     try {
       const res = await fetch(
-        `${API_BASE}/api/admin/events/${eventId}`,
+        `${API_BASE}/${tenantSlug}/admin/rodeos/${encodeURIComponent(slug)}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(form),
+          body: JSON.stringify(payload),
         }
       );
 
       if (!res.ok) {
-        console.error("Failed to update event");
+        const text = await res.text();
+        console.error("Failed to update rodeo:", text);
         return;
       }
 
-      router.push("/admin/events");
+      router.push(`/${tenantSlug}/admin/rodeos`);
     } catch (err) {
       console.error("Update failed", err);
     }
@@ -98,9 +112,12 @@ export default function AdminEditEventPage() {
   return (
     <div className="max-w-4xl mx-auto px-6 py-10 space-y-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Edit Event</h1>
-        <Link href="/admin/events" className="text-sm underline">
-          Back to Events
+        <h1 className="text-2xl font-semibold">Edit Rodeo</h1>
+        <Link
+          href={`/${tenantSlug}/admin/rodeos`}
+          className="text-sm underline"
+        >
+          Back to Rodeos
         </Link>
       </div>
 

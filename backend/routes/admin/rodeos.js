@@ -142,10 +142,6 @@ router.put("/:slug", resolveTenant, async (req, res) => {
       status,
     } = req.body;
 
-    if (!name || !newSlug || !startDate || !endDate || !seasonId || !locationId) {
-      return res.status(400).json({ error: "Missing required fields" });
-    }
-
     const existing = await prisma.rodeo.findFirst({
       where: { slug: req.params.slug, tenantId: req.tenantId },
     });
@@ -157,17 +153,26 @@ router.put("/:slug", resolveTenant, async (req, res) => {
     const rodeo = await prisma.rodeo.update({
       where: { id: existing.id },
       data: {
-        name,
-        slug: newSlug,
-        startDate: new Date(startDate),
-        endDate: new Date(endDate),
-        seasonId: Number(seasonId),
-        locationId: Number(locationId),
-        callInPolicyId: callInPolicyId ? Number(callInPolicyId) : null,
-        generalInfo: generalInfo || null,
-        specials: specials || null,
-        isStateFinals: Boolean(isStateFinals),
-        status: status || "published",
+        name: name ?? existing.name,
+        slug: newSlug ?? existing.slug,
+        startDate: startDate ? new Date(startDate) : existing.startDate,
+        endDate: endDate ? new Date(endDate) : existing.endDate,
+        seasonId: seasonId ? Number(seasonId) : existing.seasonId,
+        locationId: locationId ? Number(locationId) : existing.locationId,
+        callInPolicyId:
+          callInPolicyId !== undefined
+            ? callInPolicyId
+              ? Number(callInPolicyId)
+              : null
+            : existing.callInPolicyId,
+        generalInfo:
+          generalInfo !== undefined ? generalInfo : existing.generalInfo,
+        specials: specials !== undefined ? specials : existing.specials,
+        isStateFinals:
+          isStateFinals !== undefined
+            ? Boolean(isStateFinals)
+            : existing.isStateFinals,
+        status: status ?? existing.status,
       },
     });
 

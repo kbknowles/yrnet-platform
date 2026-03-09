@@ -1,14 +1,18 @@
-// filepath: frontend/app/admin/events/[slug]/schedule/page.js
-
+// filepath: frontend/app/[tenantSlug]/admin/rodeos/[slug]/schedule/page.js
 "use client";
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 
-export default function EventSchedulePage() {
+export default function RodeoSchedulePage() {
   const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+
   const params = useParams();
-  const slug = params?.slug;
+
+  const slug = Array.isArray(params?.slug) ? params.slug[0] : params?.slug;
+  const tenantSlug = Array.isArray(params?.tenantSlug)
+    ? params.tenantSlug[0]
+    : params?.tenantSlug;
 
   const [items, setItems] = useState([]);
   const [form, setForm] = useState({
@@ -18,11 +22,11 @@ export default function EventSchedulePage() {
   });
 
   async function loadItems() {
-    if (!slug) return;
+    if (!slug || !tenantSlug) return;
 
     try {
       const res = await fetch(
-        `${API_BASE}/api/admin/event-schedule-items?slug=${encodeURIComponent(
+        `${API_BASE}/${tenantSlug}/admin/rodeo-schedule-items?slug=${encodeURIComponent(
           slug
         )}`,
         { cache: "no-store" }
@@ -38,16 +42,18 @@ export default function EventSchedulePage() {
   }
 
   useEffect(() => {
-    if (slug) loadItems();
-  }, [slug]);
+    if (slug && tenantSlug) loadItems();
+  }, [slug, tenantSlug]);
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!slug) return;
+    if (!slug || !tenantSlug) return;
 
-    await fetch(`${API_BASE}/api/admin/event-schedule-items`, {
+    await fetch(`${API_BASE}/${tenantSlug}/admin/rodeo-schedule-items`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         slug,
         label: form.title,
@@ -69,7 +75,7 @@ export default function EventSchedulePage() {
   return (
     <main className="max-w-4xl mx-auto px-4 py-10 space-y-6">
       <h1 className="text-2xl font-bold">
-        Event Schedule: {slug}
+        Rodeo Schedule: {slug}
       </h1>
 
       <form onSubmit={handleSubmit} className="grid gap-3">

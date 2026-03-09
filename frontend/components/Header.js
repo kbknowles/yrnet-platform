@@ -53,7 +53,7 @@ export default function Header({ tenant }) {
   useEffect(() => {
     if (!tenantSlug) return;
 
-    fetch(`${API_BASE}/api/${tenantSlug}/pages`, { cache: "no-store" })
+    fetch(`${API_BASE}/${tenantSlug}/pages`, { cache: "no-store" })
       .then((res) => res.json())
       .then((data) => {
         const menuPages = (Array.isArray(data) ? data : [])

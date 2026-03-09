@@ -1,8 +1,9 @@
-// filepath: frontend/app/admin/events/page.js
+// filepath: frontend/app/[tenantSlug]/admin/rodeo/page.js
 "use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -16,35 +17,43 @@ function formatMMDDYYYY(date) {
   return `${mm}/${dd}/${yyyy}`;
 }
 
-export default function AdminEventsPage() {
-  const [events, setEvents] = useState([]);
+export default function AdminRodeosPage() {
+  const params = useParams();
+
+  const tenantSlug = Array.isArray(params?.tenantSlug)
+    ? params.tenantSlug[0]
+    : params?.tenantSlug;
+
+  const [rodeos, setRodeos] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!tenantSlug) return;
+
     async function load() {
       try {
-        const res = await fetch(`${API_BASE}/api/admin/events`, {
+        const res = await fetch(`${API_BASE}/${tenantSlug}/admin/rodeos`, {
           cache: "no-store",
         });
 
         if (!res.ok) {
-          console.error("Failed to fetch events");
-          setEvents([]);
+          console.error("Failed to fetch rodeos");
+          setRodeos([]);
           return;
         }
 
         const data = await res.json();
-        setEvents(Array.isArray(data) ? data : []);
+        setRodeos(Array.isArray(data) ? data : []);
       } catch (err) {
-        console.error("Failed to load events", err);
-        setEvents([]);
+        console.error("Failed to load rodeos", err);
+        setRodeos([]);
       } finally {
         setLoading(false);
       }
     }
 
     load();
-  }, []);
+  }, [tenantSlug]);
 
   if (loading) {
     return <div className="p-6">Loading…</div>;
@@ -53,20 +62,20 @@ export default function AdminEventsPage() {
   return (
     <div className="max-w-6xl mx-auto px-6 py-10 space-y-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Events</h1>
+        <h1 className="text-2xl font-semibold">Rodeos</h1>
         <Link
-          href="/admin/events/new"
+          href={`/${tenantSlug}/admin/rodeos/new`}
           className="px-4 py-2 bg-black text-white rounded text-sm"
         >
-          + New Event
+          + New Rodeo
         </Link>
       </div>
 
-      {events.length === 0 && (
-        <p className="text-slate-600 text-sm">No events found.</p>
+      {rodeos.length === 0 && (
+        <p className="text-slate-600 text-sm">No rodeos found.</p>
       )}
 
-      {events.length > 0 && (
+      {rodeos.length > 0 && (
         <div className="bg-white border rounded overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-slate-100 text-left">
@@ -79,54 +88,54 @@ export default function AdminEventsPage() {
               </tr>
             </thead>
             <tbody>
-              {events.map((event) => (
-                <tr key={event.id} className="border-t">
+              {rodeos.map((rodeo) => (
+                <tr key={rodeo.id} className="border-t">
                   <td className="px-4 py-3 font-medium">
-                    {event.name}
+                    {rodeo.name}
                     <div className="text-xs text-slate-500">
-                      /events/{event.slug}
+                      /rodeos/{rodeo.slug}
                     </div>
                   </td>
 
                   <td className="px-4 py-3 text-slate-700">
-                    {formatMMDDYYYY(event.startDate)}
-                    {event.endDate &&
-                      ` – ${formatMMDDYYYY(event.endDate)}`}
+                    {formatMMDDYYYY(rodeo.startDate)}
+                    {rodeo.endDate &&
+                      ` – ${formatMMDDYYYY(rodeo.endDate)}`}
                   </td>
 
                   <td className="px-4 py-3 text-slate-700">
-                    {event.season?.year ?? "—"}
+                    {rodeo.season?.year ?? "—"}
                   </td>
 
                   <td className="px-4 py-3">
                     <span
                       className={`px-2 py-1 rounded text-xs ${
-                        event.status === "published"
+                        rodeo.status === "published"
                           ? "bg-green-100 text-green-700"
                           : "bg-yellow-100 text-yellow-700"
                       }`}
                     >
-                      {event.status}
+                      {rodeo.status}
                     </span>
                   </td>
 
                   <td className="px-4 py-3 text-right space-x-3">
                     <Link
-                      href={`/admin/events/${event.slug}`}
+                      href={`/${tenantSlug}/admin/rodeos/${rodeo.slug}`}
                       className="underline"
                     >
                       Edit
                     </Link>
 
                     <Link
-                      href={`/admin/events/${event.slug}/schedule`}
+                      href={`/${tenantSlug}/admin/rodeos/${rodeo.slug}/schedule`}
                       className="underline"
                     >
                       Schedule
                     </Link>
 
                     <Link
-                      href={`/events/${event.slug}`}
+                      href={`/${tenantSlug}/rodeos/${rodeo.slug}`}
                       target="_blank"
                       className="underline"
                     >
