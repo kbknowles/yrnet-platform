@@ -6,13 +6,16 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import AlbumSlideshow from "components/gallery/AlbumSlideshow";
 import SponsorZone from "components/sponsorship/SponsorZone";
+import { resolveTenantMedia } from "lib/media";
 
-function resolveImage(filename, API_BASE, tenantSlug) {
+function resolveImage(filename, tenantSlug) {
   if (!filename) return null;
-  if (filename.startsWith("http")) return filename;
 
-  const clean = filename.replace(/^\/+/, "");
-  return `${API_BASE}/uploads/tenants/${tenantSlug}/gallery/${clean}`;
+  return resolveTenantMedia({
+    tenantSlug,
+    folder: "gallery",
+    filename,
+  });
 }
 
 export default function GalleryView({ album, API_BASE }) {
@@ -25,7 +28,7 @@ export default function GalleryView({ album, API_BASE }) {
 
   const images = rawImages.map((img) => ({
     ...img,
-    imageUrl: resolveImage(img.imageUrl, API_BASE, tenantSlug),
+    imageUrl: resolveImage(img.imageUrl, tenantSlug),
   }));
 
   const imageCount = images.length;

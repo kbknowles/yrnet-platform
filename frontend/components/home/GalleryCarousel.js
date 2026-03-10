@@ -3,9 +3,9 @@
 
 import Image from "next/image";
 import { useTenantSlug } from "hooks/useTenantSlug";
+import { resolveTenantMedia } from "lib/media";
 
 export default function GalleryCarousel({ albums = [] }) {
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL;
   const tenantSlug = useTenantSlug();
 
   const album = albums?.[0];
@@ -13,21 +13,14 @@ export default function GalleryCarousel({ albums = [] }) {
 
   if (!images.length) return null;
 
-  /*
-    Resolve gallery image path.
-
-    Storage structure:
-    /uploads/tenants/{tenantSlug}/gallery/{filename}
-
-    Gallery does NOT include imageId in the path.
-  */
   function resolveGalleryImage(filename) {
     if (!filename) return "";
-    if (filename.startsWith("http")) return filename;
 
-    const clean = filename.replace(/^\/+/, "");
-
-    return `${API_BASE}/uploads/tenants/${tenantSlug}/gallery/${clean}`;
+    return resolveTenantMedia({
+      tenantSlug,
+      folder: "gallery",
+      filename,
+    });
   }
 
   return (

@@ -1,19 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { resolveTenantMedia } from "lib/media";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
-function resolveImage(url) {
-  if (!url) return null;
-  if (url.startsWith("http")) return url;
+function resolveImage(filename, tenantSlug) {
+  if (!filename) return null;
 
-  const clean = url.replace(/^\/+/, "");
-  return `${API_BASE}/${clean}`;
+  return resolveTenantMedia({
+    tenantSlug,
+    folder: "sponsors",
+    filename,
+  });
 }
 
 export default function SponsorForm({
   sponsor,
+  tenantSlug,
   onSaved,
   onClose,
 }) {
@@ -38,9 +42,6 @@ export default function SponsorForm({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
-  /* ----------------------------
-     Load existing sponsor data
-  -----------------------------*/
   useEffect(() => {
     if (isEdit && sponsor) {
       setForm({
@@ -62,9 +63,6 @@ export default function SponsorForm({
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
-  /* ----------------------------
-     Upload helper
-  -----------------------------*/
   async function uploadFile(id, file, type) {
     const formData = new FormData();
     formData.append("file", file);
@@ -87,9 +85,6 @@ export default function SponsorForm({
     if (type === "banner") setBannerUrl(updated.bannerUrl);
   }
 
-  /* ----------------------------
-     Submit
-  -----------------------------*/
   async function handleSubmit(e) {
     e.preventDefault();
     if (saving) return;
@@ -131,6 +126,9 @@ export default function SponsorForm({
     }
   }
 
+  const logoPreview = resolveImage(logoUrl, tenantSlug);
+  const bannerPreview = resolveImage(bannerUrl, tenantSlug);
+
   return (
     <div className="border rounded-lg p-6 bg-white shadow-sm">
       <h2 className="text-lg font-semibold mb-4">
@@ -145,7 +143,6 @@ export default function SponsorForm({
 
       <form onSubmit={handleSubmit} className="space-y-4">
 
-        {/* BASIC INFO */}
         <div className="grid md:grid-cols-2 gap-4">
           <input
             className="border rounded p-2 text-sm"
@@ -199,10 +196,8 @@ export default function SponsorForm({
           onChange={(e) => update("internalNotes", e.target.value)}
         />
 
-        {/* IMAGES */}
         <div className="border-t pt-6 grid md:grid-cols-2 gap-6">
 
-          {/* LOGO */}
           <div className="space-y-3">
             <div className="font-medium text-sm">Logo</div>
 
@@ -212,13 +207,13 @@ export default function SponsorForm({
               onChange={(e) => setLogoFile(e.target.files?.[0])}
             />
 
-            {logoUrl && (
+            {logoPreview && (
               <>
                 <div className="text-xs break-all text-gray-600">
-                  {resolveImage(logoUrl)}
+                  {logoPreview}
                 </div>
                 <img
-                  src={resolveImage(logoUrl)}
+                  src={logoPreview}
                   alt="Logo"
                   className="h-20 object-contain border rounded p-2 bg-white"
                 />
@@ -226,7 +221,6 @@ export default function SponsorForm({
             )}
           </div>
 
-          {/* BANNER */}
           <div className="space-y-3">
             <div className="font-medium text-sm">Banner</div>
 
@@ -236,13 +230,13 @@ export default function SponsorForm({
               onChange={(e) => setBannerFile(e.target.files?.[0])}
             />
 
-            {bannerUrl && (
+            {bannerPreview && (
               <>
                 <div className="text-xs break-all text-gray-600">
-                  {resolveImage(bannerUrl)}
+                  {bannerPreview}
                 </div>
                 <img
-                  src={resolveImage(bannerUrl)}
+                  src={bannerPreview}
                   alt="Banner"
                   className="h-20 object-contain border rounded p-2 bg-white"
                 />
@@ -252,7 +246,6 @@ export default function SponsorForm({
 
         </div>
 
-        {/* BUTTONS */}
         <div className="flex gap-3 pt-4">
           <button
             type="submit"

@@ -2,16 +2,9 @@
 
 import Header from "components/Header";
 import Footer from "components/Footer";
+import { resolveTenantMedia } from "lib/media";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
-
-function resolveLogo(url) {
-  if (!url) return null;
-  if (url.startsWith("http")) return url;
-
-  const clean = url.replace(/^\/+/, "");
-  return `${API_BASE}/${clean}`;
-}
 
 export default async function TenantLayout({ children, params }) {
   const { tenantSlug } = await params;
@@ -43,7 +36,14 @@ export default async function TenantLayout({ children, params }) {
     logoUrl: homeData?.tenant?.logoUrl || null,
   };
 
-  const logoSrc = resolveLogo(tenant.logoUrl);
+  const logoSrc =
+    tenant.logoUrl && tenantSlug
+      ? resolveTenantMedia({
+          tenantSlug,
+          folder: "images",
+          filename: tenant.logoUrl,
+        })
+      : null;
 
   const style = {
     "--primary": tenant.primaryColor,

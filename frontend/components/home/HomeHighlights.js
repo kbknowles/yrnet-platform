@@ -3,37 +3,24 @@
 
 import Link from "next/link";
 import { useTenantSlug } from "hooks/useTenantSlug";
+import { resolveTenantMedia } from "lib/media";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
-
-/*
-  Resolve announcement image path.
-
-  Handles:
-  - full external URLs
-  - stored filenames in DB
-  - tenant-scoped upload directory
-*/
-function resolveAnnouncementImage(filename, tenantSlug, announcementId) {
+function resolveAnnouncementImage(filename, tenantSlug) {
   if (!filename) return "";
-  if (filename.startsWith("http")) return filename;
 
-  const clean = filename.replace(/^\/+/, "");
-
-  return `${API_BASE}/uploads/tenants/${tenantSlug}/announcements/${announcementId}/${clean}`;
+  return resolveTenantMedia({
+    tenantSlug,
+    folder: "announcements",
+    filename,
+  });
 }
 
 export default function HomeHighlights({ rodeos, announcements }) {
   const tenantSlug = useTenantSlug();
 
-  // Defensive normalization
   const safeRodeos = Array.isArray(rodeos) ? rodeos : [];
   const safeAnnouncements = Array.isArray(announcements) ? announcements : [];
 
-  /*
-    Sort announcements newest first
-    publishAt takes precedence over createdAt
-  */
   const sorted = [...safeAnnouncements].sort((a, b) => {
     const aDate = new Date(a.publishAt || a.createdAt);
     const bDate = new Date(b.publishAt || b.createdAt);
@@ -42,10 +29,6 @@ export default function HomeHighlights({ rodeos, announcements }) {
 
   const featured = sorted[0];
 
-  /*
-    If the announcement is tied to a rodeo,
-    link directly to the rodeo page.
-  */
   const featuredHref = featured?.rodeo?.slug
     ? `/${tenantSlug}/rodeos/${featured.rodeo.slug}`
     : `/${tenantSlug}/announcements`;
@@ -117,22 +100,18 @@ export default function HomeHighlights({ rodeos, announcements }) {
             {featured ? (
               <div className="rounded-md shadow-sm overflow-hidden">
 
-                {/* Poster announcement */}
                 {featured.mode === "POSTER" && featured.imageUrl ? (
                   <Link href={featuredHref}>
                     <img
                       src={resolveAnnouncementImage(
                         featured.imageUrl,
-                        tenantSlug,
-                        featured.id
+                        tenantSlug
                       )}
                       alt={featured.title || "Announcement"}
                       className="w-full max-h-[420px] object-contain"
                     />
                   </Link>
                 ) : (
-
-                  /* Text announcement */
                   <div className="p-4 space-y-2">
                     <p className="font-medium">{featured.title}</p>
 

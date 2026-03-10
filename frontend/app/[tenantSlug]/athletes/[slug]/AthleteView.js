@@ -7,6 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 import SponsorZone from "components/sponsorship/SponsorZone";
 import AlbumSlideshow from "components/gallery/AlbumSlideshow";
+import { resolveTenantMedia } from "lib/media";
 
 export default function AthleteView({ athlete, API_BASE, tenantSlug }) {
   const [open, setOpen] = useState(false);
@@ -25,11 +26,22 @@ export default function AthleteView({ athlete, API_BASE, tenantSlug }) {
 
   function resolveImage(src) {
     if (!src) return null;
-    if (src.startsWith("http")) return src;
 
-    const clean = src.replace(/^\/+/, "");
+    return resolveTenantMedia({
+      tenantSlug,
+      folder: "images",
+      filename: src,
+    });
+  }
 
-    return `${API_BASE}/uploads/tenants/${tenantSlug}/images/${clean}`;
+  function resolveVideo(src) {
+    if (!src) return null;
+
+    return resolveTenantMedia({
+      tenantSlug,
+      folder: "videos",
+      filename: src,
+    });
   }
 
   useEffect(() => {
@@ -220,13 +232,13 @@ export default function AthleteView({ athlete, API_BASE, tenantSlug }) {
                 <div
                   key={idx}
                   onClick={() => {
-                    setActiveVideo(resolveImage(video));
+                    setActiveVideo(resolveVideo(video));
                     setVideoOpen(true);
                   }}
                   className="relative aspect-[16/9] rounded-lg overflow-hidden cursor-pointer group bg-black"
                 >
                   <video
-                    src={resolveImage(video)}
+                    src={resolveVideo(video)}
                     preload="metadata"
                     muted
                     className="w-full h-full object-cover"

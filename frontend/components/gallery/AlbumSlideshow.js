@@ -1,18 +1,23 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { resolveTenantMedia } from "lib/media";
 
-function resolveSrc(src) {
+function resolveSrc(src, tenantSlug) {
   if (!src) return "";
-  if (src.startsWith("http")) return src;
 
-  const base = process.env.NEXT_PUBLIC_UPLOADS_URL || process.env.NEXT_PUBLIC_API_URL || "";
-  const clean = src.replace(/^\/+/, "");
-
-  return `${base}/${clean}`;
+  return resolveTenantMedia({
+    tenantSlug,
+    folder: "gallery",
+    filename: src,
+  });
 }
 
-export default function AlbumSlideshow({ images = [], initialIndex = 0 }) {
+export default function AlbumSlideshow({
+  images = [],
+  initialIndex = 0,
+  tenantSlug,
+}) {
   const [index, setIndex] = useState(initialIndex);
 
   useEffect(() => {
@@ -35,7 +40,7 @@ export default function AlbumSlideshow({ images = [], initialIndex = 0 }) {
     <div className="space-y-4 relative">
       <div className="relative">
         <img
-          src={resolveSrc(current.imageUrl)}
+          src={resolveSrc(current.imageUrl, tenantSlug)}
           alt={current.caption || "Image"}
           className="rounded w-full max-h-[80vh] object-contain"
         />

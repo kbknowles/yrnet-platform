@@ -2,28 +2,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
-
-/*
-  SponsorStrip
-  --------------------------------------------------
-  Displays rotating sponsor logos in groups.
-
-  Behavior:
-  - Shows 4 sponsors at a time (desktop)
-  - Rotates every 4 seconds
-  - Falls back to sponsor name if logo is missing
-*/
+import { useTenantSlug } from "hooks/useTenantSlug";
+import { resolveTenantMedia } from "lib/media";
 
 export default function SponsorStrip({ sponsors = [] }) {
+  const tenantSlug = useTenantSlug();
   const [index, setIndex] = useState(0);
 
   const visibleCount = 4;
 
-  /*
-    Auto-rotate sponsors
-  */
   useEffect(() => {
     if (!sponsors || sponsors.length <= visibleCount) return;
 
@@ -36,22 +23,14 @@ export default function SponsorStrip({ sponsors = [] }) {
     return () => clearInterval(interval);
   }, [sponsors]);
 
-  /*
-    Resolve image path.
+  function resolveSponsorImage(filename) {
+    if (!filename) return null;
 
-    Handles:
-    - full external URLs
-    - stored relative paths
-    - uploads served from API
-  */
-  function fullImagePath(path) {
-    if (!path) return null;
-
-    if (path.startsWith("http")) return path;
-
-    const clean = path.replace(/^\/+/, "");
-
-    return `${API_BASE}/${clean}`;
+    return resolveTenantMedia({
+      tenantSlug,
+      folder: "sponsors",
+      filename,
+    });
   }
 
   if (!sponsors || sponsors.length === 0) return null;
@@ -61,45 +40,47 @@ export default function SponsorStrip({ sponsors = [] }) {
   return (
     <section className="py-12 bg-white">
 
-      {/* Section title */}
       <h2 className="text-center text-lg font-semibold mb-6">
         Our Sponsors
       </h2>
 
-      {/* Sponsor grid */}
       <div className="max-w-6xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-6 transition-opacity duration-500">
-        {visibleSponsors.map((s) => (
-          <div
-            key={s.id}
-            className="h-28 flex items-center justify-center rounded border-2 border-gray-500 bg-white"
-          >
-            {s.logoUrl ? (
-              <a
-                href={s.website || "#"}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center w-full h-full px-4"
-              >
-                <img
-                  src={fullImagePath(s.logoUrl)}
-                  alt={s.name}
-                  className="max-h-20 max-w-full object-contain"
-                />
-              </a>
-            ) : (
-              <a
-                href={s.website || "#"}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center w-full h-full px-4 text-center"
-              >
-                <span className="text-lg md:text-xl font-semibold tracking-wide text-primary">
-                  {s.name}
-                </span>
-              </a>
-            )}
-          </div>
-        ))}
+        {visibleSponsors.map((s) => {
+          const src = resolveSponsorImage(s.logoUrl);
+
+          return (
+            <div
+              key={s.id}
+              className="h-28 flex items-center justify-center rounded border-2 border-gray-500 bg-white"
+            >
+              {src ? (
+                <a
+                  href={s.website || "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center w-full h-full px-4"
+                >
+                  <img
+                    src={src}
+                    alt={s.name}
+                    className="max-h-20 max-w-full object-contain"
+                  />
+                </a>
+              ) : (
+                <a
+                  href={s.website || "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center w-full h-full px-4 text-center"
+                >
+                  <span className="text-lg md:text-xl font-semibold tracking-wide text-primary">
+                    {s.name}
+                  </span>
+                </a>
+              )}
+            </div>
+          );
+        })}
       </div>
 
     </section>

@@ -4,22 +4,28 @@
 import { useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Zoom, Navigation } from "swiper/modules";
+import { resolveTenantMedia } from "lib/media";
 
 import "swiper/css";
 import "swiper/css/zoom";
 import "swiper/css/navigation";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
-
-function resolveSrc(src) {
+function resolveSrc(src, tenantSlug, folder = "images") {
   if (!src) return "";
-  if (src.startsWith("http")) return src;
 
-  const clean = src.replace(/^\/+/, "");
-  return `${API_BASE}/${clean}`;
+  return resolveTenantMedia({
+    tenantSlug,
+    folder,
+    filename: src,
+  });
 }
 
-export default function MediaSwiper({ items = [], thumbHeight = "h-[220px]" }) {
+export default function MediaSwiper({
+  items = [],
+  thumbHeight = "h-[220px]",
+  tenantSlug,
+  folder = "images",
+}) {
   const [open, setOpen] = useState(false);
   const [index, setIndex] = useState(0);
 
@@ -32,7 +38,7 @@ export default function MediaSwiper({ items = [], thumbHeight = "h-[220px]" }) {
       {/* GRID */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {safeItems.map((item, i) => {
-          const src = resolveSrc(item.imageUrl);
+          const src = resolveSrc(item.imageUrl, tenantSlug, folder);
 
           return (
             <button
@@ -80,7 +86,7 @@ export default function MediaSwiper({ items = [], thumbHeight = "h-[220px]" }) {
             className="w-full h-full"
           >
             {safeItems.map((item, i) => {
-              const src = resolveSrc(item.imageUrl);
+              const src = resolveSrc(item.imageUrl, tenantSlug, folder);
 
               return (
                 <SwiperSlide key={item.id || i}>

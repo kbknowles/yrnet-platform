@@ -4,22 +4,23 @@
 import { useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Zoom, Navigation } from "swiper/modules";
+import { resolveTenantMedia } from "lib/media";
 
 import "swiper/css";
 import "swiper/css/zoom";
 import "swiper/css/navigation";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+function resolvePoster(filename, tenantSlug) {
+  if (!filename) return null;
 
-function resolvePoster(url) {
-  if (!url) return null;
-  if (url.startsWith("http")) return url;
-
-  const clean = url.replace(/^\/+/, "");
-  return `${API_BASE}/${clean}`;
+  return resolveTenantMedia({
+    tenantSlug,
+    folder: "images",
+    filename,
+  });
 }
 
-export default function PosterGallery({ posters = [] }) {
+export default function PosterGallery({ posters = [], tenantSlug }) {
   const [open, setOpen] = useState(false);
   const [index, setIndex] = useState(0);
 
@@ -30,7 +31,7 @@ export default function PosterGallery({ posters = [] }) {
       {/* GRID */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {safePosters.map((p, i) => {
-          const src = resolvePoster(p.imageUrl);
+          const src = resolvePoster(p.imageUrl, tenantSlug);
 
           return (
             <button
@@ -76,7 +77,7 @@ export default function PosterGallery({ posters = [] }) {
             className="w-full h-full"
           >
             {safePosters.map((p, i) => {
-              const src = resolvePoster(p.imageUrl);
+              const src = resolvePoster(p.imageUrl, tenantSlug);
 
               return (
                 <SwiperSlide key={p.id || i}>

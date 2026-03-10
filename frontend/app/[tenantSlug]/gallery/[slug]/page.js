@@ -1,11 +1,11 @@
 // filepath: frontend/app/[tenantSlug]/gallery/[slug]/page.js
 
 import GalleryView from "./GalleryView";
+import { resolveTenantMedia } from "lib/media";
 
 export default async function GalleryAlbumPage({ params }) {
   const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
-  // Next.js 16 requires params to be awaited
   const { tenantSlug, slug } = await params;
 
   const res = await fetch(
@@ -19,18 +19,14 @@ export default async function GalleryAlbumPage({ params }) {
 
   const album = await res.json();
 
-  function resolveImage(filename) {
-    if (!filename) return null;
-    if (filename.startsWith("http")) return filename;
-
-    const clean = filename.replace(/^\/+/, "");
-    return `${API_BASE}/uploads/tenants/${tenantSlug}/gallery/${clean}`;
-  }
-
   const images = Array.isArray(album?.images)
     ? album.images.map((img) => ({
         ...img,
-        imageUrl: resolveImage(img.imageUrl),
+        imageUrl: resolveTenantMedia({
+          tenantSlug,
+          folder: "gallery",
+          filename: img.imageUrl,
+        }),
       }))
     : [];
 

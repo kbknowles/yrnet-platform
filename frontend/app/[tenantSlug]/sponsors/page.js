@@ -1,15 +1,18 @@
 // filepath: frontend/app/[tenantSlug]/sponsors/page.js
 
 import Image from "next/image";
+import { resolveTenantMedia } from "lib/media";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 function resolveImage(filename, tenantSlug) {
   if (!filename) return null;
-  if (filename.startsWith("http")) return filename;
 
-  const clean = filename.replace(/^\/+/, "");
-  return `${API_BASE}/uploads/tenants/${tenantSlug}/sponsors/${clean}`;
+  return resolveTenantMedia({
+    tenantSlug,
+    folder: "sponsors",
+    filename,
+  });
 }
 
 async function getSponsors(tenantSlug) {

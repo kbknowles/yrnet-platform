@@ -4,15 +4,18 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { resolveTenantMedia } from "lib/media";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
-function resolveLogo(url) {
-  if (!url) return null;
-  if (url.startsWith("http")) return url;
+function resolveLogo(filename, tenantSlug) {
+  if (!filename) return null;
 
-  const clean = url.replace(/^\/+/, "");
-  return `${API_BASE}/${clean}`;
+  return resolveTenantMedia({
+    tenantSlug,
+    folder: "images",
+    filename,
+  });
 }
 
 export default function Footer({ tenant }) {
@@ -33,7 +36,7 @@ export default function Footer({ tenant }) {
       .catch(() => setPages([]));
   }, [tenant?.slug]);
 
-  const logoSrc = resolveLogo(tenant?.logoUrl);
+  const logoSrc = resolveLogo(tenant?.logoUrl, tenant?.slug);
 
   return (
     <footer className="bg-primary text-white text-sm py-10">
@@ -54,7 +57,7 @@ export default function Footer({ tenant }) {
         <nav className="flex flex-wrap justify-center gap-4">
           {pages.map((p) => (
             <Link
-              key={p.slug?.charAt(0).toUpperCase() + p.slug?.slice(1)}
+              key={p.slug}
               href={`/${tenant?.slug}/${p.slug}`}
               className="text-gray-200 hover:text-accent transition"
             >
