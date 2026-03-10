@@ -2,15 +2,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { resolveTenantMedia } from "lib/media";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
-function resolveImage(url) {
-  if (!url) return null;
-  if (url.startsWith("http")) return url;
+function resolveImage(filename, tenantSlug) {
+  if (!filename) return null;
 
-  const clean = url.replace(/^\/+/, "");
-  return `${API_BASE}/${clean}`;
+  return resolveTenantMedia({
+    tenantSlug,
+    folder: "sponsors",
+    filename,
+  });
 }
 
 export default function SponsorZone({
@@ -103,13 +106,13 @@ export default function SponsorZone({
             >
               {s.bannerUrl ? (
                 <img
-                  src={resolveImage(s.bannerUrl)}
+                  src={resolveImage(s.bannerUrl, tenantSlug)}
                   alt={s.name}
                   className="max-w-full max-h-full object-contain"
                 />
               ) : s.logoUrl ? (
                 <img
-                  src={resolveImage(s.logoUrl)}
+                  src={resolveImage(s.logoUrl, tenantSlug)}
                   alt={s.name}
                   className="max-w-full max-h-full object-contain"
                 />
