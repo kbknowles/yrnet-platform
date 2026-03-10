@@ -118,6 +118,7 @@ export default function GalleryView({ album, API_BASE }) {
           <div className="w-20 h-1 bg-rose-700 mx-auto" />
 
           <SponsorZone
+            tenantSlug={tenantSlug}
             contentType="SEASON"
             contentId={null}
             levels={["PREMIER", "FEATURED"]}

@@ -201,6 +201,7 @@ export default function AthleteView({ athlete, API_BASE, tenantSlug }) {
           </h2>
 
           <SponsorZone
+            tenantSlug={tenantSlug}
             contentType="ATHLETE"
             contentId={athlete.id}
             slots={4}
@@ -307,6 +308,7 @@ export default function AthleteView({ athlete, API_BASE, tenantSlug }) {
           <div className="border-t-2 border-rose-700 w-20 mx-auto" />
 
           <SponsorZone
+            tenantSlug={tenantSlug}
             contentType="SEASON"
             contentId={null}
             levels={["PREMIER", "FEATURED"]}

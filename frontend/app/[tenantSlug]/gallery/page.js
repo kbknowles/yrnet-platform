@@ -121,7 +121,7 @@ export default async function GalleryPage({ params }) {
 
           <div className="border-t-2 border-rose-700 w-20 mx-auto" />
 
-          <SponsorZone contentType="SEASON" contentId={null} slots={4} />
+          <SponsorZone   tenantSlug={tenantSlug} contentType="SEASON" contentId={null} slots={4} />
         </div>
       </section>
     </main>
