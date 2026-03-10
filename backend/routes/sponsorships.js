@@ -9,15 +9,19 @@ const router = express.Router({ mergeParams: true });
 /**
  * GET /:tenantSlug/sponsorships/resolve
  *
- * Hierarchy:
- * ContentType order:
+ * Example:
+ * /ahsra/sponsorships/resolve?contentType=GLOBAL&slots=4
+ *
+ * Hierarchy
+ * Content:
  *   GLOBAL(null) → SEASON → RODEO → ATHLETE
  *
- * Level order:
+ * Level:
  *   PREMIER → FEATURED → STANDARD → SUPPORTER
  *
  * Stops once slots are filled.
  */
+
 router.get("/resolve", resolveTenant, async (req, res) => {
   try {
     const now = new Date();
@@ -30,6 +34,9 @@ router.get("/resolve", resolveTenant, async (req, res) => {
         ? Number(contentId)
         : null;
 
+    const normalizedType =
+      contentType === "GLOBAL" || !contentType ? null : contentType;
+
     const baseWhere = {
       active: true,
       startDate: { lte: now },
@@ -39,9 +46,6 @@ router.get("/resolve", resolveTenant, async (req, res) => {
         active: true,
       },
     };
-
-    // Normalize GLOBAL → null
-    const normalizedType = contentType === "GLOBAL" ? null : contentType;
 
     const contentHierarchy = [null, "SEASON", "RODEO", "ATHLETE"];
     const levelHierarchy = ["PREMIER", "FEATURED", "STANDARD", "SUPPORTER"];
@@ -56,7 +60,6 @@ router.get("/resolve", resolveTenant, async (req, res) => {
         level,
       };
 
-      // Only match specific contentId when NOT GLOBAL
       if (type && numericContentId !== null) {
         where.contentId = numericContentId;
       }
@@ -67,27 +70,29 @@ router.get("/resolve", resolveTenant, async (req, res) => {
         orderBy: [{ priority: "desc" }],
       });
 
-      rows.forEach((r) => {
-        if (!r?.sponsor) return;
-        if (seenSponsors.has(r.sponsor.id)) return;
-        if (collected.length >= slotLimit) return;
+      for (const row of rows) {
+        if (!row?.sponsor) continue;
+        if (seenSponsors.has(row.sponsor.id)) continue;
+        if (collected.length >= slotLimit) break;
 
-        collected.push(r);
-        seenSponsors.add(r.sponsor.id);
-      });
+        collected.push(row);
+        seenSponsors.add(row.sponsor.id);
+      }
     }
 
-    // Start from requested type position in hierarchy
     const startIndex = contentHierarchy.indexOf(normalizedType);
 
     const orderedContentTypes =
-      startIndex >= 0 ? contentHierarchy.slice(startIndex) : contentHierarchy;
+      startIndex >= 0
+        ? contentHierarchy.slice(startIndex)
+        : contentHierarchy;
 
     for (const type of orderedContentTypes) {
       for (const level of levelHierarchy) {
         if (collected.length >= slotLimit) break;
         await fetchLayer(type, level);
       }
+
       if (collected.length >= slotLimit) break;
     }
 
@@ -95,8 +100,8 @@ router.get("/resolve", resolveTenant, async (req, res) => {
       direct: collected,
       backfill: [],
     });
-  } catch (err) {
-    console.error("Resolve sponsorship failed", err);
+  } catch (error) {
+    console.error("Resolve sponsorship failed:", error);
     res.status(500).json({ error: "Failed to resolve sponsorships" });
   }
 });

@@ -5,14 +5,6 @@ import { useEffect, useState } from "react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
-/*
-  Resolve image URLs for sponsor assets.
-
-  Handles:
-  - Full external URLs
-  - Relative paths returned from API
-  - Ensures uploads resolve against API base
-*/
 function resolveImage(url) {
   if (!url) return null;
   if (url.startsWith("http")) return url;
@@ -20,25 +12,6 @@ function resolveImage(url) {
   const clean = url.replace(/^\/+/, "");
   return `${API_BASE}/${clean}`;
 }
-
-/*
-  SponsorZone
-  --------------------------------------------------
-  Dynamic sponsorship placement resolver.
-
-  Props:
-  - tenantSlug   → required for multi-tenant isolation
-  - contentType  → page context (EVENT, SEASON, PAGE, etc.)
-  - contentId    → specific record id
-  - levels       → sponsor levels to resolve
-  - slots        → number of sponsor slots to fill
-
-  Resolution logic:
-  1. Fetch sponsorship assignments
-  2. Prefer direct matches
-  3. Backfill remaining slots
-  4. Avoid duplicate sponsors
-*/
 
 export default function SponsorZone({
   tenantSlug,
@@ -56,9 +29,6 @@ export default function SponsorZone({
       try {
         const params = new URLSearchParams();
 
-        /* tenant isolation */
-        params.append("tenant", tenantSlug);
-
         if (contentType) params.append("contentType", contentType);
         if (contentId) params.append("contentId", contentId);
 
@@ -69,7 +39,7 @@ export default function SponsorZone({
         params.append("slots", slots);
 
         const res = await fetch(
-          `${API_BASE}/sponsorships/resolve?${params.toString()}`,
+          `${API_BASE}/${tenantSlug}/sponsorships/resolve?${params.toString()}`,
           { cache: "no-store" }
         );
 
@@ -83,9 +53,6 @@ export default function SponsorZone({
         const final = [];
         const seen = new Set();
 
-        /*
-          Prefer direct sponsorships first
-        */
         for (const d of direct) {
           if (final.length >= slots) break;
           if (!d?.sponsor) continue;
@@ -95,9 +62,6 @@ export default function SponsorZone({
           final.push(d.sponsor);
         }
 
-        /*
-          Backfill remaining slots
-        */
         if (final.length < slots) {
           for (const b of backfill) {
             if (final.length >= slots) break;
@@ -118,9 +82,6 @@ export default function SponsorZone({
     load();
   }, [tenantSlug, contentType, contentId, levels, slots]);
 
-  /*
-    Layout logic
-  */
   const gridClasses =
     slots === 1
       ? "grid grid-cols-1"
@@ -128,10 +89,8 @@ export default function SponsorZone({
 
   return (
     <section className="py-6">
-
       {sponsors.length > 0 ? (
         <div className={gridClasses}>
-
           {sponsors.map((s) => (
             <a
               key={s.id}
@@ -155,18 +114,12 @@ export default function SponsorZone({
                   className="max-w-full max-h-full object-contain"
                 />
               ) : (
-                <div className="font-semibold text-center">
-                  {s.name}
-                </div>
+                <div className="font-semibold text-center">{s.name}</div>
               )}
             </a>
           ))}
-
         </div>
       ) : (
-        /*
-          Empty slot placeholder for unsold inventory
-        */
         <div className="bg-slate-100 border border-dashed rounded p-6 text-center">
           <div className="font-semibold text-lg mb-2">
             Sponsorship Available
@@ -176,7 +129,6 @@ export default function SponsorZone({
           </div>
         </div>
       )}
-
     </section>
   );
 }
