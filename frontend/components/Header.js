@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { resolveTenantMedia } from "lib/media";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -16,14 +17,6 @@ const STATIC_LINKS = [
   { title: "Sponsors", href: "/sponsors" },
   { title: "Leadership", href: "/leadership" },
 ];
-
-function resolveLogo(url) {
-  if (!url) return null;
-  if (url.startsWith("http")) return url;
-
-  const clean = url.replace(/^\/+/, "");
-  return `${API_BASE}/${clean}`;
-}
 
 function label(slug) {
   if (!slug) return "";
@@ -69,7 +62,15 @@ export default function Header({ tenant }) {
       .catch(() => setPages([]));
   }, [tenantSlug]);
 
-  const logoSrc = resolveLogo(tenant?.logoUrl);
+  const logoSrc =
+    tenant?.logoUrl && tenantSlug
+      ? resolveTenantMedia({
+          tenantSlug,
+          folder: "images",
+          filename: tenant.logoUrl,
+        })
+      : null;
+
   const fullName = tenant?.name || "";
   const shortName = tenant?.shortName || "";
 

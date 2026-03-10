@@ -3,15 +3,18 @@
 import Link from "next/link";
 import Image from "next/image";
 import SponsorZone from "components/sponsorship/SponsorZone";
+import { resolveTenantMedia } from "lib/media";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 function resolveImage(filename, tenantSlug) {
   if (!filename) return null;
-  if (filename.startsWith("http")) return filename;
 
-  const clean = filename.replace(/^\/+/, "");
-  return `${API_BASE}/uploads/tenants/${tenantSlug}/gallery/${clean}`;
+  return resolveTenantMedia({
+    tenantSlug,
+    folder: "gallery",
+    filename,
+  });
 }
 
 async function getHomeData(tenantSlug) {
@@ -121,7 +124,12 @@ export default async function GalleryPage({ params }) {
 
           <div className="border-t-2 border-rose-700 w-20 mx-auto" />
 
-          <SponsorZone   tenantSlug={tenantSlug} contentType="SEASON" contentId={null} slots={4} />
+          <SponsorZone
+            tenantSlug={tenantSlug}
+            contentType="SEASON"
+            contentId={null}
+            slots={4}
+          />
         </div>
       </section>
     </main>

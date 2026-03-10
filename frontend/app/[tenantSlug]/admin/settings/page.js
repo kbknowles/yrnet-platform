@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { resolveTenantMedia } from "lib/media";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -32,9 +33,11 @@ export default function TenantSettingsPage() {
       setSettings(data);
 
       if (data.logoUrl) {
-        const url = data.logoUrl.startsWith("http")
-          ? data.logoUrl
-          : `${API_BASE}${data.logoUrl}`;
+        const url = resolveTenantMedia({
+          tenantSlug,
+          folder: "images",
+          filename: data.logoUrl,
+        });
 
         setLogoPreview(url);
       }
@@ -87,9 +90,11 @@ export default function TenantSettingsPage() {
     const data = await res.json();
 
     if (data.logoUrl) {
-      const url = data.logoUrl.startsWith("http")
-        ? data.logoUrl
-        : `${API_BASE}${data.logoUrl}`;
+      const url = resolveTenantMedia({
+        tenantSlug,
+        folder: "images",
+        filename: data.logoUrl,
+      });
 
       setLogoPreview(url);
 
@@ -109,7 +114,6 @@ export default function TenantSettingsPage() {
     <main className="max-w-4xl mx-auto p-6 space-y-8">
       <h1 className="text-2xl font-bold">Tenant Settings</h1>
 
-      {/* BASIC */}
       <div className="space-y-4 border rounded p-6">
         <h2 className="font-semibold">Basic Information</h2>
 
@@ -141,7 +145,6 @@ export default function TenantSettingsPage() {
         </div>
       </div>
 
-      {/* COLORS */}
       <div className="space-y-4 border rounded p-6">
         <h2 className="font-semibold">Colors</h2>
 
@@ -164,7 +167,6 @@ export default function TenantSettingsPage() {
         />
       </div>
 
-      {/* LOGO */}
       <div className="space-y-4 border rounded p-6">
         <h2 className="font-semibold">Logo</h2>
 
