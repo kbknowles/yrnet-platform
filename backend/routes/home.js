@@ -5,10 +5,25 @@ import prisma from "../prismaClient.mjs";
 import { resolveTenant } from "../middleware/resolveTenant.js";
 
 /*
-  CRITICAL:
-  mergeParams: true allows :tenantSlug
-  from the parent router to be available here.
+  HOMEPAGE DATA ROUTE
+  -------------------------------------------------------
+  Aggregates all public data required for the tenant homepage.
+
+  Endpoint:
+  GET /:tenantSlug/home
+
+  Returns:
+  - tenant (branding + hero configuration)
+  - announcements
+  - upcoming rodeos
+  - sponsors
+  - featured athletes
+
+  IMPORTANT:
+  Hero fields are included here so the frontend hero
+  component can render without making an additional API call.
 */
+
 const router = express.Router({ mergeParams: true });
 
 /**
@@ -27,11 +42,21 @@ router.get("/", resolveTenant, async (req, res) => {
             id: true,
             name: true,
             slug: true,
+
+            /* branding */
             logoUrl: true,
             primaryColor: true,
             secondaryColor: true,
             accentColor: true,
             theme: true,
+
+            /* HERO SECTION */
+            heroImageUrl: true,
+            heroTitle: true,
+            heroSubtitle: true,
+            heroCtaText: true,
+            heroCtaLink: true,
+            heroEnabled: true,
           },
         }),
 

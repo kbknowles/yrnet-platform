@@ -1,5 +1,20 @@
 // filepath: frontend/app/[tenantSlug]/page.js
 
+/*
+  Tenant Homepage
+  -------------------------------------------------------
+  Loads homepage data from the backend aggregate route:
+
+  GET /:tenantSlug/home
+
+  That route returns:
+  - tenant
+  - announcements
+  - upcomingRodeos
+  - sponsors
+  - featuredAthletes
+*/
+
 import { notFound } from "next/navigation";
 
 import HomeHero from "../../components/home/HomeHero";
@@ -9,7 +24,14 @@ import RodeoGallery from "../../components/home/RodeoGallery";
 import HomeCTA from "../../components/home/HomeCTA";
 import SponsorZone from "../../components/sponsorship/SponsorZone";
 
+/*
+  API base URL for backend requests
+*/
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+
+/* ---------------- */
+/* SAFE FETCH */
+/* ---------------- */
 
 async function safeFetch(url) {
   const res = await fetch(url, { cache: "no-store" });
@@ -26,15 +48,9 @@ async function safeFetch(url) {
   return res.json();
 }
 
-async function softFetch(url, fallback) {
-  try {
-    const res = await fetch(url, { cache: "no-store" });
-    if (!res.ok) return fallback;
-    return await res.json();
-  } catch {
-    return fallback;
-  }
-}
+/* ---------------- */
+/* HOMEPAGE */
+/* ---------------- */
 
 export default async function TenantHomePage(props) {
   const params = await props.params;
@@ -44,28 +60,34 @@ export default async function TenantHomePage(props) {
     notFound();
   }
 
-  const [rodeos, announcements, galleryAlbums] = await Promise.all([
-    safeFetch(`${API_BASE}/${tenantSlug}/rodeos`),
-    safeFetch(`${API_BASE}/${tenantSlug}/announcements?published=true`),
-    softFetch(`${API_BASE}/${tenantSlug}/gallery`, []),
-  ]);
+  /*
+    Pull homepage aggregate data
+  */
 
-  const tenantName = rodeos?.[0]?.season?.year
-    ? "Alabama High School Rodeo Association"
-    : "";
+  const homeData = await safeFetch(`${API_BASE}/${tenantSlug}/home`);
+
+  const tenant = homeData?.tenant || null;
+  const announcements = homeData?.announcements || [];
+  const rodeos = homeData?.upcomingRodeos || [];
+  const galleryAlbums = homeData?.galleryAlbums || [];
 
   const nextThree = Array.isArray(rodeos) ? rodeos.slice(0, 3) : [];
 
   return (
     <>
-      <HomeHero tenantName={tenantName} />
+      {/* HERO */}
+      <HomeHero tenant={tenant} />
 
+      {/* HIGHLIGHTS */}
       <HomeHighlights rodeos={nextThree} announcements={announcements} />
 
+      {/* MISSION */}
       <HomeMission tenantSlug={tenantSlug} />
 
+      {/* GALLERY */}
       <RodeoGallery albums={galleryAlbums} tenantSlug={tenantSlug} />
 
+      {/* SPONSORS */}
       <section className="py-16 bg-gray-50">
         <div className="max-w-6xl mx-auto px-6">
           <h2 className="text-2xl font-semibold text-center mb-8">
@@ -86,6 +108,7 @@ export default async function TenantHomePage(props) {
         </div>
       </section>
 
+      {/* CTA */}
       <HomeCTA tenantSlug={tenantSlug} />
     </>
   );
