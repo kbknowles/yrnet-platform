@@ -59,7 +59,7 @@ export default function Footer({ tenant }) {
             <Link
               key={p.slug}
               href={`/${tenant?.slug}/${p.slug}`}
-              className="text-gray-200 hover:text-accent transition"
+              className="footer-menu text-gray-200 hover:text-accent transition"
             >
               {p.slug?.toUpperCase()}
             </Link>

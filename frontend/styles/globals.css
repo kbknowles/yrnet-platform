@@ -24,6 +24,12 @@ body {
   
 }
 
+.footer-menu li:not(:last-child)::after {
+  content: " . ";
+  margin: 0 6px;
+}
+
+
 h1,
 h2,
 h3,
