@@ -54,16 +54,19 @@ export default function Footer({ tenant }) {
           )}
         </div>
 
-        <nav className="flex flex-wrap justify-center gap-4">
-          {pages.map((p) => (
-            <Link
-              key={p.slug}
-              href={`/${tenant?.slug}/${p.slug}`}
-              className="footer-menu text-gray-200 hover:text-accent transition"
-            >
-              {p.slug?.toUpperCase()}
-            </Link>
-          ))}
+        <nav>
+          <ul className="footer-menu flex flex-wrap justify-center">
+            {pages.map((p) => (
+              <li key={p.slug}>
+                <Link
+                  href={`/${tenant?.slug}/${p.slug}`}
+                  className="text-gray-200 hover:text-accent transition"
+                >
+                  {p.slug?.toUpperCase()}
+                </Link>
+              </li>
+            ))}
+          </ul>
         </nav>
 
         <div className="space-y-1">
