@@ -1,4 +1,24 @@
+// filepath: frontend/app/[tenantSlug]/admin/settings/page.js
+
 "use client";
+
+/*
+  Tenant Settings Page
+  -------------------------------------------------------
+  Allows tenant administrators to manage:
+
+  - Basic tenant info
+  - Brand colors
+  - Logo upload
+  - Hero section configuration
+  - Hero image upload
+
+  Images are stored on the Render disk at:
+
+  /uploads/tenants/{tenantSlug}/images/{filename}
+
+  Only the filename is stored in the database.
+*/
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
@@ -14,9 +34,18 @@ export default function TenantSettingsPage() {
     : params?.tenantSlug;
 
   const [settings, setSettings] = useState(null);
+
   const [logoFile, setLogoFile] = useState(null);
+  const [heroFile, setHeroFile] = useState(null);
+
   const [logoPreview, setLogoPreview] = useState(null);
+  const [heroPreview, setHeroPreview] = useState(null);
+
   const [loading, setLoading] = useState(true);
+
+  /* ---------------- */
+  /* LOAD SETTINGS */
+  /* ---------------- */
 
   async function load() {
     if (!tenantSlug) return;
@@ -32,6 +61,8 @@ export default function TenantSettingsPage() {
 
       setSettings(data);
 
+      /* Logo preview */
+
       if (data.logoUrl) {
         const url = resolveTenantMedia({
           tenantSlug,
@@ -40,6 +71,18 @@ export default function TenantSettingsPage() {
         });
 
         setLogoPreview(url);
+      }
+
+      /* Hero preview */
+
+      if (data.heroImageUrl) {
+        const url = resolveTenantMedia({
+          tenantSlug,
+          folder: "images",
+          filename: data.heroImageUrl,
+        });
+
+        setHeroPreview(url);
       }
     } catch {
     } finally {
@@ -51,12 +94,20 @@ export default function TenantSettingsPage() {
     load();
   }, [tenantSlug]);
 
+  /* ---------------- */
+  /* UPDATE FORM FIELD */
+  /* ---------------- */
+
   function updateField(field, value) {
     setSettings((prev) => ({
       ...prev,
       [field]: value,
     }));
   }
+
+  /* ---------------- */
+  /* SAVE SETTINGS */
+  /* ---------------- */
 
   async function save() {
     await fetch(`${API_BASE}/${tenantSlug}/admin/settings`, {
@@ -67,6 +118,10 @@ export default function TenantSettingsPage() {
 
     alert("Settings saved");
   }
+
+  /* ---------------- */
+  /* LOGO UPLOAD */
+  /* ---------------- */
 
   async function uploadLogo() {
     if (!logoFile) return;
@@ -107,6 +162,51 @@ export default function TenantSettingsPage() {
     setLogoFile(null);
   }
 
+  /* ---------------- */
+  /* HERO IMAGE UPLOAD */
+  /* ---------------- */
+
+  async function uploadHero() {
+    if (!heroFile) return;
+
+    const formData = new FormData();
+    formData.append("hero", heroFile);
+
+    const res = await fetch(
+      `${API_BASE}/${tenantSlug}/admin/settings/hero`,
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+    if (!res.ok) {
+      alert("Upload failed");
+      return;
+    }
+
+    const data = await res.json();
+
+    if (data.heroImageUrl) {
+      const url = resolveTenantMedia({
+        tenantSlug,
+        folder: "images",
+        filename: data.heroImageUrl,
+      });
+
+      setHeroPreview(url);
+
+      setSettings((prev) => ({
+        ...prev,
+        heroImageUrl: data.heroImageUrl,
+      }));
+    }
+
+    setHeroFile(null);
+  }
+
+  /* ---------------- */
+
   if (loading) return <div className="p-6">Loading…</div>;
   if (!settings) return <div className="p-6">Unable to load settings.</div>;
 
@@ -114,11 +214,16 @@ export default function TenantSettingsPage() {
     <main className="max-w-4xl mx-auto p-6 space-y-8">
       <h1 className="text-2xl font-bold">Tenant Settings</h1>
 
+      {/* ---------------- */}
+      {/* BASIC INFO */}
+      {/* ---------------- */}
+
       <div className="space-y-4 border rounded p-6">
         <h2 className="font-semibold">Basic Information</h2>
 
         <div>
           <label className="text-sm font-medium">Name</label>
+
           <input
             className="border rounded p-2 w-full"
             value={settings.name || ""}
@@ -128,6 +233,7 @@ export default function TenantSettingsPage() {
 
         <div>
           <label className="text-sm font-medium">Slug</label>
+
           <input
             className="border rounded p-2 w-full bg-gray-100"
             value={settings.slug || ""}
@@ -137,6 +243,7 @@ export default function TenantSettingsPage() {
 
         <div>
           <label className="text-sm font-medium">Domain</label>
+
           <input
             className="border rounded p-2 w-full"
             value={settings.domain || ""}
@@ -144,6 +251,10 @@ export default function TenantSettingsPage() {
           />
         </div>
       </div>
+
+      {/* ---------------- */}
+      {/* COLORS */}
+      {/* ---------------- */}
 
       <div className="space-y-4 border rounded p-6">
         <h2 className="font-semibold">Colors</h2>
@@ -167,6 +278,87 @@ export default function TenantSettingsPage() {
         />
       </div>
 
+      {/* ---------------- */}
+      {/* HERO SETTINGS */}
+      {/* ---------------- */}
+
+      <div className="space-y-4 border rounded p-6">
+        <h2 className="font-semibold">Hero Section</h2>
+
+        {heroPreview && (
+          <img
+            src={heroPreview}
+            alt="Hero preview"
+            className="w-full max-h-60 object-cover rounded"
+          />
+        )}
+
+        <input
+          type="file"
+          onChange={(e) => setHeroFile(e.target.files?.[0] || null)}
+        />
+
+        <button
+          onClick={uploadHero}
+          className="bg-primary text-white px-4 py-2 rounded"
+        >
+          Upload Hero Image
+        </button>
+
+        <div>
+          <label className="text-sm font-medium">Hero Title</label>
+
+          <input
+            className="border rounded p-2 w-full"
+            value={settings.heroTitle || ""}
+            onChange={(e) => updateField("heroTitle", e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label className="text-sm font-medium">Hero Subtitle</label>
+
+          <input
+            className="border rounded p-2 w-full"
+            value={settings.heroSubtitle || ""}
+            onChange={(e) => updateField("heroSubtitle", e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label className="text-sm font-medium">CTA Text</label>
+
+          <input
+            className="border rounded p-2 w-full"
+            value={settings.heroCtaText || ""}
+            onChange={(e) => updateField("heroCtaText", e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label className="text-sm font-medium">CTA Link</label>
+
+          <input
+            className="border rounded p-2 w-full"
+            value={settings.heroCtaLink || ""}
+            onChange={(e) => updateField("heroCtaLink", e.target.value)}
+          />
+        </div>
+
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={settings.heroEnabled ?? true}
+            onChange={(e) => updateField("heroEnabled", e.target.checked)}
+          />
+          Enable Hero
+        </label>
+      </div>
+
+      {/* ---------------- */}
+      {/* LOGO */}
+      {/* ---------------- */}
+
       <div className="space-y-4 border rounded p-6">
         <h2 className="font-semibold">Logo</h2>
 
@@ -183,10 +375,6 @@ export default function TenantSettingsPage() {
           onChange={(e) => setLogoFile(e.target.files?.[0] || null)}
         />
 
-        <p className="text-xs text-gray-500">
-          Recommended size: 512×512 PNG
-        </p>
-
         <button
           onClick={uploadLogo}
           className="bg-primary text-white px-4 py-2 rounded"
@@ -194,6 +382,8 @@ export default function TenantSettingsPage() {
           Upload Logo
         </button>
       </div>
+
+      {/* ---------------- */}
 
       <div>
         <button
@@ -206,6 +396,10 @@ export default function TenantSettingsPage() {
     </main>
   );
 }
+
+/* ---------------- */
+/* COLOR ROW */
+/* ---------------- */
 
 function ColorRow({ label, value, onChange }) {
   const color = value || "#000000";

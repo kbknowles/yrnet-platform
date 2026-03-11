@@ -89,6 +89,14 @@ model Tenant {
 
   theme          String?   // future theme system
 
+
+  heroEnabled    Boolean @default(true)
+  heroImageUrl   String?
+  heroTitle      String?
+  heroSubtitle   String?
+  heroCtaText    String?
+  heroCtaLink    String?
+ 
   seasons        Season[]
   locations      Location[]
   callInPolicies CallInPolicy[]
