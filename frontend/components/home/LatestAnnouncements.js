@@ -1,8 +1,24 @@
 // filepath: frontend/components/home/LatestAnnouncements.js
+
 "use client";
 
+/*
+  LatestAnnouncements
+  -------------------------------------------------------
+  Displays recent announcements on the homepage.
+
+  Announcement images are stored using the pattern:
+
+  /uploads/tenants/{tenantSlug}/announcements/{announcementId}/{filename}
+
+  Only the filename is stored in the database, so the
+  resolveTenantMedia helper must include the recordId.
+*/
+
 import Link from "next/link";
+import Image from "next/image";
 import { useTenantSlug } from "hooks/useTenantSlug";
+import { resolveTenantMedia } from "lib/media";
 
 export default function LatestAnnouncements({ announcements = [] }) {
   const tenantSlug = useTenantSlug();
@@ -24,39 +40,63 @@ export default function LatestAnnouncements({ announcements = [] }) {
       <h2 className="text-xl font-semibold">Announcements</h2>
 
       <div className="space-y-3">
-        {sorted.map((a) => (
-          <div
-            key={a.id}
-            className={`rounded border p-4 ${
-              a.priority === "important"
-                ? "border-red-700 bg-red-50"
-                : "bg-white"
-            }`}
-          >
-            <div className="font-semibold">{a.title}</div>
+        {sorted.map((a) => {
+          const imageUrl = a.imageUrl
+            ? resolveTenantMedia({
+                tenantSlug,
+                folder: "announcements",
+                filename: a.imageUrl,
+                recordId: a.id,
+              })
+            : null;
 
-            {(a.publishAt || a.createdAt) && (
-              <div className="text-xs text-gray-500 mt-1">
-                {new Date(
-                  a.publishAt || a.createdAt
-                ).toLocaleDateString()}
+          return (
+            <div
+              key={a.id}
+              className={`rounded border p-4 ${
+                a.priority === "important"
+                  ? "border-red-700 bg-red-50"
+                  : "bg-white"
+              }`}
+            >
+              <div className="font-semibold">{a.title}</div>
+
+              {(a.publishAt || a.createdAt) && (
+                <div className="text-xs text-gray-500 mt-1">
+                  {new Date(
+                    a.publishAt || a.createdAt
+                  ).toLocaleDateString()}
+                </div>
+              )}
+
+              {imageUrl && (
+                <div className="mt-3">
+                  <Image
+                    src={imageUrl}
+                    alt={a.title}
+                    width={800}
+                    height={400}
+                    className="w-full rounded object-cover"
+                    unoptimized
+                  />
+                </div>
+              )}
+
+              <div className="text-sm text-gray-600 mt-2">
+                {a.content}
               </div>
-            )}
 
-            <div className="text-sm text-gray-600 mt-2">
-              {a.content}
+              {a.slug && (
+                <Link
+                  href={`/${tenantSlug}/announcements/${a.slug}`}
+                  className="text-sm text-primary hover:underline mt-2 inline-block"
+                >
+                  Read More →
+                </Link>
+              )}
             </div>
-
-            {a.slug && (
-              <Link
-                href={`/${tenantSlug}/announcements/${a.slug}`}
-                className="text-sm text-primary hover:underline mt-2 inline-block"
-              >
-                Read More →
-              </Link>
-            )}
-          </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );
