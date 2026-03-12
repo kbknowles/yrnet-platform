@@ -12,7 +12,7 @@ import adminRodeosRouter from "./admin/rodeos.js";
 import adminRodeoScheduleRouter from "./admin/rodeoSchedule.js";
 import adminRodeoContactsRouter from "./admin/rodeoContacts.js";
 import adminAnnouncementsRouter from "./admin/announcements.js";
-import adminAnnouncementUploadRouter from "./admin/announcementUpload.js";
+import adminAnnouncementUploadRouter from "./admin/announcementUploads.js";
 import adminOfficersRouter from "./admin/officers.js";
 import adminSponsorsRouter from "./admin/sponsors.js";
 import adminSponsorshipsRouter from "./admin/sponsorships.js";

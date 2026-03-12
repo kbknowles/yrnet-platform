@@ -111,8 +111,17 @@ export default function AdminAnnouncementsPage() {
             content: announcement.content || "",
             mode: "POSTER",
             published: false,
+            sortOrder: Number(announcement.sortOrder) || 0,
+            seasonId: announcement.seasonId ? Number(announcement.seasonId) : null,
+            rodeoId: announcement.eventId ? Number(announcement.eventId) : null,
           }),
         });
+
+        if (!res.ok) {
+          const text = await res.text();
+          console.error("Create announcement error:", text);
+          throw new Error("Failed to create announcement");
+        }
 
         announcement = await res.json();
         setActive((prev) => ({ ...prev, id: announcement.id }));
@@ -120,10 +129,10 @@ export default function AdminAnnouncementsPage() {
 
       const form = new FormData();
       form.append("file", file);
-      form.append("announcementId", announcement.id);
+      form.append("announcementId", String(announcement.id));
 
       const uploadRes = await fetch(
-        `${API_BASE}/${tenantSlug}/admin/announcements/`,
+        `${API_BASE}/${tenantSlug}/admin/announcements/upload`,
         { method: "POST", body: form }
       );
 
@@ -136,6 +145,7 @@ export default function AdminAnnouncementsPage() {
       const data = await uploadRes.json();
 
       setActive((prev) => ({ ...prev, imageUrl: data.imageUrl }));
+      await loadAll();
     } catch (err) {
       console.error("Poster upload failed", err);
       alert("Poster upload failed. Check server logs.");

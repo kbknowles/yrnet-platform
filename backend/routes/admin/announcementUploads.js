@@ -1,22 +1,18 @@
 // filepath: backend/routes/admin/announcementUploads.js
 
 /*
-  Announcement Poster Upload Route
+  Announcement Upload Route
   -------------------------------------------------------
-  Handles poster uploads for announcements.
+  Uploads announcement media using flat tenant structure.
 
-  Media architecture (KBDev Engine standard):
+  Media architecture
 
   /uploads/tenants/{tenantSlug}/announcements/{filename}
 
-  Rules:
+  Rules
   • No recordId folders
-  • Unique filename generated at upload
-  • Database stores filename only
-  • Frontend resolves URL using resolveTenantMedia()
-
-  Example saved file:
-  /uploads/tenants/ahsra/announcements/1719943321-poster.png
+  • DB stores filename only
+  • announcementId is sent in FormData
 */
 
 import express from "express";
@@ -29,12 +25,12 @@ import { resolveTenant } from "../../middleware/resolveTenant.js";
 const router = express.Router({ mergeParams: true });
 
 /*
-  Upload root directory
+  Upload root
 */
 const UPLOAD_ROOT = process.env.UPLOAD_ROOT || path.resolve("uploads");
 
 /*
-  Allowed MIME types
+  Allowed file types
 */
 const ALLOWED_TYPES = [
   "image/png",
@@ -44,10 +40,6 @@ const ALLOWED_TYPES = [
 
 /*
   Multer storage configuration
-  -------------------------------------------------------
-  Files are saved to:
-
-  /uploads/tenants/{tenantSlug}/announcements/
 */
 const storage = multer.diskStorage({
   destination(req, file, cb) {
@@ -71,18 +63,15 @@ const storage = multer.diskStorage({
     cb(null, dir);
   },
 
-  /*
-    Generate unique filename to avoid caching issues
-  */
   filename(req, file, cb) {
     const ext = path.extname(file.originalname).toLowerCase();
-    const uniqueName = `${Date.now()}-poster${ext}`;
-    cb(null, uniqueName);
+    const filename = `${Date.now()}-poster${ext}`;
+    cb(null, filename);
   },
 });
 
 /*
-  Multer upload middleware
+  Multer middleware
 */
 const upload = multer({
   storage,
@@ -90,34 +79,29 @@ const upload = multer({
     if (!ALLOWED_TYPES.includes(file.mimetype)) {
       return cb(new Error("Invalid file type"));
     }
+
     cb(null, true);
   },
 });
 
 /*
-  POST /:tenantSlug/:id/poster
-  -------------------------------------------------------
-  Upload poster image for an announcement.
-
-  Steps:
-  1. Resolve tenant
-  2. Save file to tenant announcement directory
-  3. Store filename in database
+  POST /:tenantSlug/admin/announcements/upload
 */
 router.post(
-  "/:tenantSlug/:id/poster",
+  "/",
   resolveTenant,
   upload.single("file"),
   async (req, res) => {
     try {
-      const id = Number(req.params.id);
+      const announcementId = Number(req.body?.announcementId);
 
-      /*
-        Validate announcement belongs to tenant
-      */
+      if (!announcementId) {
+        return res.status(400).json({ error: "Missing announcementId" });
+      }
+
       const announcement = await prisma.announcement.findFirst({
         where: {
-          id,
+          id: announcementId,
           tenantId: req.tenantId,
         },
       });
@@ -130,23 +114,20 @@ router.post(
         return res.status(400).json({ error: "No file uploaded" });
       }
 
-      /*
-        Store filename in DB
-      */
       const filename = req.file.filename;
 
       await prisma.announcement.update({
-        where: { id },
+        where: { id: announcementId },
         data: { imageUrl: filename },
       });
 
-      res.json({
+      return res.json({
         ok: true,
         imageUrl: filename,
       });
     } catch (err) {
-      console.error("Poster upload failed", err);
-      res.status(500).json({ error: "Upload failed" });
+      console.error("Announcement upload failed", err);
+      return res.status(500).json({ error: "Upload failed" });
     }
   }
 );
