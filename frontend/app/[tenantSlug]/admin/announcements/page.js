@@ -95,48 +95,53 @@ export default function AdminAnnouncementsPage() {
   }
 
   async function uploadPoster(file) {
-    if (!file || !tenantSlug) return;
+    if (!file || !tenantSlug || uploading) return;
 
     setUploading(true);
-    let announcement = active;
 
-    if (!announcement.id) {
-      const res = await fetch(`${API_BASE}/${tenantSlug}/admin/announcements`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: announcement.title || "Untitled Poster",
-          content: announcement.content || "",
-          mode: "POSTER",
-          published: false,
-        }),
-      });
+    try {
+      let announcement = active;
 
-      announcement = await res.json();
-      setActive((prev) => ({ ...prev, id: announcement.id }));
+      if (!announcement.id) {
+        const res = await fetch(`${API_BASE}/${tenantSlug}/admin/announcements`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: announcement.title || "Untitled Poster",
+            content: announcement.content || "",
+            mode: "POSTER",
+            published: false,
+          }),
+        });
+
+        announcement = await res.json();
+        setActive((prev) => ({ ...prev, id: announcement.id }));
+      }
+
+      const form = new FormData();
+      form.append("file", file);
+      form.append("announcementId", announcement.id);
+
+      const uploadRes = await fetch(
+        `${API_BASE}/${tenantSlug}/admin/announcements/`,
+        { method: "POST", body: form }
+      );
+
+      if (!uploadRes.ok) {
+        const text = await uploadRes.text();
+        console.error("Upload error:", text);
+        throw new Error("Poster upload failed");
+      }
+
+      const data = await uploadRes.json();
+
+      setActive((prev) => ({ ...prev, imageUrl: data.imageUrl }));
+    } catch (err) {
+      console.error("Poster upload failed", err);
+      alert("Poster upload failed. Check server logs.");
+    } finally {
+      setUploading(false);
     }
-
-    const form = new FormData();
-    form.append("file", file);
-
-    const uploadRes = await fetch(
-      `${API_BASE}/${tenantSlug}/admin/announcements/upload/${announcement.id}/poster`,
-      { method: "POST", body: form }
-    );
-
-    const data = await uploadRes.json();
-
-    await fetch(`${API_BASE}/${tenantSlug}/admin/announcements/${announcement.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ...announcement,
-        imageUrl: data.imageUrl,
-      }),
-    });
-
-    setActive((prev) => ({ ...prev, imageUrl: data.imageUrl }));
-    setUploading(false);
   }
 
   if (loading) return <p className="p-6">Loading…</p>;
@@ -186,10 +191,7 @@ export default function AdminAnnouncementsPage() {
                 >
                   Edit
                 </button>
-                <button
-                  onClick={() => remove(a.id)}
-                  className="text-red-600"
-                >
+                <button onClick={() => remove(a.id)} className="text-red-600">
                   Delete
                 </button>
               </td>
@@ -209,18 +211,14 @@ export default function AdminAnnouncementsPage() {
               className="w-full border p-2 rounded"
               placeholder="Title"
               value={active.title}
-              onChange={(e) =>
-                setActive({ ...active, title: e.target.value })
-              }
+              onChange={(e) => setActive({ ...active, title: e.target.value })}
             />
 
             <div className="grid grid-cols-2 gap-4">
               <select
                 className="border p-2 rounded"
                 value={active.mode}
-                onChange={(e) =>
-                  setActive({ ...active, mode: e.target.value })
-                }
+                onChange={(e) => setActive({ ...active, mode: e.target.value })}
               >
                 <option value="STANDARD">Standard</option>
                 <option value="POSTER">Poster</option>
@@ -243,7 +241,7 @@ export default function AdminAnnouncementsPage() {
               placeholder={
                 active.mode === "POSTER"
                   ? "Internal description"
-                  : "Content (HTML allowed for links)"
+                  : "Content"
               }
               value={active.content}
               onChange={(e) =>
@@ -266,8 +264,6 @@ export default function AdminAnnouncementsPage() {
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) uploadPoster(file);
-
-                    // reset input so same file can be uploaded again
                     e.target.value = "";
                   }}
                 />
