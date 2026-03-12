@@ -12,11 +12,15 @@ const router = express.Router({ mergeParams: true });
 function deleteFileIfExists(filePath) {
   if (!filePath) return;
 
-  const absolutePath = path.join("/", filePath);
-
   try {
-    if (fs.existsSync(absolutePath)) {
-      fs.unlinkSync(absolutePath);
+    const absolutePath = path.join(
+      process.env.UPLOAD_ROOT || path.resolve("uploads"),
+      "tenants",
+      filePath.includes("/") ? "" : "",
+    );
+
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
     }
   } catch (err) {
     console.error("FILE DELETE ERROR:", err);
@@ -24,8 +28,7 @@ function deleteFileIfExists(filePath) {
 }
 
 /* -------------------------- */
-/* CREATE ALBUM (Tenant Scoped) */
-/* POST /:tenantSlug/admin/gallery */
+/* CREATE ALBUM */
 /* -------------------------- */
 
 router.post("/", resolveTenant, async (req, res) => {
@@ -52,8 +55,7 @@ router.post("/", resolveTenant, async (req, res) => {
 });
 
 /* -------------------------- */
-/* UPDATE ALBUM (Tenant Scoped) */
-/* PUT /:tenantSlug/admin/gallery/:id */
+/* UPDATE ALBUM */
 /* -------------------------- */
 
 router.put("/:id", resolveTenant, async (req, res) => {
@@ -85,8 +87,7 @@ router.put("/:id", resolveTenant, async (req, res) => {
 });
 
 /* -------------------------- */
-/* DELETE ALBUM + IMAGES (Tenant Scoped) */
-/* DELETE /:tenantSlug/admin/gallery/:id */
+/* DELETE ALBUM */
 /* -------------------------- */
 
 router.delete("/:id", resolveTenant, async (req, res) => {
@@ -102,7 +103,19 @@ router.delete("/:id", resolveTenant, async (req, res) => {
       return res.status(404).json({ error: "Album not found" });
     }
 
-    existing.images?.forEach((img) => deleteFileIfExists(img.imageUrl));
+    existing.images?.forEach((img) => {
+      const absolutePath = path.join(
+        process.env.UPLOAD_ROOT || path.resolve("uploads"),
+        "tenants",
+        req.tenant.slug,
+        "gallery",
+        img.imageUrl
+      );
+
+      if (fs.existsSync(absolutePath)) {
+        fs.unlinkSync(absolutePath);
+      }
+    });
 
     await prisma.galleryImage.deleteMany({
       where: { albumId },
@@ -120,8 +133,7 @@ router.delete("/:id", resolveTenant, async (req, res) => {
 });
 
 /* -------------------------- */
-/* LIST ALBUMS + IMAGES (Tenant Scoped) */
-/* GET /:tenantSlug/admin/gallery */
+/* LIST ALBUMS */
 /* -------------------------- */
 
 router.get("/", resolveTenant, async (req, res) => {
@@ -144,8 +156,7 @@ router.get("/", resolveTenant, async (req, res) => {
 });
 
 /* -------------------------- */
-/* UPLOAD IMAGE TO ALBUM (Tenant Scoped) */
-/* POST /:tenantSlug/admin/gallery/:id/images */
+/* UPLOAD IMAGE */
 /* -------------------------- */
 
 router.post(
@@ -168,12 +179,11 @@ router.post(
         return res.status(404).json({ error: "Album not found" });
       }
 
-      const imageUrl = `/uploads/tenants/${req.tenant.slug}/gallery/${req.file.filename}`;
-
+      /* STORE FILENAME ONLY */
       const image = await prisma.galleryImage.create({
         data: {
           albumId,
-          imageUrl,
+          imageUrl: req.file.filename,
           caption: req.body.caption || null,
           sortOrder: req.body.sortOrder ? Number(req.body.sortOrder) : 0,
         },
@@ -188,8 +198,7 @@ router.post(
 );
 
 /* -------------------------- */
-/* UPDATE IMAGE SORT ORDER (Tenant Scoped) */
-/* PUT /:tenantSlug/admin/gallery/images/:id/order */
+/* UPDATE IMAGE ORDER */
 /* -------------------------- */
 
 router.put("/images/:id/order", resolveTenant, async (req, res) => {
@@ -220,8 +229,7 @@ router.put("/images/:id/order", resolveTenant, async (req, res) => {
 });
 
 /* -------------------------- */
-/* DELETE IMAGE (Tenant Scoped) */
-/* DELETE /:tenantSlug/admin/gallery/images/:id */
+/* DELETE IMAGE */
 /* -------------------------- */
 
 router.delete("/images/:id", resolveTenant, async (req, res) => {
@@ -239,7 +247,17 @@ router.delete("/images/:id", resolveTenant, async (req, res) => {
       return res.status(404).json({ error: "Image not found" });
     }
 
-    deleteFileIfExists(image.imageUrl);
+    const absolutePath = path.join(
+      process.env.UPLOAD_ROOT || path.resolve("uploads"),
+      "tenants",
+      req.tenant.slug,
+      "gallery",
+      image.imageUrl
+    );
+
+    if (fs.existsSync(absolutePath)) {
+      fs.unlinkSync(absolutePath);
+    }
 
     await prisma.galleryImage.delete({
       where: { id: imageId },

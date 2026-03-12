@@ -87,18 +87,25 @@ router.get("/", resolveTenant, async (req, res) => {
           },
         }),
 
-        prisma.rodeo.findMany({
-          where: { tenantId, status: "published" },
-          orderBy: { startDate: "asc" },
-          take: 6,
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-            startDate: true,
-            endDate: true,
-          },
-        }),
+prisma.rodeo.findMany({
+  where: {
+    tenantId,
+    status: "published",
+    startDate: { gte: now },
+  },
+  orderBy: [
+    { startDate: "asc" },
+    { name: "asc" }
+  ],
+  take: 6,
+  select: {
+    id: true,
+    name: true,
+    slug: true,
+    startDate: true,
+    endDate: true,
+  },
+}),
 
         prisma.sponsor.findMany({
           where: { tenantId, active: true },
