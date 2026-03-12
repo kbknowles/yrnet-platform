@@ -10,13 +10,22 @@ import "swiper/css";
 import "swiper/css/zoom";
 import "swiper/css/navigation";
 
-function resolvePoster(filename, tenantSlug) {
+/*
+  Poster resolver using KBDev Engine media standard.
+
+  Media structure:
+  /uploads/tenants/{tenantSlug}/announcements/{announcementId}/{filename}
+
+  DB stores filename only.
+*/
+function resolvePoster(filename, tenantSlug, id) {
   if (!filename) return null;
 
   return resolveTenantMedia({
     tenantSlug,
-    folder: "images",
+    folder: "announcements",
     filename,
+    recordId: id,
   });
 }
 
@@ -31,7 +40,7 @@ export default function PosterGallery({ posters = [], tenantSlug }) {
       {/* GRID */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {safePosters.map((p, i) => {
-          const src = resolvePoster(p.imageUrl, tenantSlug);
+          const src = resolvePoster(p.imageUrl, tenantSlug, p.id);
 
           return (
             <button
@@ -77,7 +86,7 @@ export default function PosterGallery({ posters = [], tenantSlug }) {
             className="w-full h-full"
           >
             {safePosters.map((p, i) => {
-              const src = resolvePoster(p.imageUrl, tenantSlug);
+              const src = resolvePoster(p.imageUrl, tenantSlug, p.id);
 
               return (
                 <SwiperSlide key={p.id || i}>

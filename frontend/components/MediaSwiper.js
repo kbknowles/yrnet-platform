@@ -1,6 +1,35 @@
 // filepath: frontend/components/MediaSwiper.js
 "use client";
 
+/*
+  MediaSwiper
+  -------------------------------------------------------
+  Reusable media gallery component used across KBDev
+  vertical platforms (YRNet · LocalPulse · TravelLocal).
+
+  Responsibilities
+  • Display thumbnail grid
+  • Open full-screen swiper viewer
+  • Resolve tenant media paths using the KBDev media system
+
+  Media architecture:
+
+  /uploads/tenants/{tenantSlug}/{folder}/{filename}
+
+  Examples:
+
+  /uploads/tenants/ahsra/announcements/1719943321-poster.png
+  /uploads/tenants/ahsra/gallery/1719944500-barrel.jpg
+  /uploads/tenants/ahsra/sponsors/1719945011-logo.png
+
+  Rules:
+
+  • DB stores filename only
+  • Upload middleware generates unique filenames
+  • No recordId folders are used
+  • Media folders are flat per tenant
+*/
+
 import { useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Zoom, Navigation } from "swiper/modules";
@@ -10,6 +39,12 @@ import "swiper/css";
 import "swiper/css/zoom";
 import "swiper/css/navigation";
 
+/*
+  Resolve media source using shared resolver.
+
+  folder defaults to "images" so the component can be
+  reused for galleries, sponsors, announcements, etc.
+*/
 function resolveSrc(src, tenantSlug, folder = "images") {
   if (!src) return "";
 
@@ -67,7 +102,7 @@ export default function MediaSwiper({
         })}
       </div>
 
-      {/* MODAL */}
+      {/* MODAL VIEWER */}
       {open && (
         <div className="fixed inset-0 z-50 bg-black">
           <button

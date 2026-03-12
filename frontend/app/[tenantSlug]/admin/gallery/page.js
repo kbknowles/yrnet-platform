@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { resolveTenantMedia } from "lib/media";
 
 export default function AdminGalleryPage() {
   const API_BASE = process.env.NEXT_PUBLIC_API_URL;
@@ -151,6 +152,7 @@ export default function AdminGalleryPage() {
               <th className="p-3 border w-48">Actions</th>
             </tr>
           </thead>
+
           <tbody>
             <tr className="bg-blue-50">
               <td className="p-2 border">
@@ -161,6 +163,7 @@ export default function AdminGalleryPage() {
                   onChange={(e) => setTitle(e.target.value)}
                 />
               </td>
+
               <td className="p-2 border">
                 <input
                   className="w-full border rounded p-1"
@@ -169,6 +172,7 @@ export default function AdminGalleryPage() {
                   onChange={(e) => setSeasonId(e.target.value)}
                 />
               </td>
+
               <td className="p-2 border">
                 <button
                   onClick={createAlbum}
@@ -190,6 +194,7 @@ export default function AdminGalleryPage() {
                   >
                     Manage Photos
                   </button>
+
                   <button
                     onClick={() => deleteAlbum(a.id)}
                     className="text-red-600 text-xs"
@@ -214,10 +219,12 @@ export default function AdminGalleryPage() {
       {activeAlbum && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
           <div className="bg-white w-full max-w-3xl rounded shadow-lg p-6 max-h-[90vh] overflow-y-auto">
+
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold">
                 Photos — {activeAlbum.title}
               </h2>
+
               <button
                 onClick={() => setActiveAlbum(null)}
                 className="text-gray-500"
@@ -232,12 +239,14 @@ export default function AdminGalleryPage() {
                   type="file"
                   onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
                 />
+
                 <input
                   className="border rounded p-2"
                   placeholder="Caption (optional)"
                   value={caption}
                   onChange={(e) => setCaption(e.target.value)}
                 />
+
                 <button
                   onClick={uploadImage}
                   className="bg-primary text-white rounded px-3 py-2 text-sm"
@@ -248,33 +257,39 @@ export default function AdminGalleryPage() {
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {(activeAlbum.images || []).map((img) => (
-                <div
-                  key={img.id}
-                  className="border rounded overflow-hidden bg-gray-100"
-                >
-                  <img
-                    src={
-                      img.imageUrl?.startsWith("http")
-                        ? img.imageUrl
-                        : `${API_BASE}${img.imageUrl}`
-                    }
-                    alt={img.caption || ""}
-                    className="h-32 w-full object-cover"
-                  />
-                  <div className="p-2 text-xs flex justify-between">
-                    <span className="truncate">
-                      {img.caption || "—"}
-                    </span>
-                    <button
-                      onClick={() => deleteImage(img.id)}
-                      className="text-red-600"
-                    >
-                      ✕
-                    </button>
+              {(activeAlbum.images || []).map((img) => {
+                const src = resolveTenantMedia({
+                  tenantSlug,
+                  folder: "gallery",
+                  filename: img.imageUrl,
+                });
+
+                return (
+                  <div
+                    key={img.id}
+                    className="border rounded overflow-hidden bg-gray-100"
+                  >
+                    <img
+                      src={src}
+                      alt={img.caption || ""}
+                      className="h-32 w-full object-cover"
+                    />
+
+                    <div className="p-2 text-xs flex justify-between">
+                      <span className="truncate">
+                        {img.caption || "—"}
+                      </span>
+
+                      <button
+                        onClick={() => deleteImage(img.id)}
+                        className="text-red-600"
+                      >
+                        ✕
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
 
               {(activeAlbum.images || []).length === 0 && (
                 <div className="col-span-full text-center text-gray-500 py-6">

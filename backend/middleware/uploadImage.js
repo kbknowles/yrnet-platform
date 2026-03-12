@@ -1,9 +1,35 @@
 // filepath: backend/middleware/uploadImage.js
 
+/*
+  KBDev Engine Media Upload Middleware
+  -------------------------------------------------------
+  Standardized upload system used across all KBDev verticals
+  (YRNet, LocalPulse, TravelLocal, etc.)
+
+  Media Structure
+
+  /uploads/tenants/{tenantSlug}/
+      images/
+      videos/
+
+  Files are stored using unique filenames to avoid collisions.
+
+  Example:
+  /uploads/tenants/ahsra/images/1719943321-poster.png
+
+  Database stores ONLY the filename:
+  posterUrl = "1719943321-poster.png"
+
+  Frontend resolves paths via resolveTenantMedia().
+*/
+
 import multer from "multer";
 import path from "path";
 import fs from "fs";
 
+/*
+  Ensure directory exists before saving file
+*/
 function ensureDir(dir) {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
@@ -11,6 +37,9 @@ function ensureDir(dir) {
 }
 
 const storage = multer.diskStorage({
+  /*
+    Determine upload destination
+  */
   destination: (req, file, cb) => {
     try {
       const tenantSlug = req.params?.tenantSlug || req.tenantSlug;
@@ -41,17 +70,35 @@ const storage = multer.diskStorage({
     }
   },
 
+  /*
+    Generate unique filename
+
+    Format:
+    timestamp-random.ext
+
+    Example:
+    1719943321-482938473.png
+  */
   filename: (_, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
+
     const uniqueName = `${Date.now()}-${Math.round(
       Math.random() * 1e9
     )}${ext}`;
+
     cb(null, uniqueName);
   },
 });
 
+/*
+  Multer configuration
+*/
 const uploadImage = multer({
   storage,
+
+  /*
+    File type validation
+  */
   fileFilter: (_, file, cb) => {
     if (
       file.mimetype.startsWith("image/") ||
@@ -64,6 +111,10 @@ const uploadImage = multer({
       cb(new Error("Only images and short videos allowed"));
     }
   },
+
+  /*
+    Max upload size: 50MB
+  */
   limits: { fileSize: 50 * 1024 * 1024 },
 });
 

@@ -62,6 +62,14 @@ export default async function RodeoPage({ params }) {
     rodeo.announcements?.slice().sort((a, b) => a.sortOrder - b.sortOrder) ||
     [];
 
+  /*
+    Poster announcements use tenant media resolver.
+
+    Storage structure:
+    /uploads/tenants/{tenantSlug}/announcements/{announcementId}/{filename}
+
+    DB stores filename only.
+  */
   const posters = announcements
     .filter((a) => a.mode === "POSTER" && a.imageUrl)
     .map((a) => ({
@@ -70,7 +78,6 @@ export default async function RodeoPage({ params }) {
         tenantSlug,
         folder: "announcements",
         filename: a.imageUrl,
-        recordId: a.id,
       }),
     }));
 

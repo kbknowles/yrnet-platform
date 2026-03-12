@@ -258,11 +258,18 @@ export default function AdminAnnouncementsPage() {
                     Uploaded: {active.imageUrl}
                   </p>
                 )}
+
                 <input
                   type="file"
                   accept=".png,.jpg,.jpeg,.pdf"
                   disabled={uploading}
-                  onChange={(e) => uploadPoster(e.target.files?.[0])}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) uploadPoster(file);
+
+                    // reset input so same file can be uploaded again
+                    e.target.value = "";
+                  }}
                 />
               </>
             )}

@@ -1,12 +1,41 @@
 // filepath: frontend/components/home/HomeHighlights.js
 "use client";
 
+/*
+  HomeHighlights
+  -------------------------------------------------------
+  Homepage module displaying:
+
+  • Upcoming rodeos
+  • Featured announcement
+
+  Uses KBDev Engine media system.
+
+  Media architecture:
+
+  /uploads/tenants/{tenantSlug}/{folder}/{filename}
+
+  Example:
+
+  /uploads/tenants/ahsra/announcements/1719943321-poster.png
+
+  Rules:
+
+  • DB stores filename only
+  • Upload middleware generates unique filenames
+  • No recordId folders
+  • All media resolved through resolveTenantMedia()
+*/
+
 import Link from "next/link";
 import { useTenantSlug } from "hooks/useTenantSlug";
 import { resolveTenantMedia } from "lib/media";
 
+/*
+  Resolve announcement image using KBDev media resolver.
+*/
 function resolveAnnouncementImage(filename, tenantSlug) {
-  if (!filename) return "";
+  if (!filename || !tenantSlug) return "";
 
   return resolveTenantMedia({
     tenantSlug,
@@ -21,6 +50,9 @@ export default function HomeHighlights({ rodeos, announcements }) {
   const safeRodeos = Array.isArray(rodeos) ? rodeos : [];
   const safeAnnouncements = Array.isArray(announcements) ? announcements : [];
 
+  /*
+    Sort announcements newest first
+  */
   const sorted = [...safeAnnouncements].sort((a, b) => {
     const aDate = new Date(a.publishAt || a.createdAt);
     const bDate = new Date(b.publishAt || b.createdAt);
@@ -32,6 +64,11 @@ export default function HomeHighlights({ rodeos, announcements }) {
   const featuredHref = featured?.rodeo?.slug
     ? `/${tenantSlug}/rodeos/${featured.rodeo.slug}`
     : `/${tenantSlug}/announcements`;
+
+  const featuredImage =
+    featured?.mode === "POSTER" && featured?.imageUrl
+      ? resolveAnnouncementImage(featured.imageUrl, tenantSlug)
+      : null;
 
   return (
     <section className="w-full mt-1">
@@ -100,18 +137,17 @@ export default function HomeHighlights({ rodeos, announcements }) {
             {featured ? (
               <div className="rounded-md shadow-sm overflow-hidden">
 
-                {featured.mode === "POSTER" && featured.imageUrl ? (
+                {/* Poster Announcement */}
+                {featuredImage ? (
                   <Link href={featuredHref}>
                     <img
-                      src={resolveAnnouncementImage(
-                        featured.imageUrl,
-                        tenantSlug
-                      )}
+                      src={featuredImage}
                       alt={featured.title || "Announcement"}
                       className="w-full max-h-[420px] object-contain"
                     />
                   </Link>
                 ) : (
+                  /* Standard Announcement */
                   <div className="p-4 space-y-2">
                     <p className="font-medium">{featured.title}</p>
 
