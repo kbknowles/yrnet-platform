@@ -62,6 +62,9 @@ export default async function RodeoPage({ params }) {
     rodeo.announcements?.slice().sort((a, b) => a.sortOrder - b.sortOrder) ||
     [];
 
+  /*
+    Poster announcements use tenant media resolver.
+  */
   const posters = announcements
     .filter((a) => a.mode === "POSTER" && a.imageUrl)
     .map((a) => ({
@@ -191,9 +194,11 @@ export default async function RodeoPage({ params }) {
 
             {standardAnnouncements.length > 0 && (
               <div className="space-y-5">
-                <h2 className="text-xl font-semibold">Announcements</h2>
+                <h2 className="text-xl font-semibold">
+                  Announcements
+                </h2>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                   {standardAnnouncements.map((a) => (
                     <div
                       key={a.id}
