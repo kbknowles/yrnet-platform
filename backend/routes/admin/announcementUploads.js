@@ -27,7 +27,7 @@ const router = express.Router({ mergeParams: true });
 /*
   Upload root
 */
-const UPLOAD_ROOT = process.env.UPLOAD_ROOT || path.resolve("uploads");
+const UPLOAD_ROOT = "/uploads";
 
 /*
   Allowed file types
