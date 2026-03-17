@@ -13,21 +13,22 @@
   Rules:
   • resolveTenant MUST run first
   • DB stores filename only
-  • PDFs are converted to PNG (no PDFs stored long-term)
+  • PDFs are converted to PNG
+  • Original PDF is deleted after conversion
 */
 
 import express from "express";
 import multer from "multer";
 import fs from "fs";
 import path from "path";
+import { execFile } from "child_process";
 import prisma from "../../prismaClient.mjs";
 import { resolveTenant } from "../../middleware/resolveTenant.js";
-import pdf from "pdf-poppler";
 
 const router = express.Router({ mergeParams: true });
 
 /*
-  Upload root (Render disk)
+  Upload root
 */
 const UPLOAD_ROOT = "/uploads";
 
@@ -50,7 +51,40 @@ function ensureDir(dir) {
 }
 
 /*
-  Multer storage
+  Convert PDF first page to PNG using pdftoppm
+*/
+function convertPdfToPng(pdfPath, outputDir, outputBase) {
+  return new Promise((resolve, reject) => {
+    execFile(
+      "pdftoppm",
+      [
+        "-png",
+        "-f",
+        "1",
+        "-singlefile",
+        pdfPath,
+        path.join(outputDir, outputBase),
+      ],
+      (err) => {
+        if (err) {
+          return reject(err);
+        }
+
+        const pngFilename = `${outputBase}.png`;
+        const pngPath = path.join(outputDir, pngFilename);
+
+        if (!fs.existsSync(pngPath)) {
+          return reject(new Error("PNG conversion failed"));
+        }
+
+        resolve(pngFilename);
+      }
+    );
+  });
+}
+
+/*
+  Multer storage configuration
 */
 const storage = multer.diskStorage({
   destination(req, file, cb) {
@@ -68,14 +102,13 @@ const storage = multer.diskStorage({
     );
 
     ensureDir(dir);
-
     cb(null, dir);
   },
 
   filename(req, file, cb) {
     const ext = path.extname(file.originalname).toLowerCase();
-    const base = `${Date.now()}-poster`;
-    cb(null, `${base}${ext}`);
+    const filename = `${Date.now()}-poster${ext}`;
+    cb(null, filename);
   },
 });
 
@@ -88,6 +121,7 @@ const upload = multer({
     if (!ALLOWED_TYPES.includes(file.mimetype)) {
       return cb(new Error("Invalid file type"));
     }
+
     cb(null, true);
   },
 });
@@ -130,8 +164,8 @@ router.post(
         "announcements"
       );
 
+      const uploadedFilePath = path.join(uploadDir, req.file.filename);
       let finalFilename = req.file.filename;
-      const filePath = path.join(uploadDir, req.file.filename);
 
       /*
         PDF → PNG conversion
@@ -139,25 +173,17 @@ router.post(
       if (req.file.mimetype === "application/pdf") {
         const outputBase = `${Date.now()}-poster`;
 
-        const options = {
-          format: "png",
-          out_dir: uploadDir,
-          out_prefix: outputBase,
-          page: 1,
-        };
+        finalFilename = await convertPdfToPng(
+          uploadedFilePath,
+          uploadDir,
+          outputBase
+        );
 
-        await pdf.convert(filePath, options);
-
-        // Result file: {prefix}-1.png
-        finalFilename = `${outputBase}-1.png`;
-
-        // delete original PDF
-        fs.unlinkSync(filePath);
+        if (fs.existsSync(uploadedFilePath)) {
+          fs.unlinkSync(uploadedFilePath);
+        }
       }
 
-      /*
-        Save to DB
-      */
       await prisma.announcement.update({
         where: { id: announcementId },
         data: { imageUrl: finalFilename },
