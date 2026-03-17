@@ -62,18 +62,6 @@ export default async function RodeoPage({ params }) {
     rodeo.announcements?.slice().sort((a, b) => a.sortOrder - b.sortOrder) ||
     [];
 
-  /*
-    Poster announcements use tenant media resolver.
-
-    Storage structure:
-    /uploads/tenants/{tenantSlug}/announcements/{filename}
-
-    DB stores filename only.
-
-    Supports:
-    - image posters
-    - PDF posters
-  */
   const posters = announcements
     .filter((a) => a.mode === "POSTER" && a.imageUrl)
     .map((a) => ({
@@ -195,10 +183,6 @@ export default async function RodeoPage({ params }) {
 
           {/* RIGHT COLUMN */}
           <div className="lg:col-span-2 space-y-8">
-            {announcements.length > 0 && (
-              <h2 className="text-xl font-semibold">Announcements</h2>
-            )}
-
             {posters.length > 0 && (
               <div className="bg-white rounded-lg shadow-sm border p-4">
                 <MediaSwiper items={posters} />
@@ -207,25 +191,31 @@ export default async function RodeoPage({ params }) {
 
             {standardAnnouncements.length > 0 && (
               <div className="space-y-5">
-                {standardAnnouncements.map((a) => (
-                  <div
-                    key={a.id}
-                    className="bg-white border rounded-lg shadow-sm p-6 border-l-4 border-rose-700"
-                  >
-                    {a.title && (
-                      <div className="font-semibold mb-2">{a.title}</div>
-                    )}
+                <h2 className="text-xl font-semibold">Announcements</h2>
 
-                    {a.content && (
-                      <div
-                        className="text-sm leading-relaxed whitespace-pre-line"
-                        dangerouslySetInnerHTML={{
-                          __html: autoLink(a.content),
-                        }}
-                      />
-                    )}
-                  </div>
-                ))}
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                  {standardAnnouncements.map((a) => (
+                    <div
+                      key={a.id}
+                      className="bg-white border rounded-lg shadow-sm p-6 border-l-4 border-rose-700"
+                    >
+                      {a.title && (
+                        <div className="font-semibold mb-2">
+                          {a.title}
+                        </div>
+                      )}
+
+                      {a.content && (
+                        <div
+                          className="text-sm leading-relaxed whitespace-pre-line"
+                          dangerouslySetInnerHTML={{
+                            __html: autoLink(a.content),
+                          }}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
