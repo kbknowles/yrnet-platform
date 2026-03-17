@@ -34,7 +34,7 @@ app.use("/uploads", express.static("/uploads"));
    API Routes
 ------------------------------ */
 
-app.use("/", routes);
+app.use("/api", routes);
 
 /* -----------------------------
    Health Check
