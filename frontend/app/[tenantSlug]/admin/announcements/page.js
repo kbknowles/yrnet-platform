@@ -54,7 +54,7 @@ export default function AdminAnnouncementsPage() {
   async function save() {
     const payload = {
       ...active,
-      eventId: active.eventId ? Number(active.eventId) : null,
+      rodeoId: active.eventId ? Number(active.eventId) : null, // ✅ FIX
       seasonId: active.seasonId ? Number(active.seasonId) : null,
       sortOrder: Number(active.sortOrder) || 0,
       content: active.content || "",
@@ -113,7 +113,7 @@ export default function AdminAnnouncementsPage() {
             published: false,
             sortOrder: Number(announcement.sortOrder) || 0,
             seasonId: announcement.seasonId ? Number(announcement.seasonId) : null,
-            rodeoId: announcement.eventId ? Number(announcement.eventId) : null,
+            rodeoId: announcement.eventId ? Number(announcement.eventId) : null, // ✅ already correct
           }),
         });
 
@@ -188,7 +188,7 @@ export default function AdminAnnouncementsPage() {
                   onClick={() =>
                     setActive({
                       ...a,
-                      eventId: a.eventId ?? "",
+                      eventId: a.rodeoId ?? "", // ✅ FIX
                       seasonId: a.seasonId ?? "",
                       publishAt: a.publishAt?.slice(0, 16) || "",
                       expireAt: a.expireAt?.slice(0, 16) || "",

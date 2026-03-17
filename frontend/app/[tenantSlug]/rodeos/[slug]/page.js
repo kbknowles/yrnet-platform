@@ -3,13 +3,11 @@
 import Link from "next/link";
 import { formatDate } from "lib/formatDate";
 import SponsorZone from "components/sponsorship/SponsorZone";
-import { resolveTenantMedia } from "lib/media";
+import PosterGallery from "./PosterGallery";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
-/*
-  Convert plain URLs inside text into clickable links.
-*/
+/* -------- AUTO LINK HELPER -------- */
 function autoLink(text) {
   if (!text) return "";
 
@@ -23,7 +21,7 @@ function autoLink(text) {
 }
 
 /*
-  Fetch rodeo from API.
+  Fetch rodeo from API
 */
 async function getRodeo(tenantSlug, slug) {
   if (!slug) return null;
@@ -34,13 +32,11 @@ async function getRodeo(tenantSlug, slug) {
   );
 
   if (!res.ok) return null;
-
   return res.json();
 }
 
 export default async function RodeoPage({ params }) {
   const { tenantSlug, slug } = await params;
-
   const rodeo = await getRodeo(tenantSlug, slug);
 
   if (!rodeo) {
@@ -61,22 +57,13 @@ export default async function RodeoPage({ params }) {
     rodeo.announcements?.slice().sort((a, b) => a.sortOrder - b.sortOrder) ||
     [];
 
-  const gridAnnouncements = announcements.map((a) => {
-    const isPoster = a.mode === "POSTER" && a.imageUrl;
+  const posters = announcements.filter(
+    (a) => a.mode === "POSTER" && a.imageUrl
+  );
 
-    return {
-      ...a,
-      isPoster,
-      mediaUrl: isPoster
-        ? resolveTenantMedia({
-            tenantSlug,
-            folder: "announcements",
-            filename: a.imageUrl,
-          })
-        : null,
-      isPdf: isPoster && a.imageUrl?.toLowerCase().endsWith(".pdf"),
-    };
-  });
+  const standardAnnouncements = announcements.filter(
+    (a) => a.mode !== "POSTER"
+  );
 
   return (
     <main className="bg-gray-50">
@@ -151,86 +138,44 @@ export default async function RodeoPage({ params }) {
                     {fullAddress}
                   </p>
                 </div>
-
-                {fullAddress && (
-                  <div className="space-y-3">
-                    <div className="h-[260px] border rounded-md overflow-hidden">
-                      <iframe
-                        width="100%"
-                        height="100%"
-                        loading="lazy"
-                        src={`https://www.google.com/maps?q=${encodeURIComponent(
-                          fullAddress
-                        )}&output=embed`}
-                      />
-                    </div>
-
-                    <a
-                      href={`https://www.google.com/maps?q=${encodeURIComponent(
-                        fullAddress
-                      )}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-block text-sm text-rose-700 hover:underline"
-                    >
-                      Open in Google Maps
-                    </a>
-                  </div>
-                )}
               </div>
             )}
           </div>
 
           {/* RIGHT COLUMN */}
           <div className="lg:col-span-2 space-y-8">
-            {gridAnnouncements.length > 0 && (
+            {posters.length > 0 && (
+              <PosterGallery
+                posters={posters}
+                tenantSlug={tenantSlug}
+              />
+            )}
+
+            {standardAnnouncements.length > 0 && (
               <div className="space-y-5">
-                <h2 className="text-xl font-semibold">Announcements</h2>
+                <h2 className="text-xl font-semibold">
+                  Announcements
+                </h2>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {gridAnnouncements.map((a) => (
+                  {standardAnnouncements.map((a) => (
                     <div
                       key={a.id}
-                      className="bg-white border rounded-lg shadow-sm overflow-hidden border-l-4"
+                      className="bg-white border rounded-lg shadow-sm p-6 border-l-4 border-rose-700"
                     >
-                      {a.isPoster ? (
-                        <div className="p-4">
-                          {a.title && (
-                            <div className="font-semibold mb-3">{a.title}</div>
-                          )}
-
-                          {a.isPdf ? (
-                            <a
-                              href={a.mediaUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="block text-sm text-rose-700 underline"
-                            >
-                              Open PDF
-                            </a>
-                          ) : (
-                            <img
-                              src={a.mediaUrl}
-                              alt={a.title || "Announcement"}
-                              className="w-full h-auto rounded-md"
-                            />
-                          )}
+                      {a.title && (
+                        <div className="font-semibold mb-2">
+                          {a.title}
                         </div>
-                      ) : (
-                        <div className="p-6">
-                          {a.title && (
-                            <div className="font-semibold mb-2">{a.title}</div>
-                          )}
+                      )}
 
-                          {a.content && (
-                            <div
-                              className="text-sm leading-relaxed whitespace-pre-line"
-                              dangerouslySetInnerHTML={{
-                                __html: autoLink(a.content),
-                              }}
-                            />
-                          )}
-                        </div>
+                      {a.content && (
+                        <div
+                          className="text-sm leading-relaxed whitespace-pre-line"
+                          dangerouslySetInnerHTML={{
+                            __html: autoLink(a.content),
+                          }}
+                        />
                       )}
                     </div>
                   ))}
