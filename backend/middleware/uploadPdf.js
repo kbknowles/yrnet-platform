@@ -13,7 +13,7 @@ function ensureDir(dir) {
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     try {
-      const tenantSlug = req.params?.tenantSlug || req.tenant?.slug;
+      const tenantSlug =   req.params?.tenantSlug || req.tenant?.slug || req.tenantSlug;
 
       if (!tenantSlug) {
         return cb(new Error("Tenant not resolved for PDF upload"));

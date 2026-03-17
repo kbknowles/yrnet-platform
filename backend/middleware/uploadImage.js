@@ -4,7 +4,10 @@
   KBDev Engine Media Upload Middleware
   -------------------------------------------------------
   Standardized upload system used across all KBDev verticals
-  (YRNet, LocalPulse, TravelLocal, etc.)
+
+  REQUIREMENT:
+  - resolveTenant middleware MUST run before this middleware
+  - req.tenant.slug is the single source of truth
 
   Media Structure
 
@@ -12,15 +15,7 @@
       images/
       videos/
 
-  Files are stored using unique filenames to avoid collisions.
-
-  Example:
-  /uploads/tenants/ahsra/images/1719943321-poster.png
-
-  Database stores ONLY the filename:
-  posterUrl = "1719943321-poster.png"
-
-  Frontend resolves paths via resolveTenantMedia().
+  Database stores ONLY filename
 */
 
 import multer from "multer";
@@ -42,7 +37,7 @@ const storage = multer.diskStorage({
   */
   destination: (req, file, cb) => {
     try {
-      const tenantSlug = req.params?.tenantSlug || req.tenantSlug;
+      const tenantSlug = req.tenant?.slug;
 
       if (!tenantSlug) {
         return cb(new Error("Tenant not resolved for upload"));
@@ -72,12 +67,6 @@ const storage = multer.diskStorage({
 
   /*
     Generate unique filename
-
-    Format:
-    timestamp-random.ext
-
-    Example:
-    1719943321-482938473.png
   */
   filename: (_, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();

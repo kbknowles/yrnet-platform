@@ -4,6 +4,17 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 
+/*
+  Gallery Upload Middleware
+  -------------------------------------------------------
+  REQUIREMENT:
+  - resolveTenant MUST run BEFORE this middleware
+  - req.tenant.slug is the single source of truth
+
+  Storage:
+  /uploads/tenants/{tenantSlug}/gallery
+*/
+
 function ensureDir(dir) {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
@@ -12,7 +23,7 @@ function ensureDir(dir) {
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const tenantSlug = req.params?.tenantSlug || req.tenant?.slug;
+    const tenantSlug = req.tenant?.slug;
 
     if (!tenantSlug) {
       return cb(new Error("Tenant not resolved for gallery upload"));
@@ -42,7 +53,7 @@ const storage = multer.diskStorage({
   },
 });
 
-export const upload = multer({
+const upload = multer({
   storage,
   fileFilter: (_, file, cb) => {
     if (file.mimetype.startsWith("image/")) {
@@ -52,3 +63,5 @@ export const upload = multer({
     }
   },
 });
+
+export { upload };

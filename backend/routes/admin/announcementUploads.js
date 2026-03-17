@@ -3,16 +3,17 @@
 /*
   Announcement Upload Route
   -------------------------------------------------------
-  Uploads announcement media using flat tenant structure.
+  Handles:
+  • Image uploads (PNG/JPEG)
+  • PDF uploads → converted to PNG automatically
 
-  Media architecture
-
+  Media architecture:
   /uploads/tenants/{tenantSlug}/announcements/{filename}
 
-  Rules
-  • No recordId folders
+  Rules:
+  • resolveTenant MUST run first
   • DB stores filename only
-  • announcementId is sent in FormData
+  • PDFs are converted to PNG (no PDFs stored long-term)
 */
 
 import express from "express";
@@ -21,11 +22,12 @@ import fs from "fs";
 import path from "path";
 import prisma from "../../prismaClient.mjs";
 import { resolveTenant } from "../../middleware/resolveTenant.js";
+import pdf from "pdf-poppler";
 
 const router = express.Router({ mergeParams: true });
 
 /*
-  Upload root
+  Upload root (Render disk)
 */
 const UPLOAD_ROOT = "/uploads";
 
@@ -39,14 +41,23 @@ const ALLOWED_TYPES = [
 ];
 
 /*
-  Multer storage configuration
+  Ensure directory exists
+*/
+function ensureDir(dir) {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+}
+
+/*
+  Multer storage
 */
 const storage = multer.diskStorage({
   destination(req, file, cb) {
-    const { tenantSlug } = req.params;
+    const tenantSlug = req.tenant?.slug;
 
     if (!tenantSlug) {
-      return cb(new Error("Missing tenantSlug"));
+      return cb(new Error("Tenant not resolved"));
     }
 
     const dir = path.join(
@@ -56,17 +67,15 @@ const storage = multer.diskStorage({
       "announcements"
     );
 
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
+    ensureDir(dir);
 
     cb(null, dir);
   },
 
   filename(req, file, cb) {
     const ext = path.extname(file.originalname).toLowerCase();
-    const filename = `${Date.now()}-poster${ext}`;
-    cb(null, filename);
+    const base = `${Date.now()}-poster`;
+    cb(null, `${base}${ext}`);
   },
 });
 
@@ -79,7 +88,6 @@ const upload = multer({
     if (!ALLOWED_TYPES.includes(file.mimetype)) {
       return cb(new Error("Invalid file type"));
     }
-
     cb(null, true);
   },
 });
@@ -114,16 +122,50 @@ router.post(
         return res.status(400).json({ error: "No file uploaded" });
       }
 
-      const filename = req.file.filename;
+      const tenantSlug = req.tenant.slug;
+      const uploadDir = path.join(
+        UPLOAD_ROOT,
+        "tenants",
+        tenantSlug,
+        "announcements"
+      );
 
+      let finalFilename = req.file.filename;
+      const filePath = path.join(uploadDir, req.file.filename);
+
+      /*
+        PDF → PNG conversion
+      */
+      if (req.file.mimetype === "application/pdf") {
+        const outputBase = `${Date.now()}-poster`;
+
+        const options = {
+          format: "png",
+          out_dir: uploadDir,
+          out_prefix: outputBase,
+          page: 1,
+        };
+
+        await pdf.convert(filePath, options);
+
+        // Result file: {prefix}-1.png
+        finalFilename = `${outputBase}-1.png`;
+
+        // delete original PDF
+        fs.unlinkSync(filePath);
+      }
+
+      /*
+        Save to DB
+      */
       await prisma.announcement.update({
         where: { id: announcementId },
-        data: { imageUrl: filename },
+        data: { imageUrl: finalFilename },
       });
 
       return res.json({
         ok: true,
-        imageUrl: filename,
+        imageUrl: finalFilename,
       });
     } catch (err) {
       console.error("Announcement upload failed", err);
