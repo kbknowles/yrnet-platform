@@ -138,6 +138,32 @@ export default async function RodeoPage({ params }) {
                     {fullAddress}
                   </p>
                 </div>
+
+                {fullAddress && (
+                  <div className="space-y-3">
+                    <div className="h-[260px] border rounded-md overflow-hidden">
+                      <iframe
+                        width="100%"
+                        height="100%"
+                        loading="lazy"
+                        src={`https://maps.google.com/maps?q=${encodeURIComponent(
+                          fullAddress
+                        )}&t=&z=13&ie=UTF8&iwloc=&output=embed`}
+                      />
+                    </div>
+
+                    <a
+                      href={`https://www.google.com/maps?q=${encodeURIComponent(
+                        fullAddress
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block text-sm text-rose-700 hover:underline"
+                    >
+                      Open in Google Maps
+                    </a>
+                  </div>
+                )}
               </div>
             )}
           </div>
