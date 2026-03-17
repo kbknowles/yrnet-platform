@@ -4,27 +4,13 @@
 /*
   HomeHighlights
   -------------------------------------------------------
-  Homepage module displaying:
+  FIX:
+  - Supports BOTH images and PDFs for announcements
+  - PDFs render using iframe preview
+  - Images render normally
 
-  • Upcoming rodeos
-  • Featured announcement
-
-  Uses KBDev Engine media system.
-
-  Media architecture:
-
-  /uploads/tenants/{tenantSlug}/{folder}/{filename}
-
-  Example:
-
-  /uploads/tenants/ahsra/announcements/1719943321-poster.png
-
-  Rules:
-
-  • DB stores filename only
-  • Upload middleware generates unique filenames
-  • No recordId folders
-  • All media resolved through resolveTenantMedia()
+  Date Fix:
+  Parse YYYY-MM-DD as local date (no UTC shift)
 */
 
 import Link from "next/link";
@@ -32,9 +18,29 @@ import { useTenantSlug } from "hooks/useTenantSlug";
 import { resolveTenantMedia } from "lib/media";
 
 /*
-  Resolve announcement image using KBDev media resolver.
+  Safe local date parser (NO timezone shift)
 */
-function resolveAnnouncementImage(filename, tenantSlug) {
+function formatLocalDate(dateStr) {
+  if (!dateStr) return "";
+
+  const ymd = dateStr.slice(0, 10);
+  const [y, m, d] = ymd.split("-").map(Number);
+
+  const date = new Date(y, m - 1, d);
+  return date.toLocaleDateString();
+}
+
+/*
+  Detect PDF files
+*/
+function isPDF(file) {
+  return file?.toLowerCase().endsWith(".pdf");
+}
+
+/*
+  Resolve announcement media
+*/
+function resolveAnnouncementMedia(filename, tenantSlug) {
   if (!filename || !tenantSlug) return "";
 
   return resolveTenantMedia({
@@ -48,7 +54,9 @@ export default function HomeHighlights({ rodeos, announcements }) {
   const tenantSlug = useTenantSlug();
 
   const safeRodeos = Array.isArray(rodeos) ? rodeos : [];
-  const safeAnnouncements = Array.isArray(announcements) ? announcements : [];
+  const safeAnnouncements = Array.isArray(announcements)
+    ? announcements
+    : [];
 
   /*
     Sort announcements newest first
@@ -65,9 +73,9 @@ export default function HomeHighlights({ rodeos, announcements }) {
     ? `/${tenantSlug}/rodeos/${featured.rodeo.slug}`
     : `/${tenantSlug}/announcements`;
 
-  const featuredImage =
+  const featuredMedia =
     featured?.mode === "POSTER" && featured?.imageUrl
-      ? resolveAnnouncementImage(featured.imageUrl, tenantSlug)
+      ? resolveAnnouncementMedia(featured.imageUrl, tenantSlug)
       : null;
 
   return (
@@ -96,9 +104,7 @@ export default function HomeHighlights({ rodeos, announcements }) {
                       <p className="font-medium">{rodeo.name}</p>
 
                       <p className="text-sm text-white/80">
-                        {rodeo.startDate
-                          ? new Date(rodeo.startDate).toLocaleDateString()
-                          : ""}
+                        {formatLocalDate(rodeo.startDate)}
                         {rodeo.location?.name
                           ? ` · ${rodeo.location.name}`
                           : ""}
@@ -137,14 +143,21 @@ export default function HomeHighlights({ rodeos, announcements }) {
             {featured ? (
               <div className="rounded-md shadow-sm overflow-hidden">
 
-                {/* Poster Announcement */}
-                {featuredImage ? (
+                {/* Poster / PDF Announcement */}
+                {featuredMedia ? (
                   <Link href={featuredHref}>
-                    <img
-                      src={featuredImage}
-                      alt={featured.title || "Announcement"}
-                      className="w-full max-h-[420px] object-contain"
-                    />
+                    {isPDF(featured.imageUrl) ? (
+                      <iframe
+                        src={featuredMedia}
+                        className="w-full h-[420px] bg-white"
+                      />
+                    ) : (
+                      <img
+                        src={featuredMedia}
+                        alt={featured.title || "Announcement"}
+                        className="w-full max-h-[420px] object-contain"
+                      />
+                    )}
                   </Link>
                 ) : (
                   /* Standard Announcement */
@@ -153,9 +166,9 @@ export default function HomeHighlights({ rodeos, announcements }) {
 
                     {(featured.publishAt || featured.createdAt) && (
                       <p className="text-sm text-gray-600">
-                        {new Date(
+                        {formatLocalDate(
                           featured.publishAt || featured.createdAt
-                        ).toLocaleDateString()}
+                        )}
                       </p>
                     )}
 

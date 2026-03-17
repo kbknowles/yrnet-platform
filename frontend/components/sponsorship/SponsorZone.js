@@ -25,6 +25,9 @@ export default function SponsorZone({
 }) {
   const [sponsors, setSponsors] = useState([]);
 
+  // stabilize levels dependency
+  const levelsKey = levels.join(",");
+
   useEffect(() => {
     if (!tenantSlug) return;
 
@@ -36,7 +39,7 @@ export default function SponsorZone({
         if (contentId) params.append("contentId", contentId);
 
         if (levels?.length) {
-          params.append("levels", levels.join(","));
+          params.append("levels", levelsKey);
         }
 
         params.append("slots", slots);
@@ -83,7 +86,7 @@ export default function SponsorZone({
     }
 
     load();
-  }, [tenantSlug, contentType, contentId, levels, slots]);
+  }, [tenantSlug, contentType, contentId, levelsKey, slots]);
 
   const gridClasses =
     slots === 1

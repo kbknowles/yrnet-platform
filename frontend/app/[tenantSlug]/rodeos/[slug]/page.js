@@ -66,9 +66,13 @@ export default async function RodeoPage({ params }) {
     Poster announcements use tenant media resolver.
 
     Storage structure:
-    /uploads/tenants/{tenantSlug}/announcements/{announcementId}/{filename}
+    /uploads/tenants/{tenantSlug}/announcements/{filename}
 
     DB stores filename only.
+
+    Supports:
+    - image posters
+    - PDF posters
   */
   const posters = announcements
     .filter((a) => a.mode === "POSTER" && a.imageUrl)
@@ -79,6 +83,7 @@ export default async function RodeoPage({ params }) {
         folder: "announcements",
         filename: a.imageUrl,
       }),
+      isPdf: a.imageUrl?.toLowerCase().endsWith(".pdf"),
     }));
 
   const standardAnnouncements = announcements.filter(
