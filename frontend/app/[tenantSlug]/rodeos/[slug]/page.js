@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { formatDate } from "lib/formatDate";
-import MediaSwiper from "components/MediaSwiper";
 import SponsorZone from "components/sponsorship/SponsorZone";
 import { resolveTenantMedia } from "lib/media";
 
@@ -62,24 +61,22 @@ export default async function RodeoPage({ params }) {
     rodeo.announcements?.slice().sort((a, b) => a.sortOrder - b.sortOrder) ||
     [];
 
-  /*
-    Poster announcements use tenant media resolver.
-  */
-  const posters = announcements
-    .filter((a) => a.mode === "POSTER" && a.imageUrl)
-    .map((a) => ({
-      ...a,
-      imageUrl: resolveTenantMedia({
-        tenantSlug,
-        folder: "announcements",
-        filename: a.imageUrl,
-      }),
-      isPdf: a.imageUrl?.toLowerCase().endsWith(".pdf"),
-    }));
+  const gridAnnouncements = announcements.map((a) => {
+    const isPoster = a.mode === "POSTER" && a.imageUrl;
 
-  const standardAnnouncements = announcements.filter(
-    (a) => a.mode !== "POSTER"
-  );
+    return {
+      ...a,
+      isPoster,
+      mediaUrl: isPoster
+        ? resolveTenantMedia({
+            tenantSlug,
+            folder: "announcements",
+            filename: a.imageUrl,
+          })
+        : null,
+      isPdf: isPoster && a.imageUrl?.toLowerCase().endsWith(".pdf"),
+    };
+  });
 
   return (
     <main className="bg-gray-50">
@@ -186,37 +183,54 @@ export default async function RodeoPage({ params }) {
 
           {/* RIGHT COLUMN */}
           <div className="lg:col-span-2 space-y-8">
-            {posters.length > 0 && (
-              <div className="bg-white rounded-lg shadow-sm border p-4">
-                <MediaSwiper items={posters} />
-              </div>
-            )}
-
-            {standardAnnouncements.length > 0 && (
+            {gridAnnouncements.length > 0 && (
               <div className="space-y-5">
-                <h2 className="text-xl font-semibold">
-                  Announcements
-                </h2>
+                <h2 className="text-xl font-semibold">Announcements</h2>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {standardAnnouncements.map((a) => (
+                  {gridAnnouncements.map((a) => (
                     <div
                       key={a.id}
-                      className="bg-white border rounded-lg shadow-sm p-6 border-l-4 border-rose-700"
+                      className="bg-white border rounded-lg shadow-sm overflow-hidden border-l-4"
                     >
-                      {a.title && (
-                        <div className="font-semibold mb-2">
-                          {a.title}
-                        </div>
-                      )}
+                      {a.isPoster ? (
+                        <div className="p-4">
+                          {a.title && (
+                            <div className="font-semibold mb-3">{a.title}</div>
+                          )}
 
-                      {a.content && (
-                        <div
-                          className="text-sm leading-relaxed whitespace-pre-line"
-                          dangerouslySetInnerHTML={{
-                            __html: autoLink(a.content),
-                          }}
-                        />
+                          {a.isPdf ? (
+                            <a
+                              href={a.mediaUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="block text-sm text-rose-700 underline"
+                            >
+                              Open PDF
+                            </a>
+                          ) : (
+                            <img
+                              src={a.mediaUrl}
+                              alt={a.title || "Announcement"}
+                              className="w-full h-auto rounded-md"
+                            />
+                          )}
+                        </div>
+                      ) : (
+                        <div className="p-6">
+                          {a.title && (
+                            <div className="font-semibold mb-2">{a.title}</div>
+                          )}
+
+                          {a.content && (
+                            <div
+                              className="text-sm leading-relaxed whitespace-pre-line"
+                              dangerouslySetInnerHTML={{
+                                __html: autoLink(a.content),
+                              }}
+                            />
+                          )}
+                        </div>
                       )}
                     </div>
                   ))}
