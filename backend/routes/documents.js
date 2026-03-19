@@ -7,18 +7,51 @@ import { resolveTenant } from "../middleware/resolveTenant.js";
 const router = express.Router({ mergeParams: true });
 
 /*
+  PUBLIC DOCUMENT ROUTES
+  -------------------------------------------------------
+  - Read-only access
+  - No create/update/delete allowed
+*/
+
+/*
   GET /:tenantSlug/documents
-  Public documents list
+  -------------------------------------------------------
+  Returns public documents only
+
+  Query Params:
+  - category (optional): GOVERNANCE | MEMBERSHIP | PROGRAMS
+
+  Notes:
+  - Filters by tenant
+  - Only returns isPublic = true
+  - Sorted by sortOrder ASC
 */
 router.get("/", resolveTenant, async (req, res) => {
   try {
     const { category } = req.query;
 
+    /*
+      OPTIONAL CATEGORY FILTER VALIDATION
+    */
+    const allowedCategories = ["GOVERNANCE", "MEMBERSHIP", "PROGRAMS"];
+
+    let categoryFilter = undefined;
+
+    if (category) {
+      if (!allowedCategories.includes(category)) {
+        return res.status(400).json({ error: "Invalid category" });
+      }
+      categoryFilter = category;
+    }
+
+    /*
+      FETCH DOCUMENTS
+    */
     const docs = await prisma.document.findMany({
       where: {
         tenantId: req.tenantId,
         isPublic: true,
-        ...(category ? { category } : {}),
+        ...(categoryFilter ? { category: categoryFilter } : {}),
       },
       orderBy: { sortOrder: "asc" },
     });
@@ -26,45 +59,6 @@ router.get("/", resolveTenant, async (req, res) => {
     res.json(docs);
   } catch (err) {
     res.status(500).json({ error: "Failed to load documents" });
-  }
-});
-
-/*
-  POST /:tenantSlug/documents
-  Create document (admin)
-*/
-router.post("/", resolveTenant, async (req, res) => {
-  try {
-    const { title, description, category, fileUrl } = req.body;
-
-    const doc = await prisma.document.create({
-      data: {
-        tenantId: req.tenantId,
-        title,
-        description,
-        category,
-        fileUrl,
-      },
-    });
-
-    res.json(doc);
-  } catch (err) {
-    res.status(500).json({ error: "Failed to create document" });
-  }
-});
-
-/*
-  DELETE /:tenantSlug/documents/:id
-*/
-router.delete("/:id", resolveTenant, async (req, res) => {
-  try {
-    await prisma.document.delete({
-      where: { id: parseInt(req.params.id) },
-    });
-
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: "Failed to delete document" });
   }
 });
 

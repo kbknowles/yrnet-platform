@@ -21,7 +21,7 @@ import adminPagesRouter from "./admin/pages.js";
 import adminUploadsRouter from "./admin/uploads.js";
 import adminAthletesRouter from "./admin/athletes.js";
 import adminSettingsRouter from "./admin/settings.js";
-import adminDocumentsUpload from "./admin/documentsUpload.js";
+import adminDocumentsRouter from "./admin/documents.js";
 
 
 
@@ -73,7 +73,7 @@ router.use("/:tenantSlug/admin/pages", adminPagesRouter);
 router.use("/:tenantSlug/admin/uploads", adminUploadsRouter);
 router.use("/:tenantSlug/admin/athletes", adminAthletesRouter);
 router.use("/:tenantSlug/admin/settings", adminSettingsRouter);
-router.use("/:tenantSlug/admin/documents", adminDocumentsUpload);
+router.use("/:tenantSlug/admin/documents", adminDocumentsRouter);
 
 /* ---------- Public ---------- */
 
@@ -89,6 +89,6 @@ router.use("/:tenantSlug/pages", pagesRouter);
 router.use("/:tenantSlug/athletes", athletesRouter);
 router.use("/:tenantSlug/calendar", calendarRouter);
 router.use("/:tenantSlug/sponsorships", sponsorshipsRouter);
-route.use("/:tenantSlug/documents", documentsRoutes);
+router.use("/:tenantSlug/documents", documentsRoutes);
 
 export default router;
