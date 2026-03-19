@@ -21,7 +21,7 @@ import adminPagesRouter from "./admin/pages.js";
 import adminUploadsRouter from "./admin/uploads.js";
 import adminAthletesRouter from "./admin/athletes.js";
 import adminSettingsRouter from "./admin/settings.js";
-import adminDocumentsUpload from "./routes/admin/documentsUpload.js";
+import adminDocumentsUpload from "./admin/documentsUpload.js";
 
 
 
@@ -43,7 +43,7 @@ import pagesRouter from "./pages.js";
 import athletesRouter from "./athletes.js";
 import calendarRouter from "./calendar.js";
 import sponsorshipsRouter from "./sponsorships.js";
-import documentsRoutes from "./routes/documents.js";
+import documentsRoutes from "./documents.js";
 
 
 

@@ -1,4 +1,4 @@
-// filepath: backend/routes/documentsUpload.js
+// filepath: backend/routes/admin/documentsUpload.js
 
 import express from "express";
 import multer from "multer";
