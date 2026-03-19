@@ -24,9 +24,6 @@ import adminSettingsRouter from "./admin/settings.js";
 import adminDocumentsRouter from "./admin/documents.js";
 
 
-
-
-
 /* =========================
    PUBLIC ROUTES
    ========================= */
@@ -43,7 +40,7 @@ import pagesRouter from "./pages.js";
 import athletesRouter from "./athletes.js";
 import calendarRouter from "./calendar.js";
 import sponsorshipsRouter from "./sponsorships.js";
-import documentsRoutes from "./documents.js";
+import documentsRouter from "./documents.js";
 
 
 
@@ -89,6 +86,6 @@ router.use("/:tenantSlug/pages", pagesRouter);
 router.use("/:tenantSlug/athletes", athletesRouter);
 router.use("/:tenantSlug/calendar", calendarRouter);
 router.use("/:tenantSlug/sponsorships", sponsorshipsRouter);
-router.use("/:tenantSlug/documents", documentsRoutes);
+router.use("/:tenantSlug/documents", documentsRouter);
 
 export default router;
