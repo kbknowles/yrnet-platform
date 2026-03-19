@@ -21,6 +21,9 @@ import adminPagesRouter from "./admin/pages.js";
 import adminUploadsRouter from "./admin/uploads.js";
 import adminAthletesRouter from "./admin/athletes.js";
 import adminSettingsRouter from "./admin/settings.js";
+import adminDocumentsUpload from "./routes/admin/documentsUpload.js";
+
+
 
 
 
@@ -40,6 +43,9 @@ import pagesRouter from "./pages.js";
 import athletesRouter from "./athletes.js";
 import calendarRouter from "./calendar.js";
 import sponsorshipsRouter from "./sponsorships.js";
+import documentsRoutes from "./routes/documents.js";
+
+
 
 const router = express.Router();
 
@@ -67,6 +73,7 @@ router.use("/:tenantSlug/admin/pages", adminPagesRouter);
 router.use("/:tenantSlug/admin/uploads", adminUploadsRouter);
 router.use("/:tenantSlug/admin/athletes", adminAthletesRouter);
 router.use("/:tenantSlug/admin/settings", adminSettingsRouter);
+router.use("/:tenantSlug/admin/documents", adminDocumentsUpload);
 
 /* ---------- Public ---------- */
 
@@ -82,5 +89,6 @@ router.use("/:tenantSlug/pages", pagesRouter);
 router.use("/:tenantSlug/athletes", athletesRouter);
 router.use("/:tenantSlug/calendar", calendarRouter);
 router.use("/:tenantSlug/sponsorships", sponsorshipsRouter);
+route.use("/:tenantSlug/documents", documentsRoutes);
 
 export default router;

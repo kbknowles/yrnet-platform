@@ -27,6 +27,8 @@ enum OfficerRole {
   JH_PRINCESS
 }
 
+
+
 enum OfficerType {
   EXECUTIVE
   DIRECTOR
@@ -73,6 +75,12 @@ enum ContentType {
   SEASON
 }
 
+enum DocumentCategory {
+  GOVERNANCE
+  MEMBERSHIP
+  PROGRAMS
+}
+
 /* ================= TENANT ================= */
 
 model Tenant {
@@ -107,6 +115,7 @@ model Tenant {
   galleryAlbums  GalleryAlbum[]
   customPages    CustomPage[]
   athletes       Athlete[]
+  documents      Document[]
 
   rodeoEntries  RodeoEntry[]
   pointsEntries PointsEntry[]
@@ -515,4 +524,20 @@ model PointsEntry {
 
   @@index([tenantId, seasonId, rodeoId, event, goNumber])
   @@index([athleteId])
+}
+
+model Document {
+  id          Int      @id @default(autoincrement())
+  tenantId    Int
+  title       String
+  description String?
+  category    DocumentCategory   
+  fileUrl     String
+  isPublic    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId, category])
 }
