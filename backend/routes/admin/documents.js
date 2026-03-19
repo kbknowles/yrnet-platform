@@ -14,11 +14,14 @@ const router = express.Router({ mergeParams: true });
   -------------------------------------------------------
   Upload path:
   /uploads/tenants/{slug}/documents/
+  Uses Render persistent disk via env
 */
+
+const BASE_UPLOAD_PATH = process.env.RENDER_DISK_PATH;
 
 function getUploadPath(tenantSlug) {
   const uploadPath = path.join(
-    process.cwd(),
+    BASE_UPLOAD_PATH,
     "uploads",
     "tenants",
     tenantSlug,
@@ -49,7 +52,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowed = ["application/pdf"];
     if (!allowed.includes(file.mimetype)) {
@@ -131,13 +134,11 @@ router.put(
 
       let newFileUrl = existing.fileUrl;
 
-      /*
-        REPLACE FILE
-        -------------------------------------------------------
-        Delete old file if new file uploaded
-      */
       if (req.file) {
-        const oldPath = path.join(process.cwd(), existing.fileUrl);
+        const oldPath = path.join(
+          BASE_UPLOAD_PATH,
+          existing.fileUrl.replace(/^\/+/, "")
+        );
 
         if (fs.existsSync(oldPath)) {
           fs.unlinkSync(oldPath);
@@ -181,10 +182,10 @@ router.delete("/:id", resolveTenant, async (req, res) => {
       return res.status(404).json({ error: "Document not found" });
     }
 
-    /*
-      DELETE FILE
-    */
-    const filePath = path.join(process.cwd(), existing.fileUrl);
+    const filePath = path.join(
+      BASE_UPLOAD_PATH,
+      existing.fileUrl.replace(/^\/+/, "")
+    );
 
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
@@ -198,6 +199,22 @@ router.delete("/:id", resolveTenant, async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: "Delete failed" });
   }
+});
+
+/*
+  MULTER ERROR HANDLER
+  -------------------------------------------------------
+*/
+router.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    return res.status(400).json({ error: err.message });
+  }
+
+  if (err.message === "Only PDF files allowed") {
+    return res.status(400).json({ error: err.message });
+  }
+
+  next(err);
 });
 
 export default router;
