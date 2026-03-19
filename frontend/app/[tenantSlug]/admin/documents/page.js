@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
@@ -11,152 +11,251 @@ export default function AdminDocuments() {
   const { tenantSlug } = useParams();
 
   const [form, setForm] = useState({
+    id: null,
     title: "",
     category: "GOVERNANCE",
     fileUrl: "",
   });
 
   const [file, setFile] = useState(null);
+  const [message, setMessage] = useState("");
+  const [documents, setDocuments] = useState([]);
 
-  /*
-    HANDLE FILE UPLOAD
-    -------------------------------------------------------
-    - Sends file via FormData
-    - Stores returned fileUrl in form state
-  */
+  /* -----------------------------
+     LOAD DOCUMENTS
+  ----------------------------- */
+  async function loadDocuments() {
+    const res = await fetch(`${API_BASE}/${tenantSlug}/documents`);
+    const data = await res.json();
+    setDocuments(data || []);
+  }
+
+  useEffect(() => {
+    if (tenantSlug) loadDocuments();
+  }, [tenantSlug]);
+
+  /* -----------------------------
+     UPLOAD FILE
+  ----------------------------- */
   async function handleUpload() {
-    if (!file) return alert("Select a file first");
+    if (!file) return;
 
     const data = new FormData();
     data.append("file", file);
 
-    try {
-      const res = await fetch(
-        `${API_BASE}/${tenantSlug}/admin/documents/upload`,
-        {
-          method: "POST",
-          body: data,
-        }
-      );
-
-      if (!res.ok) {
-        const text = await res.text();
-        console.error(text);
-        return alert("Upload failed");
+    const res = await fetch(
+      `${API_BASE}/${tenantSlug}/admin/documents/upload`,
+      {
+        method: "POST",
+        body: data,
       }
+    );
 
-      const result = await res.json();
+    const result = await res.json();
 
-      setForm((prev) => ({
-        ...prev,
-        fileUrl: result.fileUrl,
-      }));
-    } catch (err) {
-      console.error(err);
-      alert("Upload error");
+    if (res.ok) {
+      setForm((prev) => ({ ...prev, fileUrl: result.fileUrl }));
+      setMessage('Upload successful. Click "Save Document" to finish.');
+    } else {
+      setMessage("Upload failed");
     }
   }
 
-  /*
-    HANDLE SAVE
-    -------------------------------------------------------
-    - Creates document record in DB
-    - Requires fileUrl from upload step
-  */
+  /* -----------------------------
+     SAVE / UPDATE
+  ----------------------------- */
   async function handleSave() {
-    if (!form.title) return alert("Title required");
-    if (!form.fileUrl) return alert("Upload file first");
+    const method = form.id ? "PUT" : "POST";
+    const url = form.id
+      ? `${API_BASE}/${tenantSlug}/admin/documents/${form.id}`
+      : `${API_BASE}/${tenantSlug}/admin/documents`;
 
-    try {
-      const res = await fetch(
-        `${API_BASE}/${tenantSlug}/admin/documents`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(form),
-        }
-      );
+    const body = form.id && file
+      ? (() => {
+          const data = new FormData();
+          data.append("file", file);
+          data.append("title", form.title);
+          data.append("category", form.category);
+          return data;
+        })()
+      : JSON.stringify(form);
 
-      if (!res.ok) {
-        const text = await res.text();
-        console.error(text);
-        return alert("Save failed");
-      }
+    await fetch(url, {
+      method,
+      headers: form.id && file ? undefined : { "Content-Type": "application/json" },
+      body,
+    });
 
-      alert("Saved");
+    setForm({
+      id: null,
+      title: "",
+      category: "GOVERNANCE",
+      fileUrl: "",
+    });
 
-      // Reset form
-      setForm({
-        title: "",
-        category: "GOVERNANCE",
-        fileUrl: "",
-      });
-      setFile(null);
-    } catch (err) {
-      console.error(err);
-      alert("Save error");
-    }
+    setFile(null);
+    setMessage("Saved");
+    loadDocuments();
   }
+
+  /* -----------------------------
+     DELETE
+  ----------------------------- */
+  async function handleDelete(id) {
+    await fetch(`${API_BASE}/${tenantSlug}/admin/documents/${id}`, {
+      method: "DELETE",
+    });
+
+    loadDocuments();
+  }
+
+  /* -----------------------------
+     EDIT
+  ----------------------------- */
+  function handleEdit(doc) {
+    setForm(doc);
+    setMessage("Editing document");
+  }
+
+  /* -----------------------------
+     GROUP + SORT
+  ----------------------------- */
+  const grouped = documents.reduce((acc, doc) => {
+    if (!acc[doc.category]) acc[doc.category] = [];
+    acc[doc.category].push(doc);
+    return acc;
+  }, {});
+
+  Object.keys(grouped).forEach((cat) => {
+    grouped[cat].sort((a, b) => a.title.localeCompare(b.title));
+  });
 
   return (
-    <div className="p-6 max-w-xl">
-      {/* HEADER */}
-      <h1 className="text-xl font-bold mb-4">Upload Document</h1>
+    <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* LEFT */}
+      <div>
+        <h1 className="text-xl font-bold mb-4">
+          {form.id ? "Edit Document" : "Upload Document"}
+        </h1>
 
-      {/* TITLE INPUT */}
-      <input
-        type="text"
-        placeholder="Title"
-        value={form.title}
-        className="border p-2 w-full mb-2"
-        onChange={(e) =>
-          setForm({ ...form, title: e.target.value })
-        }
-      />
+        {/* Helpful Hints */}
+        <div className="mb-6 p-4 border rounded bg-gray-50 text-sm">
+          <h2 className="font-semibold mb-2">Helpful Hints</h2>
 
-      {/* CATEGORY SELECT */}
-      <select
-        value={form.category}
-        className="border p-2 w-full mb-2"
-        onChange={(e) =>
-          setForm({ ...form, category: e.target.value })
-        }
-      >
-        <option value="GOVERNANCE">Governance</option>
-        <option value="MEMBERSHIP">Membership</option>
-        <option value="PROGRAMS">Programs</option>
-      </select>
+          <div className="mb-2">
+            <strong>Governance</strong>
+            <div>Rules, bylaws, constitution, policies</div>
+          </div>
 
-      {/* FILE INPUT */}
-      <input
-        type="file"
-        accept="application/pdf"
-        className="mb-2"
-        onChange={(e) => setFile(e.target.files[0])}
-      />
+          <div className="mb-2">
+            <strong>Membership</strong>
+            <div>Applications, waivers, eligibility forms</div>
+          </div>
 
-      {/* UPLOAD BUTTON */}
-      <button
-        onClick={handleUpload}
-        className="bg-gray-800 text-white px-4 py-2 mb-4"
-      >
-        Upload File
-      </button>
-
-      {/* FILE PREVIEW */}
-      {form.fileUrl && (
-        <div className="mb-4 text-sm break-all">
-          Uploaded: {form.fileUrl}
+          <div>
+            <strong>Events & Activities</strong>
+            <div>Schedules, entry forms, event info</div>
+          </div>
         </div>
-      )}
 
-      {/* SAVE BUTTON */}
-      <button
-        onClick={handleSave}
-        className="bg-black text-white px-4 py-2"
-      >
-        Save Document
-      </button>
+        <input
+          type="text"
+          placeholder="Title"
+          className="border p-2 w-full mb-2"
+          value={form.title}
+          onChange={(e) =>
+            setForm({ ...form, title: e.target.value })
+          }
+        />
+
+        <select
+          className="border p-2 w-full mb-2"
+          value={form.category}
+          onChange={(e) =>
+            setForm({ ...form, category: e.target.value })
+          }
+        >
+          <option value="GOVERNANCE">Governance</option>
+          <option value="MEMBERSHIP">Membership</option>
+          <option value="EVENTS">Events & Activities</option>
+        </select>
+
+        <input
+          type="file"
+          className="mb-2"
+          onChange={(e) => setFile(e.target.files[0])}
+        />
+
+        <button
+          onClick={handleUpload}
+          className="bg-gray-800 text-white px-4 py-2 mb-4"
+        >
+          Upload File
+        </button>
+
+        {message && (
+          <div className="mb-4 text-sm text-green-700">
+            {message}
+          </div>
+        )}
+
+        <button
+          onClick={handleSave}
+          className="bg-black text-white px-4 py-2"
+        >
+          {form.id ? "Update Document" : "Save Document"}
+        </button>
+      </div>
+
+      {/* RIGHT */}
+      <div>
+        <h2 className="text-lg font-semibold mb-4">Documents</h2>
+
+        {Object.keys(grouped).map((category) => (
+          <div key={category} className="mb-6">
+            <h3 className="font-bold mb-2">
+              {category === "EVENTS"
+                ? "Events & Activities"
+                : category}
+            </h3>
+
+            <div className="space-y-2">
+              {grouped[category].map((doc) => (
+                <div
+                  key={doc.id}
+                  className="border p-3 flex justify-between items-center"
+                >
+                  <div className="flex flex-col text-sm">
+                    <a
+                      href={`${API_BASE}${doc.fileUrl}`}
+                      target="_blank"
+                      className="text-blue-600 underline"
+                    >
+                      {doc.title}
+                    </a>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleEdit(doc)}
+                      className="text-blue-600 text-xs"
+                    >
+                      Edit
+                    </button>
+
+                    <button
+                      onClick={() => handleDelete(doc.id)}
+                      className="text-red-600 text-xs"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
