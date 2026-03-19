@@ -1,5 +1,24 @@
 // filepath: backend/routes/admin/documents.js
 
+/*
+  Documents Upload + CRUD Route
+  -------------------------------------------------------
+  Handles:
+  • PDF uploads
+  • Document record creation
+  • File replacement
+  • File deletion
+
+  Media architecture:
+  /uploads/tenants/{tenantSlug}/documents/{filename}
+
+  Rules:
+  • resolveTenant MUST run first
+  • Uses SAME pattern as announcements (NO env paths)
+  • Files stored on Render disk mounted at /uploads
+  • DB stores full fileUrl path
+*/
+
 import express from "express";
 import prisma from "../../prismaClient.mjs";
 import { resolveTenant } from "../../middleware/resolveTenant.js";
@@ -10,52 +29,57 @@ import fs from "fs";
 const router = express.Router({ mergeParams: true });
 
 /*
-  STORAGE CONFIG
-  -------------------------------------------------------
-  Upload path:
-  /uploads/tenants/{slug}/documents/
-  Uses Render persistent disk via env
+  Upload root (STANDARDIZED)
 */
+const UPLOAD_ROOT = "/uploads";
 
-const BASE_UPLOAD_PATH = process.env.RENDER_DISK_PATH;
-
-function getUploadPath(tenantSlug) {
-  const uploadPath = path.join(
-    BASE_UPLOAD_PATH,
-    "uploads",
-    "tenants",
-    tenantSlug,
-    "documents"
-  );
-
-  fs.mkdirSync(uploadPath, { recursive: true });
-  return uploadPath;
+/*
+  Ensure directory exists
+*/
+function ensureDir(dir) {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
 }
 
+/*
+  Multer storage configuration
+*/
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const tenantSlug = req.params.tenantSlug;
-    cb(null, getUploadPath(tenantSlug));
+  destination(req, file, cb) {
+    const tenantSlug = req.tenant?.slug;
+
+    if (!tenantSlug) {
+      return cb(new Error("Tenant not resolved"));
+    }
+
+    const dir = path.join(
+      UPLOAD_ROOT,
+      "tenants",
+      tenantSlug,
+      "documents"
+    );
+
+    ensureDir(dir);
+    cb(null, dir);
   },
-  filename: function (req, file, cb) {
+
+  filename(req, file, cb) {
     const safeName = file.originalname.replace(/\s+/g, "-");
     cb(null, `${Date.now()}-${safeName}`);
   },
 });
 
 /*
-  FILE VALIDATION
-  -------------------------------------------------------
+  Multer middleware
   - PDF only
   - Max size: 5MB
 */
-
 const upload = multer({
   storage,
   limits: { fileSize: 5 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    const allowed = ["application/pdf"];
-    if (!allowed.includes(file.mimetype)) {
+  fileFilter(_req, file, cb) {
+    if (file.mimetype !== "application/pdf") {
       return cb(new Error("Only PDF files allowed"));
     }
     cb(null, true);
@@ -72,7 +96,7 @@ router.post(
   upload.single("file"),
   (req, res) => {
     try {
-      const tenantSlug = req.params.tenantSlug;
+      const tenantSlug = req.tenant.slug;
 
       if (!req.file) {
         return res.status(400).json({ error: "No file uploaded" });
@@ -80,9 +104,10 @@ router.post(
 
       const fileUrl = `/uploads/tenants/${tenantSlug}/documents/${req.file.filename}`;
 
-      res.json({ fileUrl });
+      return res.json({ fileUrl });
     } catch (err) {
-      res.status(500).json({ error: err.message || "Upload failed" });
+      console.error("Document upload failed", err);
+      return res.status(500).json({ error: "Upload failed" });
     }
   }
 );
@@ -105,9 +130,10 @@ router.post("/", resolveTenant, async (req, res) => {
       },
     });
 
-    res.json(doc);
+    return res.json(doc);
   } catch (err) {
-    res.status(500).json({ error: "Failed to create document" });
+    console.error("Create document failed", err);
+    return res.status(500).json({ error: "Failed to create document" });
   }
 });
 
@@ -122,7 +148,7 @@ router.put(
   async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const tenantSlug = req.params.tenantSlug;
+      const tenantSlug = req.tenant.slug;
 
       const existing = await prisma.document.findUnique({
         where: { id },
@@ -136,7 +162,7 @@ router.put(
 
       if (req.file) {
         const oldPath = path.join(
-          BASE_UPLOAD_PATH,
+          UPLOAD_ROOT,
           existing.fileUrl.replace(/^\/+/, "")
         );
 
@@ -159,9 +185,10 @@ router.put(
         },
       });
 
-      res.json(updated);
+      return res.json(updated);
     } catch (err) {
-      res.status(500).json({ error: err.message || "Update failed" });
+      console.error("Update document failed", err);
+      return res.status(500).json({ error: "Update failed" });
     }
   }
 );
@@ -183,7 +210,7 @@ router.delete("/:id", resolveTenant, async (req, res) => {
     }
 
     const filePath = path.join(
-      BASE_UPLOAD_PATH,
+      UPLOAD_ROOT,
       existing.fileUrl.replace(/^\/+/, "")
     );
 
@@ -195,15 +222,15 @@ router.delete("/:id", resolveTenant, async (req, res) => {
       where: { id },
     });
 
-    res.json({ success: true });
+    return res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ error: "Delete failed" });
+    console.error("Delete document failed", err);
+    return res.status(500).json({ error: "Delete failed" });
   }
 });
 
 /*
   MULTER ERROR HANDLER
-  -------------------------------------------------------
 */
 router.use((err, req, res, next) => {
   if (err instanceof multer.MulterError) {
