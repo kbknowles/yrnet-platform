@@ -79,7 +79,6 @@ export default async function TenantHomePage(props) {
       {/* HERO */}
       <HomeHero tenant={tenant} />
 
-      {/* Notice Bar */}
       <NoticeBar
         message="Our new home on the web — we’re just getting started."
          isActive={true}

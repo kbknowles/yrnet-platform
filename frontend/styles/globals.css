@@ -41,11 +41,12 @@ h6 {
   color: var(--primary);
 }
 
-p,
-li,
-span {
+body p,
+body li,
+body span {
   color: #1F2937;
 }
+
 
 .hero,
 .hero h1,
@@ -59,4 +60,8 @@ span {
 .hero span,
 .hero div {
   color: #ffffff;
+}
+
+.notice-bar span {
+  color: #fff !important;
 }
