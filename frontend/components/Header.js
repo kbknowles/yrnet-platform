@@ -15,7 +15,7 @@ const STATIC_LINKS = [
   { title: "Schedule", href: "/schedule" },
   { title: "Gallery", href: "/gallery" },
   { title: "Sponsors", href: "/sponsors" },
-  { title: "Leadership", href: "/leadership" },
+  { title: "Documents", href: "/documents" },
 ];
 
 function label(slug) {
