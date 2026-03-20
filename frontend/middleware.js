@@ -3,12 +3,11 @@ import { NextResponse } from "next/server";
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-// 🔴 REQUIRED — without this proxy won't run on all routes
 export const config = {
   matcher: "/:path*",
 };
 
-export async function proxy(req) {
+export async function middleware(req) {
   const url = req.nextUrl;
   const hostHeader = req.headers.get("host");
 
@@ -16,6 +15,7 @@ export async function proxy(req) {
 
   const hostname = hostHeader.split(":")[0];
 
+  // skip localhost
   if (hostname === "localhost") {
     return NextResponse.next();
   }
@@ -37,7 +37,7 @@ export async function proxy(req) {
       return NextResponse.next();
     }
 
-    // rewrite ALL paths (handles "/" correctly)
+    // rewrite ALL paths including "/"
     url.pathname = `/${tenant.slug}${url.pathname}`;
 
     return NextResponse.rewrite(url);
