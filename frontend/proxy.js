@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-export async function middleware(req) {
+export async function proxy(req) {
   const url = req.nextUrl;
   const hostHeader = req.headers.get("host");
 
@@ -11,7 +11,7 @@ export async function middleware(req) {
 
   const hostname = hostHeader.split(":")[0];
 
-  // skip localhost
+  // allow localhost to use path-based routing
   if (hostname === "localhost") {
     return NextResponse.next();
   }
@@ -28,18 +28,14 @@ export async function middleware(req) {
 
     if (!tenant?.slug) return NextResponse.next();
 
-    // 🔴 KEY FIX: handle root path "/"
-    if (url.pathname === "/") {
-      url.pathname = `/${tenant.slug}`;
-      return NextResponse.rewrite(url);
-    }
-
     // prevent infinite loop
     if (url.pathname.startsWith(`/${tenant.slug}`)) {
       return NextResponse.next();
     }
 
+    // preserve full path (handles "/" and nested routes correctly)
     url.pathname = `/${tenant.slug}${url.pathname}`;
+
     return NextResponse.rewrite(url);
   } catch (err) {
     return NextResponse.next();
