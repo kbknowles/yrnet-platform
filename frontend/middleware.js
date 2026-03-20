@@ -15,7 +15,6 @@ export async function middleware(req) {
 
   const hostname = hostHeader.split(":")[0];
 
-  // skip localhost
   if (hostname === "localhost") {
     return NextResponse.next();
   }
@@ -37,8 +36,12 @@ export async function middleware(req) {
       return NextResponse.next();
     }
 
-    // rewrite ALL paths including "/"
-    url.pathname = `/${tenant.slug}${url.pathname}`;
+    // 🔴 FIX: handle root EXACTLY
+    if (url.pathname === "/") {
+      url.pathname = `/${tenant.slug}`;
+    } else {
+      url.pathname = `/${tenant.slug}${url.pathname}`;
+    }
 
     return NextResponse.rewrite(url);
   } catch {
