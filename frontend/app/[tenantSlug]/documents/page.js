@@ -19,11 +19,27 @@ export default function DocumentsPage() {
       .then(setDocs);
   }, [tenantSlug]);
 
+  /* -----------------------------
+     GROUP + SORT
+  ----------------------------- */
   const grouped = {
-    GOVERNANCE: docs.filter((d) => d.category === "GOVERNANCE"),
-    MEMBERSHIP: docs.filter((d) => d.category === "MEMBERSHIP"),
-    PROGRAMS: docs.filter((d) => d.category === "PROGRAMS"),
+    GOVERNANCE: docs
+      .filter((d) => d.category === "GOVERNANCE")
+      .sort((a, b) => a.title.localeCompare(b.title)),
+
+    MEMBERSHIP: docs
+      .filter((d) => d.category === "MEMBERSHIP")
+      .sort((a, b) => a.title.localeCompare(b.title)),
+
+    EVENTS: docs
+      .filter((d) => d.category === "EVENTS")
+      .sort((a, b) => a.title.localeCompare(b.title)),
   };
+
+  function getLabel(section) {
+    if (section === "EVENTS") return "Events & Activities";
+    return section;
+  }
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -32,7 +48,9 @@ export default function DocumentsPage() {
       {Object.entries(grouped).map(([section, items]) =>
         items.length ? (
           <div key={section} className="mb-8">
-            <h2 className="text-xl font-semibold mb-3">{section}</h2>
+            <h2 className="text-xl font-semibold mb-3">
+              {getLabel(section)}
+            </h2>
 
             <ul className="space-y-2">
               {items.map((doc) => (
@@ -48,8 +66,9 @@ export default function DocumentsPage() {
                   </div>
 
                   <a
-                    href={doc.fileUrl}
+                    href={`${API_BASE}${doc.fileUrl}`}
                     target="_blank"
+                    rel="noopener noreferrer"
                     className="text-blue-600 underline"
                   >
                     View
