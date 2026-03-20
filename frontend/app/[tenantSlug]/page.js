@@ -23,6 +23,7 @@ import HomeHighlights from "../../components/home/HomeHighlights";
 import RodeoGallery from "../../components/home/RodeoGallery";
 import HomeCTA from "../../components/home/HomeCTA";
 import SponsorZone from "../../components/sponsorship/SponsorZone";
+import NoticeBar from "components/NoticeBar";
 
 /*
   API base URL for backend requests
@@ -77,6 +78,12 @@ export default async function TenantHomePage(props) {
     <>
       {/* HERO */}
       <HomeHero tenant={tenant} />
+
+      {/* Notice Bar */}
+      <NoticeBar
+        message="Our new home on the web — we’re just getting started."
+         isActive={true}
+      />
 
       {/* HIGHLIGHTS */}
       <HomeHighlights rodeos={nextThree} announcements={announcements} />
