@@ -107,7 +107,7 @@ export default function AthleteForm({ slug, tenantSlug, mode = "create" }) {
     update("videos", form.videos.filter((_, i) => i !== index));
   }
 
-  /* ---------------- REMOVE NEW FILES ---------------- */
+  /* ---------------- REMOVE NEW ---------------- */
 
   function removeNewHeadshot() {
     setHeadshotFile(null);
@@ -167,11 +167,72 @@ export default function AthleteForm({ slug, tenantSlug, mode = "create" }) {
 
       {/* BASIC INFO */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <input required placeholder="First Name" value={form.firstName} onChange={(e) => update("firstName", e.target.value)} />
-        <input required placeholder="Last Name" value={form.lastName} onChange={(e) => update("lastName", e.target.value)} />
-        <input placeholder="School" value={form.school} onChange={(e) => update("school", e.target.value)} />
-        <input placeholder="Grade" value={form.grade} onChange={(e) => update("grade", e.target.value)} />
-        <input placeholder="Hometown" value={form.hometown} onChange={(e) => update("hometown", e.target.value)} />
+        <div>
+          <label className="block text-sm font-medium mb-1">First Name</label>
+          <input
+            required
+            className="w-full border rounded p-2"
+            value={form.firstName}
+            onChange={(e) => update("firstName", e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Last Name</label>
+          <input
+            required
+            className="w-full border rounded p-2"
+            value={form.lastName}
+            onChange={(e) => update("lastName", e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">School</label>
+          <input
+            className="w-full border rounded p-2"
+            value={form.school}
+            onChange={(e) => update("school", e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Grade</label>
+          <input
+            className="w-full border rounded p-2"
+            value={form.grade}
+            onChange={(e) => update("grade", e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Hometown</label>
+          <input
+            className="w-full border rounded p-2"
+            value={form.hometown}
+            onChange={(e) => update("hometown", e.target.value)}
+          />
+        </div>
+      </section>
+
+      {/* BIO */}
+      <section>
+        <label className="block text-sm font-medium mb-2">Bio</label>
+        <textarea
+          className="w-full border rounded p-2 min-h-[120px]"
+          value={form.bio}
+          onChange={(e) => update("bio", e.target.value)}
+        />
+      </section>
+
+      {/* FUTURE GOALS */}
+      <section>
+        <label className="block text-sm font-medium mb-2">Future Goals</label>
+        <textarea
+          className="w-full border rounded p-2 min-h-[120px]"
+          value={form.futureGoals}
+          onChange={(e) => update("futureGoals", e.target.value)}
+        />
       </section>
 
       {/* MEDIA */}
@@ -179,23 +240,35 @@ export default function AthleteForm({ slug, tenantSlug, mode = "create" }) {
 
         {/* HEADSHOT */}
         <div>
-          <label className="font-semibold block mb-2">Headshot</label>
+          <label className="block text-sm font-medium mb-2">Headshot</label>
 
-          {/* EXISTING */}
           {form.headshotUrl && !headshotFile && (
             <div className="relative inline-block mb-3">
-              <img src={resolveMedia(form.headshotUrl, tenantSlug)} className="max-h-40 border rounded" />
-              <button type="button" onClick={removeExistingHeadshot} className="absolute top-1 right-1 bg-red-600 text-white text-xs px-2 py-1 rounded">
+              <img
+                src={resolveMedia(form.headshotUrl, tenantSlug)}
+                className="max-h-40 border rounded"
+              />
+              <button
+                type="button"
+                onClick={removeExistingHeadshot}
+                className="absolute top-1 right-1 bg-red-600 text-white text-xs px-2 py-1 rounded"
+              >
                 Delete
               </button>
             </div>
           )}
 
-          {/* NEW PREVIEW */}
           {headshotFile && (
             <div className="relative inline-block mb-3">
-              <img src={URL.createObjectURL(headshotFile)} className="max-h-40 border rounded" />
-              <button type="button" onClick={removeNewHeadshot} className="absolute top-1 right-1 bg-red-600 text-white text-xs px-2 py-1 rounded">
+              <img
+                src={URL.createObjectURL(headshotFile)}
+                className="max-h-40 border rounded"
+              />
+              <button
+                type="button"
+                onClick={removeNewHeadshot}
+                className="absolute top-1 right-1 bg-red-600 text-white text-xs px-2 py-1 rounded"
+              >
                 Remove
               </button>
             </div>
@@ -206,11 +279,9 @@ export default function AthleteForm({ slug, tenantSlug, mode = "create" }) {
 
         {/* ACTION PHOTOS */}
         <div>
-          <label className="font-semibold block mb-2">Action Photos</label>
+          <label className="block text-sm font-medium mb-2">Action Photos</label>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-
-            {/* EXISTING */}
             {form.actionPhotos.map((photo, idx) => (
               <div key={`existing-${idx}`} className="relative">
                 <img src={resolveMedia(photo, tenantSlug)} className="h-32 w-full object-contain border rounded" />
@@ -220,7 +291,6 @@ export default function AthleteForm({ slug, tenantSlug, mode = "create" }) {
               </div>
             ))}
 
-            {/* NEW */}
             {actionFiles.map((file, idx) => (
               <div key={`new-${idx}`} className="relative">
                 <img src={URL.createObjectURL(file)} className="h-32 w-full object-contain border rounded" />
@@ -229,7 +299,6 @@ export default function AthleteForm({ slug, tenantSlug, mode = "create" }) {
                 </button>
               </div>
             ))}
-
           </div>
 
           <input type="file" multiple accept="image/*" onChange={(e) => setActionFiles([...e.target.files])} />
@@ -237,11 +306,9 @@ export default function AthleteForm({ slug, tenantSlug, mode = "create" }) {
 
         {/* VIDEOS */}
         <div>
-          <label className="font-semibold block mb-2">Videos</label>
+          <label className="block text-sm font-medium mb-2">Videos</label>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-
-            {/* EXISTING */}
             {form.videos.map((video, idx) => (
               <div key={`existing-${idx}`} className="relative">
                 <video src={resolveMedia(video, tenantSlug)} controls className="w-full border rounded" />
@@ -251,7 +318,6 @@ export default function AthleteForm({ slug, tenantSlug, mode = "create" }) {
               </div>
             ))}
 
-            {/* NEW */}
             {videoFiles.map((file, idx) => (
               <div key={`new-${idx}`} className="relative">
                 <video src={URL.createObjectURL(file)} controls className="w-full border rounded" />
@@ -260,7 +326,6 @@ export default function AthleteForm({ slug, tenantSlug, mode = "create" }) {
                 </button>
               </div>
             ))}
-
           </div>
 
           <input type="file" multiple accept="video/*" onChange={(e) => setVideoFiles([...e.target.files])} />
@@ -270,7 +335,7 @@ export default function AthleteForm({ slug, tenantSlug, mode = "create" }) {
 
       {/* EVENTS */}
       <section>
-        <label className="font-semibold block mb-2">Events</label>
+        <label className="block text-sm font-medium mb-2">Events</label>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
           {EVENT_OPTIONS.map((event) => (
             <label key={event} className="flex items-center gap-2">
