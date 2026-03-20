@@ -1,14 +1,22 @@
 // filepath: frontend/app/[tenantSlug]/admin/athletes/page.js
 
 import Link from "next/link";
+import { resolveTenantMedia } from "lib/media";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
-function resolveImage(url) {
-  if (!url) return null;
-  if (url.startsWith("http")) return url;
-  if (url.startsWith("/uploads")) return `${API_BASE}${url}`;
-  return url;
+/*
+  Use centralized media resolver
+  (same as public athlete page)
+*/
+function resolveAthleteImage(filename, tenantSlug) {
+  if (!filename) return null;
+
+  return resolveTenantMedia({
+    tenantSlug,
+    folder: "images",
+    filename,
+  });
 }
 
 async function getAthletes(tenantSlug) {
@@ -18,7 +26,7 @@ async function getAthletes(tenantSlug) {
     });
 
     if (!res.ok) {
-      console.error("Failed to fetch athletes");
+      console.error("Failed to fetch athletes:", res.status);
       return [];
     }
 
@@ -60,7 +68,7 @@ export default async function AthletesAdminPage({ params }) {
               <div className="w-24 h-24 rounded overflow-hidden bg-gray-100 flex items-center justify-center shrink-0">
                 {a.headshotUrl ? (
                   <img
-                    src={resolveImage(a.headshotUrl)}
+                    src={resolveAthleteImage(a.headshotUrl, tenantSlug)}
                     alt={`${a.firstName} ${a.lastName}`}
                     className="w-full h-full object-contain"
                   />
