@@ -3,6 +3,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { resolveTenantMedia } from "lib/media";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -39,11 +40,21 @@ const EMPTY_FORM = {
   videos: [],
 };
 
-function resolveMedia(url) {
-  if (!url) return null;
-  if (url.startsWith("http")) return url;
-  if (url.startsWith("/uploads")) return `${API_BASE}${url}`;
-  return url;
+/*
+  CENTRALIZED MEDIA RESOLVER
+  Handles all:
+  • headshots
+  • action photos
+  • videos
+*/
+function resolveMedia(filename, tenantSlug) {
+  if (!filename) return null;
+
+  return resolveTenantMedia({
+    tenantSlug,
+    folder: "images",
+    filename,
+  });
 }
 
 export default function AthleteForm({ slug, tenantSlug, mode = "create" }) {
@@ -212,7 +223,7 @@ export default function AthleteForm({ slug, tenantSlug, mode = "create" }) {
           {form.headshotUrl && (
             <div className="relative inline-block mb-3">
               <img
-                src={resolveMedia(form.headshotUrl)}
+                src={resolveMedia(form.headshotUrl, tenantSlug)}
                 className="max-h-40 object-contain border rounded"
               />
               <button
@@ -240,7 +251,7 @@ export default function AthleteForm({ slug, tenantSlug, mode = "create" }) {
             {form.actionPhotos.map((photo, idx) => (
               <div key={idx} className="relative">
                 <img
-                  src={resolveMedia(photo)}
+                  src={resolveMedia(photo, tenantSlug)}
                   className="h-32 w-full object-contain border rounded"
                 />
                 <button
@@ -270,7 +281,7 @@ export default function AthleteForm({ slug, tenantSlug, mode = "create" }) {
             {form.videos.map((video, idx) => (
               <div key={idx} className="relative">
                 <video
-                  src={resolveMedia(video)}
+                  src={resolveMedia(video, tenantSlug)}
                   controls
                   className="w-full border rounded"
                 />
