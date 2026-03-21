@@ -1,31 +1,43 @@
+//frontend/app/[tenantSlug]/admin/sponsors/page.js
+
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import SponsorForm from "components/admin/SponsorForm";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
+import authFetch from "../../../../utils/authFetch";
 
 export default function SponsorsAdminPage() {
   const params = useParams();
+  const router = useRouter();
 
   const tenantSlug = Array.isArray(params?.tenantSlug)
     ? params.tenantSlug[0]
     : params?.tenantSlug;
 
+  const [authorized, setAuthorized] = useState(false);
   const [sponsors, setSponsors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState(null);
   const [showAdd, setShowAdd] = useState(false);
   const [error, setError] = useState(null);
 
+  useEffect(() => {
+    if (!process.env.NEXT_PUBLIC_ADMIN_SECRET) {
+      router.push(`/${tenantSlug || ""}`);
+      return;
+    }
+    setAuthorized(true);
+  }, [tenantSlug, router]);
+
   async function fetchSponsors() {
     if (!tenantSlug) return;
 
     try {
       setLoading(true);
-      const res = await fetch(
-        `${API_BASE}/${tenantSlug}/admin/sponsors`,
+
+      const res = await authFetch(
+        `/${tenantSlug}/admin/sponsors`,
         { cache: "no-store" }
       );
 
@@ -42,14 +54,14 @@ export default function SponsorsAdminPage() {
   }
 
   useEffect(() => {
-    fetchSponsors();
-  }, [tenantSlug]);
+    if (authorized) fetchSponsors();
+  }, [tenantSlug, authorized]);
 
+  if (!authorized) return null;
   if (loading) return <div className="p-6">Loading...</div>;
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
-      {/* Header */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Sponsors</h1>
 
@@ -68,7 +80,6 @@ export default function SponsorsAdminPage() {
         <div className="text-red-600 border p-3 rounded">{error}</div>
       )}
 
-      {/* Add Form (Top) */}
       {showAdd && (
         <div className="border rounded p-4 bg-gray-50">
           <SponsorForm
@@ -82,7 +93,6 @@ export default function SponsorsAdminPage() {
         </div>
       )}
 
-      {/* Sponsor List */}
       <div className="border rounded divide-y">
         {sponsors.map((s) => (
           <div key={s.id}>
@@ -110,8 +120,8 @@ export default function SponsorsAdminPage() {
                     if (!confirm("Delete this sponsor?") || !tenantSlug)
                       return;
 
-                    await fetch(
-                      `${API_BASE}/${tenantSlug}/admin/sponsors/${s.id}`,
+                    await authFetch(
+                      `/${tenantSlug}/admin/sponsors/${s.id}`,
                       { method: "DELETE" }
                     );
 

@@ -7,7 +7,7 @@ export const config = {
   matcher: ["/((?!_next|favicon.ico).*)"],
 };
 
-export async function middleware(req) {
+export async function proxy(req) {
   const url = req.nextUrl.clone();
   const host = req.headers.get("host");
 
@@ -15,12 +15,12 @@ export async function middleware(req) {
 
   const hostname = host.toLowerCase().replace(/^www\./, "").split(":")[0];
 
-  // skip local
+  // skip localhost
   if (hostname === "localhost") {
     return NextResponse.next();
   }
 
-  // already routed (safety)
+  // prevent loop
   if (url.pathname.startsWith("/ahsra")) {
     return NextResponse.next();
   }
@@ -40,7 +40,6 @@ export async function middleware(req) {
     return NextResponse.next();
   }
 
-  // 🔴 INTERNAL REWRITE (this is the key)
   url.pathname =
     url.pathname === "/"
       ? `/${tenant.slug}`

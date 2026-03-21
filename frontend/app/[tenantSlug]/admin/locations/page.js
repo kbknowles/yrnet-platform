@@ -2,9 +2,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+import { useParams, useRouter } from "next/navigation";
+import authFetch from "../../../../utils/authFetch";
 
 const EMPTY_LOCATION = {
   name: "",
@@ -22,27 +21,37 @@ const EMPTY_LOCATION = {
 
 export default function AdminLocationsPage() {
   const params = useParams();
+  const router = useRouter();
 
   const tenantSlug = Array.isArray(params?.tenantSlug)
     ? params.tenantSlug[0]
     : params?.tenantSlug;
 
+  const [authorized, setAuthorized] = useState(false);
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState(null);
+
+  useEffect(() => {
+    if (!process.env.NEXT_PUBLIC_ADMIN_SECRET) {
+      router.push(`/${tenantSlug || ""}`);
+      return;
+    }
+    setAuthorized(true);
+  }, [tenantSlug, router]);
 
   async function load() {
     if (!tenantSlug) return;
 
     setLoading(true);
     try {
-      const res = await fetch(
-        `${API_BASE}/${tenantSlug}/admin/locations`,
+      const res = await authFetch(
+        `/${tenantSlug}/admin/locations`,
         { cache: "no-store" }
       );
 
       if (!res.ok) {
-        setLocations([]);
+        router.push(`/${tenantSlug}`);
         return;
       }
 
@@ -56,8 +65,8 @@ export default function AdminLocationsPage() {
   }
 
   useEffect(() => {
-    load();
-  }, [tenantSlug]);
+    if (authorized) load();
+  }, [tenantSlug, authorized]);
 
   function normalizePayload(l) {
     return {
@@ -81,10 +90,10 @@ export default function AdminLocationsPage() {
     const isEdit = Boolean(active.id);
 
     const url = isEdit
-      ? `${API_BASE}/${tenantSlug}/admin/locations/${active.id}`
-      : `${API_BASE}/${tenantSlug}/admin/locations`;
+      ? `/${tenantSlug}/admin/locations/${active.id}`
+      : `/${tenantSlug}/admin/locations`;
 
-    await fetch(url, {
+    await authFetch(url, {
       method: isEdit ? "PUT" : "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(normalizePayload(active)),
@@ -97,7 +106,7 @@ export default function AdminLocationsPage() {
   async function remove(id) {
     if (!confirm("Delete location?") || !tenantSlug) return;
 
-    await fetch(`${API_BASE}/${tenantSlug}/admin/locations/${id}`, {
+    await authFetch(`/${tenantSlug}/admin/locations/${id}`, {
       method: "DELETE",
     });
 
@@ -108,6 +117,7 @@ export default function AdminLocationsPage() {
     load();
   }
 
+  if (!authorized) return null;
   if (loading) return <p className="p-6">Loading…</p>;
 
   return (
@@ -209,7 +219,10 @@ export default function AdminLocationsPage() {
               placeholder="Street Address"
               value={active.streetAddress}
               onChange={(e) =>
-                setActive({ ...active, streetAddress: e.target.value })
+                setActive({
+                  ...active,
+                  streetAddress: e.target.value,
+                })
               }
             />
 

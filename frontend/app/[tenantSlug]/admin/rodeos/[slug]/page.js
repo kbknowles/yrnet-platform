@@ -4,8 +4,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+import authFetch from "../../utils/authFetch";
 
 function formatForDateInput(date) {
   if (!date) return "";
@@ -30,6 +29,7 @@ export default function AdminEditRodeoPage() {
     ? params.tenantSlug[0]
     : params?.tenantSlug;
 
+  const [authorized, setAuthorized] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const [form, setForm] = useState({
@@ -41,17 +41,25 @@ export default function AdminEditRodeoPage() {
   });
 
   useEffect(() => {
-    if (!slug || !tenantSlug) return;
+    if (!process.env.NEXT_PUBLIC_ADMIN_SECRET) {
+      router.push(`/${tenantSlug || ""}`);
+      return;
+    }
+    setAuthorized(true);
+  }, [tenantSlug, router]);
+
+  useEffect(() => {
+    if (!slug || !tenantSlug || !authorized) return;
 
     async function loadRodeo() {
       try {
-        const res = await fetch(
-          `${API_BASE}/${tenantSlug}/admin/rodeos/${encodeURIComponent(slug)}`,
+        const res = await authFetch(
+          `/${tenantSlug}/admin/rodeos/${encodeURIComponent(slug)}`,
           { cache: "no-store" }
         );
 
         if (!res.ok) {
-          setLoading(false);
+          router.push(`/${tenantSlug}`);
           return;
         }
 
@@ -72,7 +80,7 @@ export default function AdminEditRodeoPage() {
     }
 
     loadRodeo();
-  }, [slug, tenantSlug]);
+  }, [slug, tenantSlug, authorized, router]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -84,8 +92,8 @@ export default function AdminEditRodeoPage() {
     };
 
     try {
-      const res = await fetch(
-        `${API_BASE}/${tenantSlug}/admin/rodeos/${encodeURIComponent(slug)}`,
+      const res = await authFetch(
+        `/${tenantSlug}/admin/rodeos/${encodeURIComponent(slug)}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -105,9 +113,8 @@ export default function AdminEditRodeoPage() {
     }
   }
 
-  if (loading) {
-    return <div className="p-6">Loading…</div>;
-  }
+  if (!authorized) return null;
+  if (loading) return <div className="p-6">Loading…</div>;
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-10 space-y-8">

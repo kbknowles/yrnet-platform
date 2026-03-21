@@ -1,9 +1,10 @@
+// filepath: frontend/components/admin/SponsorForm.js
 "use client";
 
 import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import { resolveTenantMedia } from "lib/media";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
+import authFetch from "../../utils/authFetch";
 
 function resolveImage(filename, tenantSlug) {
   if (!filename) return null;
@@ -17,10 +18,18 @@ function resolveImage(filename, tenantSlug) {
 
 export default function SponsorForm({
   sponsor,
-  tenantSlug,
+  tenantSlug: propTenantSlug,
   onSaved,
   onClose,
 }) {
+  const params = useParams();
+
+  const routeTenantSlug = Array.isArray(params?.tenantSlug)
+    ? params.tenantSlug[0]
+    : params?.tenantSlug;
+
+  const tenantSlug = propTenantSlug || routeTenantSlug;
+
   const isEdit = Boolean(sponsor?.id);
 
   const [form, setForm] = useState({
@@ -64,15 +73,17 @@ export default function SponsorForm({
   }
 
   async function uploadFile(id, file, type) {
+    if (!tenantSlug) return;
+
     const formData = new FormData();
     formData.append("file", file);
 
     const endpoint =
       type === "logo"
-        ? `${API_BASE}/${tenantSlug}/admin/sponsors/${id}/upload-logo`
-        : `${API_BASE}/${tenantSlug}/admin/sponsors/${id}/upload-banner`;
+        ? `/${tenantSlug}/admin/sponsors/${id}/upload-logo`
+        : `/${tenantSlug}/admin/sponsors/${id}/upload-banner`;
 
-    const res = await fetch(endpoint, {
+    const res = await authFetch(endpoint, {
       method: "POST",
       body: formData,
     });
@@ -87,7 +98,7 @@ export default function SponsorForm({
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (saving) return;
+    if (saving || !tenantSlug) return;
 
     setSaving(true);
     setError(null);
@@ -95,10 +106,10 @@ export default function SponsorForm({
     try {
       const method = isEdit ? "PUT" : "POST";
       const url = isEdit
-        ? `${API_BASE}/${tenantSlug}/admin/sponsors/${sponsor.id}`
-        : `${API_BASE}/${tenantSlug}/admin/sponsors`;
+        ? `/${tenantSlug}/admin/sponsors/${sponsor.id}`
+        : `/${tenantSlug}/admin/sponsors`;
 
-      const res = await fetch(url, {
+      const res = await authFetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
@@ -142,7 +153,6 @@ export default function SponsorForm({
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
-
         <div className="grid md:grid-cols-2 gap-4">
           <input
             className="border rounded p-2 text-sm"
@@ -197,7 +207,6 @@ export default function SponsorForm({
         />
 
         <div className="border-t pt-6 grid md:grid-cols-2 gap-6">
-
           <div className="space-y-3">
             <div className="font-medium text-sm">Logo</div>
 
@@ -243,7 +252,6 @@ export default function SponsorForm({
               </>
             )}
           </div>
-
         </div>
 
         <div className="flex gap-3 pt-4">

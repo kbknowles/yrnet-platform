@@ -3,9 +3,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { resolveTenantMedia } from "lib/media";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+import authFetch from "../../../../utils/authFetch";
 
 const EVENT_OPTIONS = [
   "BAREBACK",
@@ -51,6 +51,9 @@ function resolveMedia(filename, tenantSlug) {
 }
 
 export default function AthleteForm({ slug, tenantSlug, mode = "create" }) {
+  const router = useRouter();
+
+  const [authorized, setAuthorized] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
 
   const [headshotFile, setHeadshotFile] = useState(null);
@@ -65,11 +68,20 @@ export default function AthleteForm({ slug, tenantSlug, mode = "create" }) {
   }
 
   useEffect(() => {
+    if (!process.env.NEXT_PUBLIC_ADMIN_SECRET) {
+      router.push(`/${tenantSlug || ""}`);
+      return;
+    }
+    setAuthorized(true);
+  }, [tenantSlug, router]);
+
+  useEffect(() => {
+    if (!authorized) return;
     if (mode !== "edit" || !slug || !tenantSlug) return;
 
     async function load() {
-      const res = await fetch(
-        `${API_BASE}/${tenantSlug}/admin/athletes/${slug}`
+      const res = await authFetch(
+        `/${tenantSlug}/admin/athletes/${slug}`
       );
 
       if (!res.ok) {
@@ -91,9 +103,7 @@ export default function AthleteForm({ slug, tenantSlug, mode = "create" }) {
     }
 
     load();
-  }, [mode, slug, tenantSlug]);
-
-  /* ---------------- REMOVE EXISTING ---------------- */
+  }, [mode, slug, tenantSlug, authorized]);
 
   function removeExistingHeadshot() {
     update("headshotUrl", "");
@@ -107,8 +117,6 @@ export default function AthleteForm({ slug, tenantSlug, mode = "create" }) {
     update("videos", form.videos.filter((_, i) => i !== index));
   }
 
-  /* ---------------- REMOVE NEW ---------------- */
-
   function removeNewHeadshot() {
     setHeadshotFile(null);
   }
@@ -120,8 +128,6 @@ export default function AthleteForm({ slug, tenantSlug, mode = "create" }) {
   function removeNewVideoFile(index) {
     setVideoFiles((prev) => prev.filter((_, i) => i !== index));
   }
-
-  /* ---------------- SUBMIT ---------------- */
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -141,8 +147,8 @@ export default function AthleteForm({ slug, tenantSlug, mode = "create" }) {
     actionFiles.forEach((file) => formData.append("actionPhotos", file));
     videoFiles.forEach((file) => formData.append("videos", file));
 
-    const res = await fetch(
-      `${API_BASE}/${tenantSlug}/admin/athletes${
+    const res = await authFetch(
+      `/${tenantSlug}/admin/athletes${
         mode === "edit" ? `/${slug}` : ""
       }`,
       {
@@ -160,12 +166,12 @@ export default function AthleteForm({ slug, tenantSlug, mode = "create" }) {
     window.location.href = `/${tenantSlug}/admin/athletes`;
   }
 
+  if (!authorized) return null;
   if (loading) return <p className="p-6">Loading…</p>;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-10 p-6 max-w-6xl mx-auto">
 
-      {/* BASIC INFO */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label className="block text-sm font-medium mb-1">First Name</label>
@@ -215,7 +221,6 @@ export default function AthleteForm({ slug, tenantSlug, mode = "create" }) {
         </div>
       </section>
 
-      {/* BIO */}
       <section>
         <label className="block text-sm font-medium mb-2">Bio</label>
         <textarea
@@ -225,7 +230,6 @@ export default function AthleteForm({ slug, tenantSlug, mode = "create" }) {
         />
       </section>
 
-      {/* FUTURE GOALS */}
       <section>
         <label className="block text-sm font-medium mb-2">Future Goals</label>
         <textarea
@@ -235,10 +239,8 @@ export default function AthleteForm({ slug, tenantSlug, mode = "create" }) {
         />
       </section>
 
-      {/* MEDIA */}
       <section className="space-y-8">
 
-        {/* HEADSHOT */}
         <div>
           <label className="block text-sm font-medium mb-2">Headshot</label>
 
@@ -277,7 +279,6 @@ export default function AthleteForm({ slug, tenantSlug, mode = "create" }) {
           <input type="file" accept="image/*" onChange={(e) => setHeadshotFile(e.target.files?.[0])} />
         </div>
 
-        {/* ACTION PHOTOS */}
         <div>
           <label className="block text-sm font-medium mb-2">Action Photos</label>
 
@@ -304,7 +305,6 @@ export default function AthleteForm({ slug, tenantSlug, mode = "create" }) {
           <input type="file" multiple accept="image/*" onChange={(e) => setActionFiles([...e.target.files])} />
         </div>
 
-        {/* VIDEOS */}
         <div>
           <label className="block text-sm font-medium mb-2">Videos</label>
 
@@ -333,7 +333,6 @@ export default function AthleteForm({ slug, tenantSlug, mode = "create" }) {
 
       </section>
 
-      {/* EVENTS */}
       <section>
         <label className="block text-sm font-medium mb-2">Events</label>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">

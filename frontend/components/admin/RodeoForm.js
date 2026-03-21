@@ -1,13 +1,17 @@
 // filepath: frontend/components/admin/EventForm.js
-
 "use client";
 
 import { useEffect, useState } from "react";
-
-
+import { useParams } from "next/navigation";
+import authFetch from "../../utils/authFetch";
 
 export default function EventForm({ onCreated }) {
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+  const params = useParams();
+
+  const tenantSlug = Array.isArray(params?.tenantSlug)
+    ? params.tenantSlug[0]
+    : params?.tenantSlug;
+
   const [seasons, setSeasons] = useState([]);
   const [locations, setLocations] = useState([]);
 
@@ -22,28 +26,35 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
   useEffect(() => {
     loadMeta();
-  }, []);
+  }, [tenantSlug]);
 
   async function loadMeta() {
-    const [s, l] = await Promise.all([
-      fetch(`${API_BASE}/${tenantSlug}/admin/seasons`).then((r) => r.json()),
-      fetch(`${API_BASE}/${tenantSlug}/admin/locations`).then((r) => r.json()),
+    if (!tenantSlug) return;
+
+    const [sRes, lRes] = await Promise.all([
+      authFetch(`/${tenantSlug}/admin/seasons`),
+      authFetch(`/${tenantSlug}/admin/locations`),
     ]);
 
-    setSeasons(s);
-    setLocations(l);
+    const [s, l] = await Promise.all([sRes.json(), lRes.json()]);
+
+    setSeasons(Array.isArray(s) ? s : []);
+    setLocations(Array.isArray(l) ? l : []);
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (!tenantSlug) return;
 
-    await fetch(`${API_BASE}/${tenantSlug}/admin/rodeos`, {
+    await authFetch(`/${tenantSlug}/admin/rodeos`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         ...form,
-        seasonId: Number(form.seasonId),
-        locationId: Number(form.locationId),
+        seasonId: form.seasonId ? Number(form.seasonId) : null,
+        locationId: form.locationId ? Number(form.locationId) : null,
       }),
     });
 
@@ -56,14 +67,11 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
       locationId: "",
     });
 
-    onCreated();
+    onCreated?.();
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="grid gap-4 max-w-xl"
-    >
+    <form onSubmit={handleSubmit} className="grid gap-4 max-w-xl">
       <input
         className="border rounded p-2"
         placeholder="Event Name"

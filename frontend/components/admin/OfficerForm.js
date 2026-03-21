@@ -1,10 +1,17 @@
 // filepath: frontend/components/admin/OfficerForm.js
-
 "use client";
 
 import { useState } from "react";
+import { useParams } from "next/navigation";
+import authFetch from "../../utils/authFetch";
 
-export default function OfficerForm({ seasons, onCreated }) {
+export default function OfficerForm({ seasons = [], onCreated }) {
+  const params = useParams();
+
+  const tenantSlug = Array.isArray(params?.tenantSlug)
+    ? params.tenantSlug[0]
+    : params?.tenantSlug;
+
   const [form, setForm] = useState({
     name: "",
     role: "",
@@ -16,18 +23,18 @@ export default function OfficerForm({ seasons, onCreated }) {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (!tenantSlug) return;
 
-    await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/admin/officers`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...form,
-          seasonId: Number(form.seasonId),
-        }),
-      }
-    );
+    await authFetch(`/${tenantSlug}/admin/officers`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        ...form,
+        seasonId: form.seasonId ? Number(form.seasonId) : null,
+      }),
+    });
 
     setForm({
       name: "",
@@ -50,6 +57,7 @@ export default function OfficerForm({ seasons, onCreated }) {
         onChange={(e) => setForm({ ...form, name: e.target.value })}
         required
       />
+
       <input
         className="border rounded p-2"
         placeholder="Role"
@@ -57,6 +65,7 @@ export default function OfficerForm({ seasons, onCreated }) {
         onChange={(e) => setForm({ ...form, role: e.target.value })}
         required
       />
+
       <select
         className="border rounded p-2"
         value={form.type}

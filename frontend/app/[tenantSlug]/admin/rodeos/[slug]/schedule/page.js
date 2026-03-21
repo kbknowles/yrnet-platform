@@ -2,18 +2,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import authFetch from "../../utils/authFetch";
 
 export default function RodeoSchedulePage() {
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL;
-
   const params = useParams();
+  const router = useRouter();
 
   const slug = Array.isArray(params?.slug) ? params.slug[0] : params?.slug;
   const tenantSlug = Array.isArray(params?.tenantSlug)
     ? params.tenantSlug[0]
     : params?.tenantSlug;
 
+  const [authorized, setAuthorized] = useState(false);
   const [items, setItems] = useState([]);
   const [form, setForm] = useState({
     title: "",
@@ -21,18 +22,29 @@ export default function RodeoSchedulePage() {
     notes: "",
   });
 
+  useEffect(() => {
+    if (!process.env.NEXT_PUBLIC_ADMIN_SECRET) {
+      router.push(`/${tenantSlug || ""}`);
+      return;
+    }
+    setAuthorized(true);
+  }, [tenantSlug, router]);
+
   async function loadItems() {
     if (!slug || !tenantSlug) return;
 
     try {
-      const res = await fetch(
-        `${API_BASE}/${tenantSlug}/admin/rodeo-schedule-items?slug=${encodeURIComponent(
+      const res = await authFetch(
+        `/${tenantSlug}/admin/rodeo-schedule-items?slug=${encodeURIComponent(
           slug
         )}`,
         { cache: "no-store" }
       );
 
-      if (!res.ok) return;
+      if (!res.ok) {
+        router.push(`/${tenantSlug}`);
+        return;
+      }
 
       const data = await res.json();
       setItems(Array.isArray(data) ? data : []);
@@ -42,14 +54,14 @@ export default function RodeoSchedulePage() {
   }
 
   useEffect(() => {
-    if (slug && tenantSlug) loadItems();
-  }, [slug, tenantSlug]);
+    if (slug && tenantSlug && authorized) loadItems();
+  }, [slug, tenantSlug, authorized]);
 
   async function handleSubmit(e) {
     e.preventDefault();
     if (!slug || !tenantSlug) return;
 
-    await fetch(`${API_BASE}/${tenantSlug}/admin/rodeo-schedule-items`, {
+    await authFetch(`/${tenantSlug}/admin/rodeo-schedule-items`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -71,6 +83,8 @@ export default function RodeoSchedulePage() {
 
     loadItems();
   }
+
+  if (!authorized) return null;
 
   return (
     <main className="max-w-4xl mx-auto px-4 py-10 space-y-6">

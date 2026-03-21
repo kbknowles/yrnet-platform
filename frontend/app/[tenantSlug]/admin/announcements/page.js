@@ -2,9 +2,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+import { useParams, useRouter } from "next/navigation";
+import authFetch from "../../../../utils/authFetch";
 
 const EMPTY = {
   title: "",
@@ -22,6 +21,9 @@ const EMPTY = {
 
 export default function AdminAnnouncementsPage() {
   const { tenantSlug } = useParams();
+  const router = useRouter();
+
+  const [authorized, setAuthorized] = useState(false);
 
   const [announcements, setAnnouncements] = useState([]);
   const [events, setEvents] = useState([]);
@@ -30,15 +32,23 @@ export default function AdminAnnouncementsPage() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
 
+  useEffect(() => {
+    if (!process.env.NEXT_PUBLIC_ADMIN_SECRET) {
+      router.push(`/${tenantSlug || ""}`);
+      return;
+    }
+    setAuthorized(true);
+  }, [tenantSlug, router]);
+
   async function loadAll() {
     if (!tenantSlug) return;
 
     setLoading(true);
 
     const [a, e, s] = await Promise.all([
-      fetch(`${API_BASE}/${tenantSlug}/admin/announcements`).then((r) => r.json()),
-      fetch(`${API_BASE}/${tenantSlug}/admin/rodeos`).then((r) => r.json()),
-      fetch(`${API_BASE}/${tenantSlug}/admin/seasons`).then((r) => r.json()),
+      authFetch(`/${tenantSlug}/admin/announcements`).then((r) => r.json()),
+      authFetch(`/${tenantSlug}/admin/rodeos`).then((r) => r.json()),
+      authFetch(`/${tenantSlug}/admin/seasons`).then((r) => r.json()),
     ]);
 
     setAnnouncements(a || []);
@@ -48,13 +58,13 @@ export default function AdminAnnouncementsPage() {
   }
 
   useEffect(() => {
-    loadAll();
-  }, [tenantSlug]);
+    if (authorized) loadAll();
+  }, [tenantSlug, authorized]);
 
   async function save() {
     const payload = {
       ...active,
-      rodeoId: active.eventId ? Number(active.eventId) : null, // ✅ FIX
+      rodeoId: active.eventId ? Number(active.eventId) : null,
       seasonId: active.seasonId ? Number(active.seasonId) : null,
       sortOrder: Number(active.sortOrder) || 0,
       content: active.content || "",
@@ -69,12 +79,11 @@ export default function AdminAnnouncementsPage() {
 
     const method = active.id ? "PUT" : "POST";
     const url = active.id
-      ? `${API_BASE}/${tenantSlug}/admin/announcements/${active.id}`
-      : `${API_BASE}/${tenantSlug}/admin/announcements`;
+      ? `/${tenantSlug}/admin/announcements/${active.id}`
+      : `/${tenantSlug}/admin/announcements`;
 
-    await fetch(url, {
+    await authFetch(url, {
       method,
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
 
@@ -86,7 +95,7 @@ export default function AdminAnnouncementsPage() {
     if (!id) return;
     if (!confirm("Delete this announcement?")) return;
 
-    await fetch(`${API_BASE}/${tenantSlug}/admin/announcements/${id}`, {
+    await authFetch(`/${tenantSlug}/admin/announcements/${id}`, {
       method: "DELETE",
     });
 
@@ -103,25 +112,25 @@ export default function AdminAnnouncementsPage() {
       let announcement = active;
 
       if (!announcement.id) {
-        const res = await fetch(`${API_BASE}/${tenantSlug}/admin/announcements`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            title: announcement.title || "Untitled Poster",
-            content: announcement.content || "",
-            mode: "POSTER",
-            published: false,
-            sortOrder: Number(announcement.sortOrder) || 0,
-            seasonId: announcement.seasonId ? Number(announcement.seasonId) : null,
-            rodeoId: announcement.eventId ? Number(announcement.eventId) : null, // ✅ already correct
-          }),
-        });
-
-        if (!res.ok) {
-          const text = await res.text();
-          console.error("Create announcement error:", text);
-          throw new Error("Failed to create announcement");
-        }
+        const res = await authFetch(
+          `/${tenantSlug}/admin/announcements`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              title: announcement.title || "Untitled Poster",
+              content: announcement.content || "",
+              mode: "POSTER",
+              published: false,
+              sortOrder: Number(announcement.sortOrder) || 0,
+              seasonId: announcement.seasonId
+                ? Number(announcement.seasonId)
+                : null,
+              rodeoId: announcement.eventId
+                ? Number(announcement.eventId)
+                : null,
+            }),
+          }
+        );
 
         announcement = await res.json();
         setActive((prev) => ({ ...prev, id: announcement.id }));
@@ -131,16 +140,10 @@ export default function AdminAnnouncementsPage() {
       form.append("file", file);
       form.append("announcementId", String(announcement.id));
 
-      const uploadRes = await fetch(
-        `${API_BASE}/${tenantSlug}/admin/announcements/upload`,
+      const uploadRes = await authFetch(
+        `/${tenantSlug}/admin/announcements/upload`,
         { method: "POST", body: form }
       );
-
-      if (!uploadRes.ok) {
-        const text = await uploadRes.text();
-        console.error("Upload error:", text);
-        throw new Error("Poster upload failed");
-      }
 
       const data = await uploadRes.json();
 
@@ -148,12 +151,13 @@ export default function AdminAnnouncementsPage() {
       await loadAll();
     } catch (err) {
       console.error("Poster upload failed", err);
-      alert("Poster upload failed. Check server logs.");
+      alert("Poster upload failed.");
     } finally {
       setUploading(false);
     }
   }
 
+  if (!authorized) return null;
   if (loading) return <p className="p-6">Loading…</p>;
 
   return (
@@ -188,7 +192,7 @@ export default function AdminAnnouncementsPage() {
                   onClick={() =>
                     setActive({
                       ...a,
-                      eventId: a.rodeoId ?? "", // ✅ FIX
+                      eventId: a.rodeoId ?? "",
                       seasonId: a.seasonId ?? "",
                       publishAt: a.publishAt?.slice(0, 16) || "",
                       expireAt: a.expireAt?.slice(0, 16) || "",
@@ -221,14 +225,18 @@ export default function AdminAnnouncementsPage() {
               className="w-full border p-2 rounded"
               placeholder="Title"
               value={active.title}
-              onChange={(e) => setActive({ ...active, title: e.target.value })}
+              onChange={(e) =>
+                setActive({ ...active, title: e.target.value })
+              }
             />
 
             <div className="grid grid-cols-2 gap-4">
               <select
                 className="border p-2 rounded"
                 value={active.mode}
-                onChange={(e) => setActive({ ...active, mode: e.target.value })}
+                onChange={(e) =>
+                  setActive({ ...active, mode: e.target.value })
+                }
               >
                 <option value="STANDARD">Standard</option>
                 <option value="POSTER">Poster</option>

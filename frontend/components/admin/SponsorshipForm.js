@@ -1,8 +1,9 @@
+// filepath: frontend/components/admin/SponsorshipForm.js
 "use client";
 
 import { useEffect, useState } from "react";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
+import { useParams } from "next/navigation";
+import authFetch from "../../utils/authFetch";
 
 const LEVELS = ["PREMIER", "FEATURED", "STANDARD", "SUPPORTER"];
 
@@ -20,6 +21,12 @@ export default function SponsorshipForm({
   onSaved,
   onCancel,
 }) {
+  const params = useParams();
+
+  const tenantSlug = Array.isArray(params?.tenantSlug)
+    ? params.tenantSlug[0]
+    : params?.tenantSlug;
+
   const isEdit = Boolean(sponsorship?.id);
 
   const emptyForm = {
@@ -42,10 +49,16 @@ export default function SponsorshipForm({
      LOAD SPONSORS
   ------------------------- */
   useEffect(() => {
+    if (!tenantSlug) return;
+
     async function loadSponsors() {
       try {
-        const res = await fetch(`${API_BASE}/${tenantSlug}/admin/sponsors`);
+        const res = await authFetch(`/${tenantSlug}/admin/sponsors`, {
+          cache: "no-store",
+        });
+
         if (!res.ok) return;
+
         const data = await res.json();
         setSponsors(Array.isArray(data) ? data : []);
       } catch (err) {
@@ -54,7 +67,7 @@ export default function SponsorshipForm({
     }
 
     loadSponsors();
-  }, []);
+  }, [tenantSlug]);
 
   /* -------------------------
      INIT FORM (EDIT MODE)
@@ -89,7 +102,7 @@ export default function SponsorshipForm({
   ------------------------- */
   async function handleSubmit(e) {
     e.preventDefault();
-    if (saving) return;
+    if (saving || !tenantSlug) return;
 
     setSaving(true);
     setError(null);
@@ -97,10 +110,10 @@ export default function SponsorshipForm({
     try {
       const method = isEdit ? "PUT" : "POST";
       const url = isEdit
-        ? `${API_BASE}/${tenantSlug}/admin/sponsorships/${sponsorship.id}`
-        : `${API_BASE}/${tenantSlug}/admin/sponsorships`;
+        ? `/${tenantSlug}/admin/sponsorships/${sponsorship.id}`
+        : `/${tenantSlug}/admin/sponsorships`;
 
-      const res = await fetch(url, {
+      const res = await authFetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -139,7 +152,7 @@ export default function SponsorshipForm({
   function resolveUrl(url) {
     if (!url) return null;
     if (url.startsWith("http")) return url;
-    return `${API_BASE}${url}`;
+    return `${process.env.NEXT_PUBLIC_API_URL}${url}`;
   }
 
   return (
@@ -155,7 +168,6 @@ export default function SponsorshipForm({
       )}
 
       <form onSubmit={handleSubmit} className="space-y-5">
-
         <div className="grid md:grid-cols-3 gap-4">
           <select
             required

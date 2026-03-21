@@ -3,9 +3,10 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import authFetch from "../../../../utils/authFetch";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 function formatMMDDYYYY(date) {
   if (!date) return "";
@@ -19,26 +20,36 @@ function formatMMDDYYYY(date) {
 
 export default function AdminRodeosPage() {
   const params = useParams();
+  const router = useRouter();
 
   const tenantSlug = Array.isArray(params?.tenantSlug)
     ? params.tenantSlug[0]
     : params?.tenantSlug;
 
+  const [authorized, setAuthorized] = useState(false);
   const [rodeos, setRodeos] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!tenantSlug) return;
+    if (!process.env.NEXT_PUBLIC_ADMIN_SECRET) {
+      router.push(`/${tenantSlug || ""}`);
+      return;
+    }
+    setAuthorized(true);
+  }, [tenantSlug, router]);
+
+  useEffect(() => {
+    if (!tenantSlug || !authorized) return;
 
     async function load() {
       try {
-        const res = await fetch(`${API_BASE}/${tenantSlug}/admin/rodeos`, {
-          cache: "no-store",
-        });
+        const res = await authFetch(
+          `/${tenantSlug}/admin/rodeos`,
+          { cache: "no-store" }
+        );
 
         if (!res.ok) {
-          console.error("Failed to fetch rodeos");
-          setRodeos([]);
+          router.push(`/${tenantSlug}`);
           return;
         }
 
@@ -53,11 +64,10 @@ export default function AdminRodeosPage() {
     }
 
     load();
-  }, [tenantSlug]);
+  }, [tenantSlug, authorized, router]);
 
-  if (loading) {
-    return <div className="p-6">Loading…</div>;
-  }
+  if (!authorized) return null;
+  if (loading) return <div className="p-6">Loading…</div>;
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-10 space-y-8">

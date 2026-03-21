@@ -3,12 +3,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import authFetch from "../../../../utils/authFetch";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 export default function AdminDocuments() {
   const { tenantSlug } = useParams();
+  const router = useRouter();
+
+  const [authorized, setAuthorized] = useState(false);
 
   const [form, setForm] = useState({
     id: null,
@@ -21,30 +25,32 @@ export default function AdminDocuments() {
   const [message, setMessage] = useState("");
   const [documents, setDocuments] = useState([]);
 
-  /* -----------------------------
-     LOAD DOCUMENTS
-  ----------------------------- */
+  useEffect(() => {
+    if (!process.env.NEXT_PUBLIC_ADMIN_SECRET) {
+      router.push(`/${tenantSlug || ""}`);
+      return;
+    }
+    setAuthorized(true);
+  }, [tenantSlug, router]);
+
   async function loadDocuments() {
-    const res = await fetch(`${API_BASE}/${tenantSlug}/documents`);
+    const res = await authFetch(`/${tenantSlug}/documents`);
     const data = await res.json();
     setDocuments(data || []);
   }
 
   useEffect(() => {
-    if (tenantSlug) loadDocuments();
-  }, [tenantSlug]);
+    if (tenantSlug && authorized) loadDocuments();
+  }, [tenantSlug, authorized]);
 
-  /* -----------------------------
-     UPLOAD FILE
-  ----------------------------- */
   async function handleUpload() {
     if (!file) return;
 
     const data = new FormData();
     data.append("file", file);
 
-    const res = await fetch(
-      `${API_BASE}/${tenantSlug}/admin/documents/upload`,
+    const res = await authFetch(
+      `/${tenantSlug}/admin/documents/upload`,
       {
         method: "POST",
         body: data,
@@ -61,28 +67,29 @@ export default function AdminDocuments() {
     }
   }
 
-  /* -----------------------------
-     SAVE / UPDATE
-  ----------------------------- */
   async function handleSave() {
     const method = form.id ? "PUT" : "POST";
     const url = form.id
-      ? `${API_BASE}/${tenantSlug}/admin/documents/${form.id}`
-      : `${API_BASE}/${tenantSlug}/admin/documents`;
+      ? `/${tenantSlug}/admin/documents/${form.id}`
+      : `/${tenantSlug}/admin/documents`;
 
-    const body = form.id && file
-      ? (() => {
-          const data = new FormData();
-          data.append("file", file);
-          data.append("title", form.title);
-          data.append("category", form.category);
-          return data;
-        })()
-      : JSON.stringify(form);
+    const body =
+      form.id && file
+        ? (() => {
+            const data = new FormData();
+            data.append("file", file);
+            data.append("title", form.title);
+            data.append("category", form.category);
+            return data;
+          })()
+        : JSON.stringify(form);
 
-    await fetch(url, {
+    await authFetch(url, {
       method,
-      headers: form.id && file ? undefined : { "Content-Type": "application/json" },
+      headers:
+        form.id && file
+          ? undefined
+          : { "Content-Type": "application/json" },
       body,
     });
 
@@ -98,28 +105,19 @@ export default function AdminDocuments() {
     loadDocuments();
   }
 
-  /* -----------------------------
-     DELETE
-  ----------------------------- */
   async function handleDelete(id) {
-    await fetch(`${API_BASE}/${tenantSlug}/admin/documents/${id}`, {
+    await authFetch(`/${tenantSlug}/admin/documents/${id}`, {
       method: "DELETE",
     });
 
     loadDocuments();
   }
 
-  /* -----------------------------
-     EDIT
-  ----------------------------- */
   function handleEdit(doc) {
     setForm(doc);
     setMessage("Editing document");
   }
 
-  /* -----------------------------
-     GROUP + SORT
-  ----------------------------- */
   const grouped = documents.reduce((acc, doc) => {
     if (!acc[doc.category]) acc[doc.category] = [];
     acc[doc.category].push(doc);
@@ -130,15 +128,15 @@ export default function AdminDocuments() {
     grouped[cat].sort((a, b) => a.title.localeCompare(b.title));
   });
 
+  if (!authorized) return null;
+
   return (
     <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-      {/* LEFT */}
       <div>
         <h1 className="text-xl font-bold mb-4">
           {form.id ? "Edit Document" : "Upload Document"}
         </h1>
 
-        {/* Helpful Hints */}
         <div className="mb-6 p-4 border rounded bg-gray-50 text-sm">
           <h2 className="font-semibold mb-2">Helpful Hints</h2>
 
@@ -207,7 +205,6 @@ export default function AdminDocuments() {
         </button>
       </div>
 
-      {/* RIGHT */}
       <div>
         <h2 className="text-lg font-semibold mb-4">Documents</h2>
 

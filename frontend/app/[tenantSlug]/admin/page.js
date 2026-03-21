@@ -4,16 +4,19 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import authFetch from "../../../utils/authFetch";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 export default function AdminIndexPage() {
   const params = useParams();
+  const router = useRouter();
 
   const tenantSlug = Array.isArray(params?.tenantSlug)
     ? params.tenantSlug[0]
     : params?.tenantSlug;
+
+  const [authorized, setAuthorized] = useState(false);
 
   const [stats, setStats] = useState({
     activeSeason: "—",
@@ -27,7 +30,17 @@ export default function AdminIndexPage() {
   });
 
   useEffect(() => {
-    if (!tenantSlug) return;
+    // block access if no admin secret
+    if (!process.env.NEXT_PUBLIC_ADMIN_SECRET) {
+      router.push(`/${tenantSlug || ""}`);
+      return;
+    }
+
+    setAuthorized(true);
+  }, [tenantSlug, router]);
+
+  useEffect(() => {
+    if (!tenantSlug || !authorized) return;
 
     async function loadStats() {
       try {
@@ -41,31 +54,25 @@ export default function AdminIndexPage() {
           pagesRes,
           galleryRes,
         ] = await Promise.all([
-          fetch(`${API_BASE}/${tenantSlug}/admin/seasons`, {
-            cache: "no-store",
-          }),
-          fetch(`${API_BASE}/${tenantSlug}/admin/rodeos`, {
-            cache: "no-store",
-          }),
-          fetch(`${API_BASE}/${tenantSlug}/admin/sponsors`, {
-            cache: "no-store",
-          }),
-          fetch(`${API_BASE}/${tenantSlug}/admin/athletes`, {
-            cache: "no-store",
-          }),
-          fetch(`${API_BASE}/${tenantSlug}/admin/locations`, {
-            cache: "no-store",
-          }),
-          fetch(`${API_BASE}/${tenantSlug}/admin/officers`, {
-            cache: "no-store",
-          }),
-          fetch(`${API_BASE}/${tenantSlug}/admin/pages`, {
-            cache: "no-store",
-          }),
-          fetch(`${API_BASE}/${tenantSlug}/admin/gallery`, {
-            cache: "no-store",
-          }),
+          authFetch(`/${tenantSlug}/admin/seasons`, { cache: "no-store" }),
+          authFetch(`/${tenantSlug}/admin/rodeos`, { cache: "no-store" }),
+          authFetch(`/${tenantSlug}/admin/sponsors`, { cache: "no-store" }),
+          authFetch(`/${tenantSlug}/admin/athletes`, { cache: "no-store" }),
+          authFetch(`/${tenantSlug}/admin/locations`, { cache: "no-store" }),
+          authFetch(`/${tenantSlug}/admin/officers`, { cache: "no-store" }),
+          authFetch(`/${tenantSlug}/admin/pages`, { cache: "no-store" }),
+          authFetch(`/${tenantSlug}/admin/gallery`, { cache: "no-store" }),
         ]);
+
+        // if unauthorized, bounce out
+        if (
+          [seasonsRes, rodeosRes, sponsorsRes, athletesRes].some(
+            (res) => res.status === 401 || res.status === 403
+          )
+        ) {
+          router.push(`/${tenantSlug}`);
+          return;
+        }
 
         const [
           seasonsData,
@@ -105,7 +112,9 @@ export default function AdminIndexPage() {
           rodeos
             .filter((rodeo) => rodeo?.startDate)
             .sort(
-              (a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+              (a, b) =>
+                new Date(a.startDate).getTime() -
+                new Date(b.startDate).getTime()
             )
             .find((rodeo) => new Date(rodeo.startDate) >= now)?.name || "—";
 
@@ -134,7 +143,9 @@ export default function AdminIndexPage() {
     }
 
     loadStats();
-  }, [tenantSlug]);
+  }, [tenantSlug, authorized, router]);
+
+  if (!authorized) return null;
 
   const base = `/${tenantSlug}/admin`;
 

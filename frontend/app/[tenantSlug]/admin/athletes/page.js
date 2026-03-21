@@ -1,14 +1,13 @@
 // filepath: frontend/app/[tenantSlug]/admin/athletes/page.js
 
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
 import { resolveTenantMedia } from "lib/media";
+import authFetch from "../../../../utils/authFetch";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
-
-/*
-  Use centralized media resolver
-  (same as public athlete page)
-*/
 function resolveAthleteImage(filename, tenantSlug) {
   if (!filename) return null;
 
@@ -19,35 +18,60 @@ function resolveAthleteImage(filename, tenantSlug) {
   });
 }
 
-async function getAthletes(tenantSlug) {
-  try {
-    const res = await fetch(`${API_BASE}/${tenantSlug}/admin/athletes`, {
-      cache: "no-store",
-    });
+export default function AthletesAdminPage() {
+  const { tenantSlug } = useParams();
+  const router = useRouter();
 
-    if (!res.ok) {
-      console.error("Failed to fetch athletes:", res.status);
-      return [];
+  const [authorized, setAuthorized] = useState(false);
+  const [athletes, setAthletes] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!process.env.NEXT_PUBLIC_ADMIN_SECRET) {
+      router.push(`/${tenantSlug || ""}`);
+      return;
+    }
+    setAuthorized(true);
+  }, [tenantSlug, router]);
+
+  useEffect(() => {
+    if (!tenantSlug || !authorized) return;
+
+    async function load() {
+      try {
+        const res = await authFetch(`/${tenantSlug}/admin/athletes`, {
+          cache: "no-store",
+        });
+
+        if (!res.ok) {
+          router.push(`/${tenantSlug}`);
+          return;
+        }
+
+        const data = await res.json();
+        setAthletes(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error("Fetch athletes error:", err);
+        setAthletes([]);
+      } finally {
+        setLoading(false);
+      }
     }
 
-    const data = await res.json();
-    return Array.isArray(data) ? data : [];
-  } catch (err) {
-    console.error("Fetch athletes error:", err);
-    return [];
-  }
-}
+    load();
+  }, [tenantSlug, authorized, router]);
 
-export default async function AthletesAdminPage({ params }) {
-  const { tenantSlug } = await params;
-
-  const athletes = await getAthletes(tenantSlug);
+  if (!authorized) return null;
+  if (loading) return <p className="p-6">Loading…</p>;
 
   return (
     <main className="max-w-6xl mx-auto px-4 py-10">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Athletes</h1>
-        <Link href={`/${tenantSlug}/admin/athletes/new`} className="btn-primary">
+        <Link
+          href={`/${tenantSlug}/admin/athletes/new`}
+          className="btn-primary"
+        >
           Add Athlete
         </Link>
       </div>

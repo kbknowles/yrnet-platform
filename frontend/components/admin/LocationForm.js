@@ -1,10 +1,17 @@
 // filepath: frontend/components/admin/LocationForm.js
-
 "use client";
 
 import { useState } from "react";
+import { useParams } from "next/navigation";
+import authFetch from "../../utils/authFetch";
 
 export default function LocationForm({ onCreated }) {
+  const params = useParams();
+
+  const tenantSlug = Array.isArray(params?.tenantSlug)
+    ? params.tenantSlug[0]
+    : params?.tenantSlug;
+
   const [form, setForm] = useState({
     name: "",
     streetAddress: "",
@@ -16,15 +23,15 @@ export default function LocationForm({ onCreated }) {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (!tenantSlug) return;
 
-    await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/admin/locations`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      }
-    );
+    await authFetch(`/${tenantSlug}/admin/locations`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(form),
+    });
 
     setForm({
       name: "",
@@ -47,6 +54,7 @@ export default function LocationForm({ onCreated }) {
         onChange={(e) => setForm({ ...form, name: e.target.value })}
         required
       />
+
       <input
         className="border rounded p-2"
         placeholder="Street Address"
@@ -55,18 +63,21 @@ export default function LocationForm({ onCreated }) {
           setForm({ ...form, streetAddress: e.target.value })
         }
       />
+
       <input
         className="border rounded p-2"
         placeholder="City"
         value={form.city}
         onChange={(e) => setForm({ ...form, city: e.target.value })}
       />
+
       <input
         className="border rounded p-2"
         placeholder="State"
         value={form.state}
         onChange={(e) => setForm({ ...form, state: e.target.value })}
       />
+
       <input
         className="border rounded p-2"
         placeholder="ZIP"

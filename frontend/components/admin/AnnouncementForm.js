@@ -2,10 +2,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import authFetch from "../../utils/authFetch";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+
 
 export default function AnnouncementForm({ onCreated }) {
+  const params = useParams();
+
+  const tenantSlug = Array.isArray(params?.tenantSlug)
+    ? params.tenantSlug[0]
+    : params?.tenantSlug;
+
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [type, setType] = useState("general");
@@ -18,9 +26,11 @@ export default function AnnouncementForm({ onCreated }) {
 
   useEffect(() => {
     async function load() {
+      if (!tenantSlug) return;
+
       const [eRes, sRes] = await Promise.all([
-        fetch(`${API_BASE}/${tenantSlug}/admin/rodeos`),
-        fetch(`${API_BASE}/${tenantSlug}/admin/seasons`),
+        authFetch(`/${tenantSlug}/admin/rodeos`),
+        authFetch(`/${tenantSlug}/admin/seasons`),
       ]);
 
       const [eData, sData] = await Promise.all([
@@ -28,19 +38,21 @@ export default function AnnouncementForm({ onCreated }) {
         sRes.json(),
       ]);
 
-      setEvents(eData || []);
-      setSeasons(sData || []);
+      setEvents(Array.isArray(eData) ? eData : []);
+      setSeasons(Array.isArray(sData) ? sData : []);
     }
 
     load();
-  }, []);
+  }, [tenantSlug]);
 
   async function handleSubmit(e) {
     e.preventDefault();
 
-    await fetch(`${API_BASE}/${tenantSlug}/admin/announcements`, {
+    await authFetch(`/${tenantSlug}/admin/announcements`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         title,
         content,
@@ -117,7 +129,8 @@ export default function AnnouncementForm({ onCreated }) {
         <option value="">All Seasons</option>
         {seasons.map((s) => (
           <option key={s.id} value={s.id}>
-            {s.year ?? `${s.startDate?.slice(0,4)}-${s.endDate?.slice(0,4)}`}
+            {s.year ??
+              `${s.startDate?.slice(0, 4)}-${s.endDate?.slice(0, 4)}`}
           </option>
         ))}
       </select>

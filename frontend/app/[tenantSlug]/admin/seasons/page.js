@@ -2,9 +2,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import authFetch from "../../../../utils/authFetch";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 const EMPTY_SEASON = {
   year: "",
@@ -15,14 +15,24 @@ const EMPTY_SEASON = {
 
 export default function AdminSeasonsPage() {
   const params = useParams();
+  const router = useRouter();
 
   const tenantSlug = Array.isArray(params?.tenantSlug)
     ? params.tenantSlug[0]
     : params?.tenantSlug;
 
+  const [authorized, setAuthorized] = useState(false);
   const [seasons, setSeasons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState(null);
+
+  useEffect(() => {
+    if (!process.env.NEXT_PUBLIC_ADMIN_SECRET) {
+      router.push(`/${tenantSlug || ""}`);
+      return;
+    }
+    setAuthorized(true);
+  }, [tenantSlug, router]);
 
   async function load() {
     if (!tenantSlug) return;
@@ -30,10 +40,15 @@ export default function AdminSeasonsPage() {
     setLoading(true);
 
     try {
-      const res = await fetch(
-        `${API_BASE}/${tenantSlug}/admin/seasons`,
+      const res = await authFetch(
+        `/${tenantSlug}/admin/seasons`,
         { cache: "no-store" }
       );
+
+      if (!res.ok) {
+        router.push(`/${tenantSlug}`);
+        return;
+      }
 
       const data = await res.json();
       setSeasons(Array.isArray(data) ? data : []);
@@ -45,8 +60,8 @@ export default function AdminSeasonsPage() {
   }
 
   useEffect(() => {
-    load();
-  }, [tenantSlug]);
+    if (authorized) load();
+  }, [tenantSlug, authorized]);
 
   async function save() {
     if (!active || !tenantSlug) return;
@@ -54,10 +69,10 @@ export default function AdminSeasonsPage() {
     const isEdit = Boolean(active.id);
 
     const url = isEdit
-      ? `${API_BASE}/${tenantSlug}/admin/seasons/${active.id}`
-      : `${API_BASE}/${tenantSlug}/admin/seasons`;
+      ? `/${tenantSlug}/admin/seasons/${active.id}`
+      : `/${tenantSlug}/admin/seasons`;
 
-    await fetch(url, {
+    await authFetch(url, {
       method: isEdit ? "PUT" : "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(active),
@@ -70,8 +85,8 @@ export default function AdminSeasonsPage() {
   async function remove(id) {
     if (!confirm("Delete season?") || !tenantSlug) return;
 
-    const res = await fetch(
-      `${API_BASE}/${tenantSlug}/admin/seasons/${id}`,
+    const res = await authFetch(
+      `/${tenantSlug}/admin/seasons/${id}`,
       { method: "DELETE" }
     );
 
@@ -84,6 +99,7 @@ export default function AdminSeasonsPage() {
     load();
   }
 
+  if (!authorized) return null;
   if (loading) return <p className="p-6">Loading…</p>;
 
   return (

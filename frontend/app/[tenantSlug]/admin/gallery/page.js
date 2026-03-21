@@ -2,16 +2,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { resolveTenantMedia } from "lib/media";
+
+import authFetch from "../../../../utils/authFetch";
 
 export default function AdminGalleryPage() {
   const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
   const params = useParams();
+  const router = useRouter();
+
   const tenantSlug = Array.isArray(params?.tenantSlug)
     ? params.tenantSlug[0]
     : params?.tenantSlug;
+
+  const [authorized, setAuthorized] = useState(false);
 
   const [albums, setAlbums] = useState([]);
   const [title, setTitle] = useState("");
@@ -22,17 +28,25 @@ export default function AdminGalleryPage() {
   const [uploadFile, setUploadFile] = useState(null);
   const [caption, setCaption] = useState("");
 
+  useEffect(() => {
+    if (!process.env.NEXT_PUBLIC_ADMIN_SECRET) {
+      router.push(`/${tenantSlug || ""}`);
+      return;
+    }
+    setAuthorized(true);
+  }, [tenantSlug, router]);
+
   async function loadAlbums() {
     if (!tenantSlug) return;
 
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/${tenantSlug}/admin/gallery`, {
+      const res = await authFetch(`/${tenantSlug}/admin/gallery`, {
         cache: "no-store",
       });
 
       if (!res.ok) {
-        setAlbums([]);
+        router.push(`/${tenantSlug}`);
         return;
       }
 
@@ -49,7 +63,7 @@ export default function AdminGalleryPage() {
     if (!tenantSlug) return;
 
     try {
-      const res = await fetch(`${API_BASE}/${tenantSlug}/admin/gallery`, {
+      const res = await authFetch(`/${tenantSlug}/admin/gallery`, {
         cache: "no-store",
       });
 
@@ -65,8 +79,8 @@ export default function AdminGalleryPage() {
   }
 
   useEffect(() => {
-    loadAlbums();
-  }, [tenantSlug]);
+    if (tenantSlug && authorized) loadAlbums();
+  }, [tenantSlug, authorized]);
 
   async function createAlbum() {
     if (!title.trim() || !tenantSlug) return;
@@ -76,9 +90,8 @@ export default function AdminGalleryPage() {
       seasonId: seasonId ? parseInt(seasonId, 10) : null,
     };
 
-    const res = await fetch(`${API_BASE}/${tenantSlug}/admin/gallery`, {
+    const res = await authFetch(`/${tenantSlug}/admin/gallery`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
 
@@ -92,7 +105,7 @@ export default function AdminGalleryPage() {
   async function deleteAlbum(id) {
     if (!confirm("Delete this album and all images?") || !tenantSlug) return;
 
-    await fetch(`${API_BASE}/${tenantSlug}/admin/gallery/${id}`, {
+    await authFetch(`/${tenantSlug}/admin/gallery/${id}`, {
       method: "DELETE",
     });
 
@@ -110,8 +123,8 @@ export default function AdminGalleryPage() {
     formData.append("image", uploadFile);
     formData.append("caption", caption);
 
-    const res = await fetch(
-      `${API_BASE}/${tenantSlug}/admin/gallery/${activeAlbum.id}/images`,
+    const res = await authFetch(
+      `/${tenantSlug}/admin/gallery/${activeAlbum.id}/images`,
       {
         method: "POST",
         body: formData,
@@ -128,12 +141,17 @@ export default function AdminGalleryPage() {
   async function deleteImage(imageId) {
     if (!activeAlbum || !tenantSlug) return;
 
-    await fetch(`${API_BASE}/${tenantSlug}/admin/gallery/images/${imageId}`, {
-      method: "DELETE",
-    });
+    await authFetch(
+      `/${tenantSlug}/admin/gallery/images/${imageId}`,
+      {
+        method: "DELETE",
+      }
+    );
 
     refreshActiveAlbum(activeAlbum.id);
   }
+
+  if (!authorized) return null;
 
   if (loading) {
     return <p className="p-6">Loading gallery…</p>;
@@ -219,7 +237,6 @@ export default function AdminGalleryPage() {
       {activeAlbum && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
           <div className="bg-white w-full max-w-3xl rounded shadow-lg p-6 max-h-[90vh] overflow-y-auto">
-
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold">
                 Photos — {activeAlbum.title}
@@ -237,7 +254,9 @@ export default function AdminGalleryPage() {
               <div className="grid md:grid-cols-3 gap-3">
                 <input
                   type="file"
-                  onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
+                  onChange={(e) =>
+                    setUploadFile(e.target.files?.[0] || null)
+                  }
                 />
 
                 <input

@@ -2,13 +2,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
-
-/* =========================
-   ENUM OPTIONS
-========================= */
+import { useParams, useRouter } from "next/navigation";
+import authFetch from "../../../../utils/authFetch";
 
 const ROLE_OPTIONS = [
   { value: "PRESIDENT", label: "President" },
@@ -35,21 +30,27 @@ const TYPE_OPTIONS = [
   { value: "STAFF", label: "Staff" },
 ];
 
-/* =========================
-   PAGE
-========================= */
-
 export default function AdminOfficersPage() {
   const params = useParams();
+  const router = useRouter();
 
   const tenantSlug = Array.isArray(params?.tenantSlug)
     ? params.tenantSlug[0]
     : params?.tenantSlug;
 
+  const [authorized, setAuthorized] = useState(false);
   const [officers, setOfficers] = useState([]);
   const [seasons, setSeasons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState(null);
+
+  useEffect(() => {
+    if (!process.env.NEXT_PUBLIC_ADMIN_SECRET) {
+      router.push(`/${tenantSlug || ""}`);
+      return;
+    }
+    setAuthorized(true);
+  }, [tenantSlug, router]);
 
   async function load() {
     if (!tenantSlug) return;
@@ -58,9 +59,14 @@ export default function AdminOfficersPage() {
 
     try {
       const [officerRes, seasonRes] = await Promise.all([
-        fetch(`${API_BASE}/${tenantSlug}/admin/officers`, { cache: "no-store" }),
-        fetch(`${API_BASE}/${tenantSlug}/admin/seasons`, { cache: "no-store" }),
+        authFetch(`/${tenantSlug}/admin/officers`, { cache: "no-store" }),
+        authFetch(`/${tenantSlug}/admin/seasons`, { cache: "no-store" }),
       ]);
+
+      if (!officerRes.ok || !seasonRes.ok) {
+        router.push(`/${tenantSlug}`);
+        return;
+      }
 
       const officersData = await officerRes.json();
       const seasonsData = await seasonRes.json();
@@ -76,8 +82,8 @@ export default function AdminOfficersPage() {
   }
 
   useEffect(() => {
-    load();
-  }, [tenantSlug]);
+    if (authorized) load();
+  }, [tenantSlug, authorized]);
 
   async function save() {
     if (!active || !tenantSlug) return;
@@ -85,10 +91,10 @@ export default function AdminOfficersPage() {
     const method = active.id ? "PUT" : "POST";
 
     const url = active.id
-      ? `${API_BASE}/${tenantSlug}/admin/officers/${active.id}`
-      : `${API_BASE}/${tenantSlug}/admin/officers`;
+      ? `/${tenantSlug}/admin/officers/${active.id}`
+      : `/${tenantSlug}/admin/officers`;
 
-    await fetch(url, {
+    await authFetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -109,13 +115,14 @@ export default function AdminOfficersPage() {
   async function remove(id) {
     if (!confirm("Delete officer?") || !tenantSlug) return;
 
-    await fetch(`${API_BASE}/${tenantSlug}/admin/officers/${id}`, {
+    await authFetch(`/${tenantSlug}/admin/officers/${id}`, {
       method: "DELETE",
     });
 
     load();
   }
 
+  if (!authorized) return null;
   if (loading) return <div className="p-6">Loading…</div>;
 
   return (
@@ -130,7 +137,8 @@ export default function AdminOfficersPage() {
               type: "EXECUTIVE",
               email: "",
               phone: "",
-              seasonId: seasons.find((s) => s.active)?.id || seasons[0]?.id,
+              seasonId:
+                seasons.find((s) => s.active)?.id || seasons[0]?.id,
               active: true,
             })
           }

@@ -3,30 +3,45 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+import { useParams, useRouter } from "next/navigation";
+import authFetch from "../../../../utils/authFetch";
 
 export default function AdminPagesPage() {
   const params = useParams();
+  const router = useRouter();
 
   const tenantSlug = Array.isArray(params?.tenantSlug)
     ? params.tenantSlug[0]
     : params?.tenantSlug;
 
+  const [authorized, setAuthorized] = useState(false);
   const [pages, setPages] = useState([]);
   const [savingId, setSavingId] = useState(null);
 
   useEffect(() => {
-    if (!tenantSlug) return;
+    if (!process.env.NEXT_PUBLIC_ADMIN_SECRET) {
+      router.push(`/${tenantSlug || ""}`);
+      return;
+    }
+    setAuthorized(true);
+  }, [tenantSlug, router]);
 
-    fetch(`${API_BASE}/${tenantSlug}/admin/pages`)
-      .then((res) => res.json())
+  useEffect(() => {
+    if (!tenantSlug || !authorized) return;
+
+    authFetch(`/${tenantSlug}/admin/pages`)
+      .then((res) => {
+        if (!res.ok) {
+          router.push(`/${tenantSlug}`);
+          return [];
+        }
+        return res.json();
+      })
       .then((data) => {
         setPages(Array.isArray(data) ? data : []);
       })
       .catch(() => setPages([]));
-  }, [tenantSlug]);
+  }, [tenantSlug, authorized, router]);
 
   const menuPages = pages
     .filter((p) => p.showInMenu)
@@ -47,7 +62,7 @@ export default function AdminPagesPage() {
   async function savePage(page) {
     setSavingId(page.id);
 
-    await fetch(`${API_BASE}/${tenantSlug}/admin/pages/${page.id}`, {
+    await authFetch(`/${tenantSlug}/admin/pages/${page.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -60,6 +75,8 @@ export default function AdminPagesPage() {
 
     setSavingId(null);
   }
+
+  if (!authorized) return null;
 
   return (
     <main className="max-w-6xl mx-auto px-4 py-10 space-y-10">
@@ -76,13 +93,11 @@ export default function AdminPagesPage() {
         </Link>
       </header>
 
-      {/* MENU PREVIEW */}
       <section className="grid md:grid-cols-2 gap-6">
         <MenuPreview title="Main Menu Preview" pages={menuPages} />
         <MenuPreview title="Footer Menu Preview" pages={footerPages} />
       </section>
 
-      {/* PAGE LIST + CONTROLS */}
       <section className="space-y-4">
         <h2 className="text-lg font-semibold">
           All Pages
@@ -94,7 +109,6 @@ export default function AdminPagesPage() {
               key={p.id}
               className="grid grid-cols-1 md:grid-cols-8 gap-4 p-4 items-center"
             >
-              {/* TITLE */}
               <div className="md:col-span-2">
                 <div className="font-medium">{p.title}</div>
                 <div className="text-xs text-gray-500">
@@ -104,7 +118,6 @@ export default function AdminPagesPage() {
                 </div>
               </div>
 
-              {/* TOGGLES */}
               <Toggle
                 label="Menu"
                 checked={p.showInMenu}
@@ -129,7 +142,6 @@ export default function AdminPagesPage() {
                 }
               />
 
-              {/* SORT ORDER */}
               <input
                 type="number"
                 className="w-20 border rounded px-2 py-1 text-sm"
@@ -143,7 +155,6 @@ export default function AdminPagesPage() {
                 }
               />
 
-              {/* ACTIONS */}
               <div className="flex items-center gap-4 text-sm">
                 <button
                   onClick={() => savePage(p)}

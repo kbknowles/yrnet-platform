@@ -1,3 +1,4 @@
+// filepath: frontend/components/admin/GalleryReorder.js
 "use client";
 
 import {
@@ -10,10 +11,16 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { useState, useEffect } from "react";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+import { useParams } from "next/navigation";
+import authFetch from "../../utils/authFetch";
 
 export default function GalleryReorder({ albumId, images = [] }) {
+  const params = useParams();
+
+  const tenantSlug = Array.isArray(params?.tenantSlug)
+    ? params.tenantSlug[0]
+    : params?.tenantSlug;
+
   const [items, setItems] = useState(images);
 
   useEffect(() => {
@@ -36,8 +43,8 @@ export default function GalleryReorder({ albumId, images = [] }) {
 
     setItems(updated);
 
-    await fetch(
-      `${API_BASE}/${tenantSlug}/admin/gallery/albums/${albumId}/reorder`,
+    await authFetch(
+      `/${tenantSlug}/admin/gallery/albums/${albumId}/reorder`,
       {
         method: "PUT",
         headers: { "Content-Type": "application/json" },

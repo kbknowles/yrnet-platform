@@ -1,8 +1,17 @@
+// filepath: frontend/components/admin/SeasonForm.js
 "use client";
 
 import { useState } from "react";
+import { useParams } from "next/navigation";
+import authFetch from "../../utils/authFetch";
 
 export default function SeasonForm({ onCreated }) {
+  const params = useParams();
+
+  const tenantSlug = Array.isArray(params?.tenantSlug)
+    ? params.tenantSlug[0]
+    : params?.tenantSlug;
+
   const [form, setForm] = useState({
     year: "",
     startDate: "",
@@ -12,19 +21,25 @@ export default function SeasonForm({ onCreated }) {
 
   async function submit(e) {
     e.preventDefault();
+    if (!tenantSlug) return;
 
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/admin/seasons`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      }
-    );
+    const res = await authFetch(`/${tenantSlug}/admin/seasons`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(form),
+    });
 
     if (res.ok) {
-      setForm({ year: "", startDate: "", endDate: "", active: false });
-      onCreated();
+      setForm({
+        year: "",
+        startDate: "",
+        endDate: "",
+        active: false,
+      });
+
+      onCreated?.();
     }
   }
 
@@ -39,7 +54,8 @@ export default function SeasonForm({ onCreated }) {
       />
 
       <input
-        type="date" min="2020-01-01"
+        type="date"
+        min="2020-01-01"
         className="w-full border p-2"
         value={form.startDate}
         onChange={(e) => setForm({ ...form, startDate: e.target.value })}
@@ -47,7 +63,8 @@ export default function SeasonForm({ onCreated }) {
       />
 
       <input
-        type="date" min="2020-01-01"
+        type="date"
+        min="2020-01-01"
         className="w-full border p-2"
         value={form.endDate}
         onChange={(e) => setForm({ ...form, endDate: e.target.value })}
@@ -58,7 +75,9 @@ export default function SeasonForm({ onCreated }) {
         <input
           type="checkbox"
           checked={form.active}
-          onChange={(e) => setForm({ ...form, active: e.target.checked })}
+          onChange={(e) =>
+            setForm({ ...form, active: e.target.checked })
+          }
         />
         Active season
       </label>

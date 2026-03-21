@@ -3,17 +3,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+import { useParams, useRouter } from "next/navigation";
+import authFetch from "../../../../utils/authFetch";
 
 export default function PageEditor({ title, form, setForm, onSave }) {
   const params = useParams();
+  const router = useRouter();
 
   const tenantSlug = Array.isArray(params?.tenantSlug)
     ? params.tenantSlug[0]
     : params?.tenantSlug;
 
+  const [authorized, setAuthorized] = useState(false);
   const [mode, setMode] = useState("edit");
   const [pages, setPages] = useState([]);
   const [showLinkModal, setShowLinkModal] = useState(false);
@@ -21,13 +22,26 @@ export default function PageEditor({ title, form, setForm, onSave }) {
   const [linkValue, setLinkValue] = useState("");
 
   useEffect(() => {
-    async function loadPages() {
-      if (!tenantSlug) return;
+    if (!process.env.NEXT_PUBLIC_ADMIN_SECRET) {
+      router.push(`/${tenantSlug || ""}`);
+      return;
+    }
+    setAuthorized(true);
+  }, [tenantSlug, router]);
 
+  useEffect(() => {
+    if (!tenantSlug || !authorized) return;
+
+    async function loadPages() {
       try {
-        const res = await fetch(`${API_BASE}/${tenantSlug}/admin/pages`, {
+        const res = await authFetch(`/${tenantSlug}/admin/pages`, {
           cache: "no-store",
         });
+
+        if (!res.ok) {
+          router.push(`/${tenantSlug}`);
+          return;
+        }
 
         const data = await res.json();
         setPages(Array.isArray(data) ? data : []);
@@ -37,7 +51,7 @@ export default function PageEditor({ title, form, setForm, onSave }) {
     }
 
     loadPages();
-  }, [tenantSlug]);
+  }, [tenantSlug, authorized, router]);
 
   function wrap(tag) {
     const el = document.getElementById("content");
@@ -76,6 +90,8 @@ export default function PageEditor({ title, form, setForm, onSave }) {
     setShowLinkModal(false);
     setLinkValue("");
   }
+
+  if (!authorized) return null;
 
   return (
     <main className="max-w-5xl mx-auto px-4 py-10 space-y-6">
