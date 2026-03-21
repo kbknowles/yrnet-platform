@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import authFetch from "../../utils/authFetch";
+import authFetch from "../../../../../../utils/authFetch";
 
 export default function RodeoSchedulePage() {
   const params = useParams();
