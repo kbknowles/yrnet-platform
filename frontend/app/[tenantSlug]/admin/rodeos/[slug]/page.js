@@ -4,7 +4,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import authFetch from "../../utils/authFetch";
+import authFetch from "../../../../../utils/authFetch";
 
 function formatForDateInput(date) {
   if (!date) return "";

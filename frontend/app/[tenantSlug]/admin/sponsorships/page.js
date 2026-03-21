@@ -1,10 +1,10 @@
+// filepath: frontend/app/[tenantSlug]/admin/sponsorships/page.js
 "use client";
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import SponsorshipForm from "components/admin/SponsorshipForm";
 import authFetch from "../../../../utils/authFetch";
-
 
 export default function SponsorshipsPage() {
   const params = useParams();
@@ -59,7 +59,7 @@ export default function SponsorshipsPage() {
       {editing && (
         <SponsorshipForm
           sponsorship={editing}
-          onClose={() => setEditing(null)}
+          onCancel={() => setEditing(null)}   // FIXED: matches form prop
           onSaved={() => {
             setEditing(null);
             load();
