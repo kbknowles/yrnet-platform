@@ -40,6 +40,7 @@ import athletesRouter from "./athletes.js";
 import calendarRouter from "./calendar.js";
 import sponsorshipsRouter from "./sponsorships.js";
 import documentsRouter from "./documents.js";
+import tenantResolver from "./tenantResolver.js";
 
 
 
@@ -48,6 +49,8 @@ const router = express.Router();
 /* =========================
    MULTI-TENANT ROOT
    ========================= */
+
+router.use("/resolve-tenant", tenantResolver);
 
 /*
    All tenant routes now live under:
@@ -85,5 +88,6 @@ router.use("/:tenantSlug/athletes", athletesRouter);
 router.use("/:tenantSlug/calendar", calendarRouter);
 router.use("/:tenantSlug/sponsorships", sponsorshipsRouter);
 router.use("/:tenantSlug/documents", documentsRouter);
+
 
 export default router;
