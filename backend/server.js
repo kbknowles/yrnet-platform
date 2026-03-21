@@ -36,15 +36,6 @@ app.use("/uploads", express.static("/uploads"));
 
 app.use("/", routes);
 
-/* -----------------------------
-   Health Check
------------------------------- */
-
-app.get("/", (req, res) => {
-  res.json({
-    status: "YRNet API running",
-  });
-});
 
 /* -----------------------------
    Start Server
