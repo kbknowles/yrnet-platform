@@ -1,12 +1,10 @@
 // filepath: frontend/app/[tenantSlug]/admin/rodeo/page.js
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import authFetch from "../../../../utils/authFetch";
-
-
+import RodeoForm from "components/admin/RodeoForm";
 
 function formatMMDDYYYY(date) {
   if (!date) return "";
@@ -21,6 +19,7 @@ function formatMMDDYYYY(date) {
 export default function AdminRodeosPage() {
   const params = useParams();
   const router = useRouter();
+  const formRef = useRef(null);
 
   const tenantSlug = Array.isArray(params?.tenantSlug)
     ? params.tenantSlug[0]
@@ -29,6 +28,7 @@ export default function AdminRodeosPage() {
   const [authorized, setAuthorized] = useState(false);
   const [rodeos, setRodeos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(null);
 
   useEffect(() => {
     if (!process.env.NEXT_PUBLIC_ADMIN_SECRET) {
@@ -38,33 +38,61 @@ export default function AdminRodeosPage() {
     setAuthorized(true);
   }, [tenantSlug, router]);
 
-  useEffect(() => {
-    if (!tenantSlug || !authorized) return;
+  async function load() {
+    if (!tenantSlug) return;
 
-    async function load() {
-      try {
-        const res = await authFetch(
-          `/${tenantSlug}/admin/rodeos`,
-          { cache: "no-store" }
-        );
+    try {
+      const res = await authFetch(
+        `/${tenantSlug}/admin/rodeos`,
+        { cache: "no-store" }
+      );
 
-        if (!res.ok) {
-          router.push(`/${tenantSlug}`);
-          return;
-        }
-
-        const data = await res.json();
-        setRodeos(Array.isArray(data) ? data : []);
-      } catch (err) {
-        console.error("Failed to load rodeos", err);
-        setRodeos([]);
-      } finally {
-        setLoading(false);
+      if (!res.ok) {
+        router.push(`/${tenantSlug}`);
+        return;
       }
-    }
 
-    load();
-  }, [tenantSlug, authorized, router]);
+      const data = await res.json();
+      setRodeos(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Failed to load rodeos", err);
+      setRodeos([]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (authorized) load();
+  }, [tenantSlug, authorized]);
+
+  function handleEdit(rodeo) {
+    setEditing({
+      id: rodeo.id,
+      name: rodeo.name || "",
+      slug: rodeo.slug || "",
+      startDate: rodeo.startDate ? rodeo.startDate.slice(0, 10) : "",
+      endDate: rodeo.endDate ? rodeo.endDate.slice(0, 10) : "",
+      status: rodeo.status || "draft",
+
+      // ✅ FIXED — use direct DB field
+      seasonId: rodeo.seasonId ? String(rodeo.seasonId) : "",
+
+      // location already works but keep consistent
+      locationId: rodeo.locationId
+        ? String(rodeo.locationId)
+        : rodeo.location?.id
+        ? String(rodeo.location.id)
+        : "",
+    });
+
+    setTimeout(() => {
+      formRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 50);
+  }
 
   if (!authorized) return null;
   if (loading) return <div className="p-6">Loading…</div>;
@@ -73,13 +101,28 @@ export default function AdminRodeosPage() {
     <div className="max-w-6xl mx-auto px-6 py-10 space-y-8">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Rodeos</h1>
-        <Link
-          href={`/${tenantSlug}/admin/rodeos/new`}
+
+        <button
+          onClick={() => setEditing({})}
           className="px-4 py-2 bg-black text-white rounded text-sm"
         >
           + New Rodeo
-        </Link>
+        </button>
       </div>
+
+      {editing && (
+        <div ref={formRef} className="border rounded p-4 bg-gray-50">
+          <RodeoForm
+            rodeo={editing}
+            tenantSlug={tenantSlug}
+            onCancel={() => setEditing(null)}
+            onCreated={() => {
+              setEditing(null);
+              load();
+            }}
+          />
+        </div>
+      )}
 
       {rodeos.length === 0 && (
         <p className="text-slate-600 text-sm">No rodeos found.</p>
@@ -129,28 +172,13 @@ export default function AdminRodeosPage() {
                     </span>
                   </td>
 
-                  <td className="px-4 py-3 text-right space-x-3">
-                    <Link
-                      href={`/${tenantSlug}/admin/rodeos/${rodeo.slug}`}
+                  <td className="px-4 py-3 text-right">
+                    <button
+                      onClick={() => handleEdit(rodeo)}
                       className="underline"
                     >
                       Edit
-                    </Link>
-
-                    <Link
-                      href={`/${tenantSlug}/admin/rodeos/${rodeo.slug}/schedule`}
-                      className="underline"
-                    >
-                      Schedule
-                    </Link>
-
-                    <Link
-                      href={`/${tenantSlug}/rodeos/${rodeo.slug}`}
-                      target="_blank"
-                      className="underline"
-                    >
-                      View
-                    </Link>
+                    </button>
                   </td>
                 </tr>
               ))}

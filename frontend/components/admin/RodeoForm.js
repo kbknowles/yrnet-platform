@@ -1,11 +1,11 @@
-// filepath: frontend/components/admin/EventForm.js
+// filepath: frontend/components/admin/RodeoForm.js
 "use client";
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import authFetch from "../../utils/authFetch";
 
-export default function EventForm({ onCreated }) {
+export default function RodeoForm({ rodeo, onCreated, onCancel }) {
   const params = useParams();
 
   const tenantSlug = Array.isArray(params?.tenantSlug)
@@ -14,6 +14,7 @@ export default function EventForm({ onCreated }) {
 
   const [seasons, setSeasons] = useState([]);
   const [locations, setLocations] = useState([]);
+  const [ready, setReady] = useState(false);
 
   const [form, setForm] = useState({
     name: "",
@@ -22,35 +23,61 @@ export default function EventForm({ onCreated }) {
     endDate: "",
     seasonId: "",
     locationId: "",
+    status: "draft",
   });
 
+  const isEdit = Boolean(rodeo?.id);
+
+  /* LOAD META FIRST */
   useEffect(() => {
+    if (!tenantSlug) return;
+
+    async function loadMeta() {
+      const [sRes, lRes] = await Promise.all([
+        authFetch(`/${tenantSlug}/admin/seasons`),
+        authFetch(`/${tenantSlug}/admin/locations`),
+      ]);
+
+      const [s, l] = await Promise.all([sRes.json(), lRes.json()]);
+
+      setSeasons(Array.isArray(s) ? s : []);
+      setLocations(Array.isArray(l) ? l : []);
+      setReady(true);
+    }
+
     loadMeta();
   }, [tenantSlug]);
 
-  async function loadMeta() {
-    if (!tenantSlug) return;
+  /* PREFILL AFTER DATA IS READY */
+  useEffect(() => {
+    if (!rodeo || !ready) return;
 
-    const [sRes, lRes] = await Promise.all([
-      authFetch(`/${tenantSlug}/admin/seasons`),
-      authFetch(`/${tenantSlug}/admin/locations`),
-    ]);
+    const seasonId = rodeo.seasonId ?? rodeo.season?.id ?? "";
+    const locationId = rodeo.locationId ?? rodeo.location?.id ?? "";
 
-    const [s, l] = await Promise.all([sRes.json(), lRes.json()]);
-
-    setSeasons(Array.isArray(s) ? s : []);
-    setLocations(Array.isArray(l) ? l : []);
-  }
+    setForm({
+      name: rodeo.name || "",
+      slug: rodeo.slug || "",
+      startDate: rodeo.startDate?.slice(0, 10) || "",
+      endDate: rodeo.endDate?.slice(0, 10) || "",
+      seasonId: seasonId ? String(seasonId) : "",
+      locationId: locationId ? String(locationId) : "",
+      status: rodeo.status || "draft",
+    });
+  }, [rodeo, ready]);
 
   async function handleSubmit(e) {
     e.preventDefault();
     if (!tenantSlug) return;
 
-    await authFetch(`/${tenantSlug}/admin/rodeos`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+    const method = isEdit ? "PUT" : "POST";
+    const url = isEdit
+      ? `/${tenantSlug}/admin/rodeos/${rodeo.id}`
+      : `/${tenantSlug}/admin/rodeos`;
+
+    await authFetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         ...form,
         seasonId: form.seasonId ? Number(form.seasonId) : null,
@@ -65,88 +92,113 @@ export default function EventForm({ onCreated }) {
       endDate: "",
       seasonId: "",
       locationId: "",
+      status: "draft",
     });
 
     onCreated?.();
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-4 max-w-xl">
-      <input
-        className="border rounded p-2"
-        placeholder="Event Name"
-        value={form.name}
-        onChange={(e) =>
-          setForm({ ...form, name: e.target.value })
-        }
-        required
-      />
+    <form className="grid md:grid-cols-2 gap-4 max-w-3xl" onSubmit={handleSubmit}>
+      {/* LEFT */}
+      <div className="space-y-3">
+        <input
+          className="border rounded p-2 w-full"
+          placeholder="Rodeo Name"
+          value={form.name}
+          onChange={(e) => setForm({ ...form, name: e.target.value })}
+          required
+        />
 
-      <input
-        className="border rounded p-2"
-        placeholder="Slug"
-        value={form.slug}
-        onChange={(e) =>
-          setForm({ ...form, slug: e.target.value })
-        }
-        required
-      />
+        <input
+          className="border rounded p-2 w-full"
+          placeholder="Slug"
+          value={form.slug}
+          onChange={(e) => setForm({ ...form, slug: e.target.value })}
+          required
+        />
 
-      <input
-        type="date"
-        className="border rounded p-2"
-        value={form.startDate}
-        onChange={(e) =>
-          setForm({ ...form, startDate: e.target.value })
-        }
-        required
-      />
+        <input
+          type="date"
+          className="border rounded p-2 w-full"
+          value={form.startDate}
+          onChange={(e) =>
+            setForm({ ...form, startDate: e.target.value })
+          }
+          required
+        />
 
-      <input
-        type="date"
-        className="border rounded p-2"
-        value={form.endDate}
-        onChange={(e) =>
-          setForm({ ...form, endDate: e.target.value })
-        }
-        required
-      />
+        <input
+          type="date"
+          className="border rounded p-2 w-full"
+          value={form.endDate}
+          onChange={(e) =>
+            setForm({ ...form, endDate: e.target.value })
+          }
+          required
+        />
+      </div>
 
-      <select
-        className="border rounded p-2"
-        value={form.seasonId}
-        onChange={(e) =>
-          setForm({ ...form, seasonId: e.target.value })
-        }
-        required
-      >
-        <option value="">Select Season</option>
-        {seasons.map((s) => (
-          <option key={s.id} value={s.id}>
-            {s.year}
-          </option>
-        ))}
-      </select>
+      {/* RIGHT */}
+      <div className="space-y-3">
+        <select
+          className="border rounded p-2 w-full"
+          value={form.seasonId}
+          onChange={(e) =>
+            setForm({ ...form, seasonId: e.target.value })
+          }
+          required
+        >
+          <option value="">Select Season</option>
+          {seasons.map((s) => (
+            <option key={s.id} value={String(s.id)}>
+              {s.year}
+            </option>
+          ))}
+        </select>
 
-      <select
-        className="border rounded p-2"
-        value={form.locationId}
-        onChange={(e) =>
-          setForm({ ...form, locationId: e.target.value })
-        }
-        required
-      >
-        <option value="">Select Location</option>
-        {locations.map((l) => (
-          <option key={l.id} value={l.id}>
-            {l.name}
-          </option>
-        ))}
-      </select>
+        <select
+          className="border rounded p-2 w-full"
+          value={form.locationId}
+          onChange={(e) =>
+            setForm({ ...form, locationId: e.target.value })
+          }
+          required
+        >
+          <option value="">Select Location</option>
+          {locations.map((l) => (
+            <option key={l.id} value={String(l.id)}>
+              {l.name}
+            </option>
+          ))}
+        </select>
 
-      <button className="rounded bg-primary px-4 py-2 text-white">
-        Add Event
-      </button>
+        <select
+          className="border rounded p-2 w-full"
+          value={form.status}
+          onChange={(e) =>
+            setForm({ ...form, status: e.target.value })
+          }
+        >
+          <option value="draft">Draft</option>
+          <option value="published">Published</option>
+        </select>
+      </div>
+
+      {/* ACTIONS */}
+      <div className="md:col-span-2 flex gap-3 pt-2">
+        <button className="bg-primary text-white px-4 py-2 rounded">
+          Save Rodeo
+        </button>
+
+        <button
+          type="button"
+          onClick={onCancel}
+          className="border px-4 py-2 rounded"
+        >
+          Cancel
+        </button>
+      </div>
     </form>
   );
 }
