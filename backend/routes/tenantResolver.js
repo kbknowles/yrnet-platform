@@ -3,6 +3,9 @@ import prisma from "../prismaClient.mjs";
 
 const router = express.Router();
 
+/*
+  THIS must be EXACT
+*/
 router.get("/resolve-tenant", async (req, res) => {
   try {
     let { host } = req.query;
@@ -11,6 +14,7 @@ router.get("/resolve-tenant", async (req, res) => {
       return res.status(400).json({ error: "Host required" });
     }
 
+    // 🔴 REQUIRED normalization
     host = host.toLowerCase().replace(/^www\./, "").split(":")[0];
 
     const tenant = await prisma.tenant.findFirst({
@@ -28,8 +32,8 @@ router.get("/resolve-tenant", async (req, res) => {
     }
 
     return res.json(tenant);
-  } catch (error) {
-    console.error("resolve-tenant error:", error);
+  } catch (err) {
+    console.error("resolver error:", err);
     return res.status(500).json({ error: "Server error" });
   }
 });
