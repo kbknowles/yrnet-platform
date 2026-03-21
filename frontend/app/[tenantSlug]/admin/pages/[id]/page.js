@@ -4,7 +4,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import PageEditor from "../PageEditor";
-import authFetch from "../../utils/authFetch";
+import authFetch from "../../../../../utils/authFetch";
 
 /* ----------------------------
    Helper: text → HTML paragraphs
