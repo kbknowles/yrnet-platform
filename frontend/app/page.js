@@ -16,7 +16,7 @@ export default async function RootPage() {
     const hostname = host.split(":")[0];
 
     const res = await fetch(
-      `${API_BASE}/api/resolve-tenant?host=${hostname}`,
+      `${API_BASE}/resolve-tenant?host=${hostname}`,
       { cache: "no-store" }
     );
 
