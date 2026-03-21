@@ -4,9 +4,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useParams, useRouter } from "next/navigation";
 import authFetch from "../../../../utils/authFetch";
-import authFetch from "../../../../utils/authFetch";
+
 
 
 function formatMMDDYYYY(date) {
