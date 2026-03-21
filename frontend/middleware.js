@@ -31,18 +31,20 @@ export async function middleware(req) {
 
     if (!tenant?.slug) return NextResponse.next();
 
-    // prevent loop
+    // already on tenant path → allow
     if (url.pathname.startsWith(`/${tenant.slug}`)) {
       return NextResponse.next();
     }
 
-    // 🔴 FIX: handle root EXACTLY
+    // 🔴 FIX: redirect root instead of rewrite
     if (url.pathname === "/") {
-      url.pathname = `/${tenant.slug}`;
-    } else {
-      url.pathname = `/${tenant.slug}${url.pathname}`;
+      return NextResponse.redirect(
+        new URL(`/${tenant.slug}`, req.url)
+      );
     }
 
+    // rewrite everything else
+    url.pathname = `/${tenant.slug}${url.pathname}`;
     return NextResponse.rewrite(url);
   } catch {
     return NextResponse.next();
