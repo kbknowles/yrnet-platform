@@ -50,7 +50,7 @@ const router = express.Router();
    MULTI-TENANT ROOT
    ========================= */
 
-router.use("/", tenantResolver);
+router.use("/resolve-tenant", tenantResolver);
 
 /*
    All tenant routes now live under:
