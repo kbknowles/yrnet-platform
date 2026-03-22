@@ -10,29 +10,40 @@ export default function HomePage() {
       {/* HERO */}
       <section className="relative h-[70vh] md:h-[75vh] flex items-center justify-center text-center overflow-hidden">
 
-        {/* background image */}
+        {/* background image (no logo) */}
         <img
           src="/yrnet-hero.png"
           alt="Youth Rodeo"
-          className="absolute inset-0 w-full h-full object-cover object-[center_10%] md:object-[center_15%]"
+          className="absolute inset-0 w-full h-full object-cover object-[center_15%]"
         />
 
         {/* overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-black/70" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/40 to-black/70" />
+
+        {/* logo */}
+        <div className="absolute top-16 md:top-20 left-1/2 -translate-x-1/2 z-10">
+          <img
+            src="/yrnet-logo.png"
+            alt="YRNet"
+            className="h-16 md:h-24 object-contain"
+          />
+        </div>
 
         {/* content */}
-        <div className="relative z-10 max-w-3xl px-4 text-white flex flex-col items-center justify-end h-full pb-28 md:pb-36">
-        < div className="bg-black/30 backdrop-blur-sm px-4 py-3 rounded">
-          <h1 className="text-2xl text-white md:text-4xl font-bold mb-4 leading-tight">
-            Modern Websites for Youth Rodeo Associations
-          </h1>
+        <div className="relative z-10 max-w-3xl px-4 text-white flex flex-col items-center justify-end h-full pb-24 md:pb-32">
 
-          <p className="text-lg text-white md:text-xl mb-6">
-            Showcase your athletes. Highlight your events. Elevate your association.
-          </p>
-        </div>
+          <div className="bg-black/30 backdrop-blur-sm px-4 py-3 rounded">
+            <h1 className="text-2xl md:text-4xl font-bold mb-4 leading-tight">
+              Modern Websites for Youth Rodeo Associations
+            </h1>
+
+            <p className="text-lg md:text-xl mb-6">
+              Showcase your athletes. Highlight your events. Elevate your association.
+            </p>
+          </div>
+
           {/* CTA buttons */}
-          <div className="flex flex-wrap justify-center gap-4">
+          <div className="flex flex-wrap justify-center gap-4 mt-6">
             <Link
               href="/demo"
               className="bg-red-700 hover:bg-red-800 px-6 py-3 rounded font-semibold"
