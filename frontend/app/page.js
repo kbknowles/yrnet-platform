@@ -7,49 +7,49 @@ export default function HomePage() {
   return (
     <main className="flex flex-col">
 
-<section className="relative h-[85vh] md:h-screen flex items-center justify-center text-center">
+      {/* HERO */}
+      <section className="relative h-[70vh] md:h-[75vh] flex items-center justify-center text-center overflow-hidden">
 
-  {/* background image */}
-  <img
-    src="/yrnet-hero.png"
-    alt="Youth Rodeo"
-    className="absolute inset-0 w-full h-full object-cover object-center"
-  />
+        {/* background image */}
+        <img
+          src="/yrnet-hero.png"
+          alt="Youth Rodeo"
+          className="absolute inset-0 w-full h-full object-cover object-[center_20%]"
+        />
 
-  {/* dark overlay */}
-  <div className="absolute inset-0 bg-black/40" />
+        {/* overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/40 to-black/60" />
 
-  {/* content */}
-  <div className="relative z-10 max-w-3xl px-4 text-white flex flex-col items-center">
+        {/* content */}
+        <div className="relative z-10 max-w-3xl px-4 text-white flex flex-col items-center justify-end h-full pb-20 md:pb-28">
 
+          <h1 className="text-3xl md:text-5xl font-bold mb-4">
+            Modern Websites for Youth Rodeo Associations
+          </h1>
 
-    <h1 className="text-3xl md:text-5xl font-bold mb-4">
-      Modern Websites for Youth Rodeo Associations
-    </h1>
+          <p className="text-lg md:text-xl mb-6">
+            Showcase your athletes. Highlight your events. Elevate your association.
+          </p>
 
-    <p className="text-lg md:text-xl mb-6">
-      Showcase your athletes. Highlight your events. Elevate your association.
-    </p>
+          {/* CTA buttons */}
+          <div className="flex flex-wrap justify-center gap-4">
+            <Link
+              href="/demo"
+              className="bg-red-700 hover:bg-red-800 px-6 py-3 rounded font-semibold"
+            >
+              View Demo
+            </Link>
 
-    {/* CTA buttons */}
-    <div className="flex flex-wrap justify-center gap-4">
-      <a
-        href="/demo"
-        className="bg-red-700 hover:bg-red-800 px-6 py-3 rounded font-semibold"
-      >
-        View Demo
-      </a>
+            <Link
+              href="/contact"
+              className="border border-white hover:bg-white hover:text-black px-6 py-3 rounded font-semibold"
+            >
+              Request Info
+            </Link>
+          </div>
 
-      <a
-        href="/contact"
-        className="border border-white hover:bg-white hover:text-black px-6 py-3 rounded font-semibold"
-      >
-        Request Info
-      </a>
-    </div>
-
-  </div>
-</section>
+        </div>
+      </section>
 
       {/* WHAT YOU GET */}
       <section className="py-12 px-4 bg-gray-50">
