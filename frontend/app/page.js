@@ -13,7 +13,7 @@ export default function HomePage() {
   <img
     src="/yrnet-hero.png"
     alt="Youth Rodeo"
-    className="absolute inset-0 w-full h-full object-cover"
+    className="absolute inset-0 w-full h-full object-cover object-center"
   />
 
   {/* dark overlay */}
@@ -22,8 +22,6 @@ export default function HomePage() {
   {/* content */}
   <div className="relative z-10 max-w-3xl px-4 text-white flex flex-col items-center">
 
-    {/* spacer so text sits below logo */}
-    <div className="h-32 md:h-40" />
 
     <h1 className="text-3xl md:text-5xl font-bold mb-4">
       Modern Websites for Youth Rodeo Associations
