@@ -8,7 +8,7 @@ export default function HomePage() {
     <main className="flex flex-col">
 
       {/* HERO */}
-      <section className="relative h-[70vh] md:h-[75vh] flex items-center justify-center text-center overflow-hidden">
+      <section className="hero relative h-[70vh] md:h-[75vh] flex items-center justify-center text-center overflow-hidden">
 
         {/* background image (no logo) */}
         <img
@@ -30,10 +30,10 @@ export default function HomePage() {
         </div>
 
         {/* content */}
-        <div className="relative z-10 max-w-4xl px-4 text-white flex flex-col items-center justify-end h-full pb-24 md:pb-32">
+        <div className="relative z-10 max-w-4xl px-4 flex flex-col items-center justify-end h-full pb-24 md:pb-32">
 
           <div className="bg-black/30 backdrop-blur-sm px-4 py-3 rounded">
-            <h1 className="text-2xl md:text-4xl font-bold mb-4 leading-tight text-white">
+            <h1 className="text-2xl md:text-4xl font-bold mb-4 leading-tight ">
               <span className="block md:hidden">
                 Modern Websites for
                 <br />
