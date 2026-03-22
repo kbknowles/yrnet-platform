@@ -7,7 +7,7 @@ export default function HomePage() {
   return (
     <main className="flex flex-col">
 
-<section className="relative h-[70vh] flex items-center justify-center text-center">
+<section className="relative h-[85vh] md:h-screen flex items-center justify-center text-center">
 
   {/* background image */}
   <img
@@ -17,10 +17,10 @@ export default function HomePage() {
   />
 
   {/* dark overlay */}
-  <div className="absolute inset-0 bg-black/60" />
+  <div className="absolute inset-0 bg-black/40" />
 
   {/* content */}
-  <div className="backdrop-blur-sm relative z-10 max-w-3xl px-4 text-white flex flex-col items-center">
+  <div className="relative z-10 max-w-3xl px-4 text-white flex flex-col items-center">
 
     {/* spacer so text sits below logo */}
     <div className="h-32 md:h-40" />
