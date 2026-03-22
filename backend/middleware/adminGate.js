@@ -1,6 +1,6 @@
 // filepath: backend/middleware/adminGate.js
 
-/*
+/*** 
   Admin Gate Middleware
   ---------------------------------------
   - Requires Authorization header: Bearer <ADMIN_SECRET>

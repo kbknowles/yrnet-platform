@@ -23,9 +23,6 @@ import adminSettingsRouter from "./admin/settings.js";
 import adminDocumentsRouter from "./admin/documents.js";
 
 
-/* =========================
-   PUBLIC ROUTES
-   ========================= */
 
 import rodeosRouter from "./rodeos.js";
 import scheduleRouter from "./schedule.js";

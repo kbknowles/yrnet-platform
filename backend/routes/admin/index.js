@@ -1,4 +1,5 @@
 // filepath: backend/routes/admin/index.js
+//added for login
 
 import express from "express";
 import adminGate from "../../middleware/adminGate.mjs";
