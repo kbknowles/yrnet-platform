@@ -6,10 +6,11 @@ import login from "./login.js";
 
 const router = express.Router();
 
-router.use(adminGate);
-
+// ✅ LOGIN MUST COME FIRST (no auth required)
 router.use("/login", login);
 
+// 🔒 everything below requires admin
+router.use(adminGate);
 
 // example
 router.get("/dashboard", (req, res) => {
