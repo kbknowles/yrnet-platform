@@ -11,7 +11,7 @@ export default function HomePage() {
 
   {/* background image */}
   <img
-    src="/yrnet-hero.jpg"
+    src="/yrnet-hero.png"
     alt="Youth Rodeo"
     className="absolute inset-0 w-full h-full object-cover"
   />
