@@ -20,24 +20,31 @@ export default function HomePage() {
         {/* overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/40 to-black/70" />
 
-        {/* logo */}
-        <div className="absolute top-16 md:top-20 left-1/2 -translate-x-1/2 z-10">
+        {/* logo (larger) */}
+        <div className="absolute top-14 md:top-20 left-1/2 -translate-x-1/2 z-10">
           <img
             src="/yrnet-logo.png"
             alt="YRNet"
-            className="h-16 md:h-24 object-contain"
+            className="h-24 md:h-36 object-contain"
           />
         </div>
 
         {/* content */}
-        <div className="relative z-10 max-w-3xl px-4 text-white flex flex-col items-center justify-end h-full pb-24 md:pb-32">
+        <div className="relative z-10 max-w-4xl px-4 text-white flex flex-col items-center justify-end h-full pb-24 md:pb-32">
 
           <div className="bg-black/30 backdrop-blur-sm px-4 py-3 rounded">
-            <h1 className="text-2xl md:text-4xl font-bold mb-4 leading-tight">
-              Modern Websites for Youth Rodeo Associations
+            <h1 className="text-2xl md:text-4xl font-bold mb-4 leading-tight text-white">
+              <span className="block md:hidden">
+                Modern Websites for
+                <br />
+                Youth Rodeo Associations
+              </span>
+              <span className="hidden md:block">
+                Modern Websites for Youth Rodeo Associations
+              </span>
             </h1>
 
-            <p className="text-lg md:text-xl mb-6">
+            <p className="text-lg md:text-xl mb-6 text-white">
               Showcase your athletes. Highlight your events. Elevate your association.
             </p>
           </div>
@@ -46,14 +53,14 @@ export default function HomePage() {
           <div className="flex flex-wrap justify-center gap-4 mt-6">
             <Link
               href="/demo"
-              className="bg-red-700 hover:bg-red-800 px-6 py-3 rounded font-semibold"
+              className="bg-red-700 hover:bg-red-800 px-6 py-3 rounded font-semibold text-white"
             >
               View Demo
             </Link>
 
             <Link
               href="/contact"
-              className="border border-white hover:bg-white hover:text-black px-6 py-3 rounded font-semibold"
+              className="border border-white hover:bg-white hover:text-black px-6 py-3 rounded font-semibold text-white"
             >
               Request Info
             </Link>
