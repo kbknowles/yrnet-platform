@@ -14,23 +14,23 @@ export default function HomePage() {
         <img
           src="/yrnet-hero.png"
           alt="Youth Rodeo"
-          className="absolute inset-0 w-full h-full object-cover object-[center_20%]"
+          className="absolute inset-0 w-full h-full object-cover object-[center_10%] md:object-[center_15%]"
         />
 
         {/* overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/40 to-black/60" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-black/70" />
 
         {/* content */}
-        <div className="relative z-10 max-w-3xl px-4 text-white flex flex-col items-center justify-end h-full pb-20 md:pb-28">
-
-          <h1 className="text-3xl md:text-5xl font-bold mb-4">
+        <div className="relative z-10 max-w-3xl px-4 text-white flex flex-col items-center justify-end h-full pb-28 md:pb-36">
+        < div className="bg-black/30 backdrop-blur-sm px-4 py-3 rounded">
+          <h1 className="text-2xl text-white md:text-4xl font-bold mb-4 leading-tight">
             Modern Websites for Youth Rodeo Associations
           </h1>
 
-          <p className="text-lg md:text-xl mb-6">
+          <p className="text-lg text-white md:text-xl mb-6">
             Showcase your athletes. Highlight your events. Elevate your association.
           </p>
-
+        </div>
           {/* CTA buttons */}
           <div className="flex flex-wrap justify-center gap-4">
             <Link
