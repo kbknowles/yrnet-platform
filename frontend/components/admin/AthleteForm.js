@@ -5,7 +5,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { resolveTenantMedia } from "lib/media";
-import authFetch from "../../../../utils/authFetch";
+import authFetch from "../../utils/authFetch";
+
 
 const EVENT_OPTIONS = [
   "BAREBACK",
