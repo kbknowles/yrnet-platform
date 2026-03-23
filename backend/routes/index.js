@@ -6,7 +6,7 @@ import express from "express";
    ADMIN ROUTES
    ========================= */
 
-import adminGate from "../middleware/adminGate.mjs";
+import adminGate from "../middleware/adminGate.js";
 import adminRoutes from "./admin/index.js";
 
 import adminSeasonsRouter from "./admin/seasons.js";
