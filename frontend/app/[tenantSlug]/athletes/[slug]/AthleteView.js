@@ -8,12 +8,15 @@ import Link from "next/link";
 import SponsorZone from "components/sponsorship/SponsorZone";
 import AlbumSlideshow from "components/gallery/AlbumSlideshow";
 import { resolveTenantMedia } from "lib/media";
+import { getBasePath } from "../../../../utils/getBasePath";
 
 export default function AthleteView({ athlete, API_BASE, tenantSlug }) {
   const [open, setOpen] = useState(false);
   const [startIndex, setStartIndex] = useState(0);
   const [videoOpen, setVideoOpen] = useState(false);
   const [activeVideo, setActiveVideo] = useState(null);
+
+  const basePath = getBasePath(tenantSlug);
 
   const actionImages = athlete.actionPhotos || [];
   const videos = athlete.videos?.slice(0, 4) || [];
@@ -61,7 +64,7 @@ export default function AthleteView({ athlete, API_BASE, tenantSlug }) {
       <section className="bg-secondary text-white">
         <div className="max-w-5xl mx-auto px-4 py-16 space-y-3">
           <nav className="text-sm text-white/80">
-            <Link href={`/${tenantSlug}/athletes`} className="hover:underline">
+            <Link href={`${basePath}/athletes`} className="hover:underline">
               Athletes
             </Link>
             <span className="text-white mx-2">/</span>

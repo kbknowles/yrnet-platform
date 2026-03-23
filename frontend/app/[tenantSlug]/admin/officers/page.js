@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import authFetch from "../../../../utils/authFetch";
+import { getBasePath } from "../../../../utils/getBasePath";
 
 const ROLE_OPTIONS = [
   { value: "PRESIDENT", label: "President" },
@@ -38,6 +39,8 @@ export default function AdminOfficersPage() {
     ? params.tenantSlug[0]
     : params?.tenantSlug;
 
+  const basePath = getBasePath(tenantSlug);
+
   const [authorized, setAuthorized] = useState(false);
   const [officers, setOfficers] = useState([]);
   const [seasons, setSeasons] = useState([]);
@@ -46,11 +49,11 @@ export default function AdminOfficersPage() {
 
   useEffect(() => {
     if (!process.env.NEXT_PUBLIC_ADMIN_SECRET) {
-      router.push(`/${tenantSlug || ""}`);
+      router.push(basePath || "/");
       return;
     }
     setAuthorized(true);
-  }, [tenantSlug, router]);
+  }, [router, basePath]);
 
   async function load() {
     if (!tenantSlug) return;
@@ -64,7 +67,7 @@ export default function AdminOfficersPage() {
       ]);
 
       if (!officerRes.ok || !seasonRes.ok) {
-        router.push(`/${tenantSlug}`);
+        router.push(basePath || "/");
         return;
       }
 

@@ -5,6 +5,7 @@
 import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import PageEditor from "../PageEditor";
+import { getBasePath } from "../../../../../utils/getBasePath";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -15,6 +16,8 @@ export default function NewPage() {
   const tenantSlug = Array.isArray(params?.tenantSlug)
     ? params.tenantSlug[0]
     : params?.tenantSlug;
+
+  const basePath = getBasePath(tenantSlug);
 
   const [form, setForm] = useState({
     title: "",
@@ -38,7 +41,7 @@ export default function NewPage() {
       body: JSON.stringify(form),
     });
 
-    router.push(`/${tenantSlug}/admin/pages`);
+    router.push(`${basePath}/admin/pages`);
   }
 
   return (

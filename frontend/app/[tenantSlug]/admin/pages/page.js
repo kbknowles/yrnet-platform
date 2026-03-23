@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import authFetch from "../../../../utils/authFetch";
+import { getBasePath } from "../../../../utils/getBasePath";
 
 export default function AdminPagesPage() {
   const params = useParams();
@@ -14,17 +15,20 @@ export default function AdminPagesPage() {
     ? params.tenantSlug[0]
     : params?.tenantSlug;
 
+  const basePath = getBasePath(tenantSlug);
+  const adminBase = `${basePath}/admin`;
+
   const [authorized, setAuthorized] = useState(false);
   const [pages, setPages] = useState([]);
   const [savingId, setSavingId] = useState(null);
 
   useEffect(() => {
     if (!process.env.NEXT_PUBLIC_ADMIN_SECRET) {
-      router.push(`/${tenantSlug || ""}`);
+      router.push(basePath || "/");
       return;
     }
     setAuthorized(true);
-  }, [tenantSlug, router]);
+  }, [router, basePath]);
 
   useEffect(() => {
     if (!tenantSlug || !authorized) return;
@@ -32,7 +36,7 @@ export default function AdminPagesPage() {
     authFetch(`/${tenantSlug}/admin/pages`)
       .then((res) => {
         if (!res.ok) {
-          router.push(`/${tenantSlug}`);
+          router.push(basePath || "/");
           return [];
         }
         return res.json();
@@ -41,7 +45,7 @@ export default function AdminPagesPage() {
         setPages(Array.isArray(data) ? data : []);
       })
       .catch(() => setPages([]));
-  }, [tenantSlug, authorized, router]);
+  }, [tenantSlug, authorized, router, basePath]);
 
   const menuPages = pages
     .filter((p) => p.showInMenu)
@@ -53,9 +57,7 @@ export default function AdminPagesPage() {
 
   function updatePage(id, field, value) {
     setPages((prev) =>
-      prev.map((p) =>
-        p.id === id ? { ...p, [field]: value } : p
-      )
+      prev.map((p) => (p.id === id ? { ...p, [field]: value } : p))
     );
   }
 
@@ -85,10 +87,7 @@ export default function AdminPagesPage() {
           Pages & Navigation
         </h1>
 
-        <Link
-          href={`/${tenantSlug}/admin/pages/new`}
-          className="btn-primary"
-        >
+        <Link href={`${adminBase}/pages/new`} className="btn-primary">
           Add Page
         </Link>
       </header>
@@ -99,9 +98,7 @@ export default function AdminPagesPage() {
       </section>
 
       <section className="space-y-4">
-        <h2 className="text-lg font-semibold">
-          All Pages
-        </h2>
+        <h2 className="text-lg font-semibold">All Pages</h2>
 
         <div className="border rounded-lg divide-y bg-white">
           {pages.map((p) => (
@@ -121,25 +118,19 @@ export default function AdminPagesPage() {
               <Toggle
                 label="Menu"
                 checked={p.showInMenu}
-                onChange={(v) =>
-                  updatePage(p.id, "showInMenu", v)
-                }
+                onChange={(v) => updatePage(p.id, "showInMenu", v)}
               />
 
               <Toggle
                 label="Footer"
                 checked={p.showInFooter}
-                onChange={(v) =>
-                  updatePage(p.id, "showInFooter", v)
-                }
+                onChange={(v) => updatePage(p.id, "showInFooter", v)}
               />
 
               <Toggle
                 label="Placeholder"
                 checked={p.isPlaceholder}
-                onChange={(v) =>
-                  updatePage(p.id, "isPlaceholder", v)
-                }
+                onChange={(v) => updatePage(p.id, "isPlaceholder", v)}
               />
 
               <input
@@ -147,11 +138,7 @@ export default function AdminPagesPage() {
                 className="w-20 border rounded px-2 py-1 text-sm"
                 value={p.sortOrder}
                 onChange={(e) =>
-                  updatePage(
-                    p.id,
-                    "sortOrder",
-                    e.target.value
-                  )
+                  updatePage(p.id, "sortOrder", e.target.value)
                 }
               />
 
@@ -165,7 +152,7 @@ export default function AdminPagesPage() {
                 </button>
 
                 <Link
-                  href={`/${tenantSlug}/admin/pages/${p.id}`}
+                  href={`${adminBase}/pages/${p.id}`}
                   className="text-gray-600 underline"
                 >
                   Edit
@@ -195,14 +182,10 @@ function Toggle({ label, checked, onChange }) {
 function MenuPreview({ title, pages }) {
   return (
     <div className="border rounded-lg bg-white p-4">
-      <h3 className="font-semibold mb-3">
-        {title}
-      </h3>
+      <h3 className="font-semibold mb-3">{title}</h3>
 
       {pages.length === 0 ? (
-        <p className="text-sm text-gray-500">
-          No pages assigned.
-        </p>
+        <p className="text-sm text-gray-500">No pages assigned.</p>
       ) : (
         <ol className="space-y-2 text-sm">
           {pages.map((p) => (
@@ -218,9 +201,7 @@ function MenuPreview({ title, pages }) {
                   </span>
                 )}
               </span>
-              <span className="text-gray-400">
-                {p.sortOrder}
-              </span>
+              <span className="text-gray-400">{p.sortOrder}</span>
             </li>
           ))}
         </ol>

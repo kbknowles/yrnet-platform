@@ -3,6 +3,7 @@
 
 import Link from "next/link";
 import { useTenantSlug } from "hooks/useTenantSlug";
+import { getBasePath } from "../../utils/getBasePath";
 
 function startOfToday() {
   const now = new Date();
@@ -51,6 +52,7 @@ function sortSchedule(events) {
 
 export default function UpcomingRodeos({ rodeos = [] }) {
   const tenantSlug = useTenantSlug();
+  const basePath = getBasePath(tenantSlug);
 
   const today = startOfToday();
 
@@ -82,7 +84,7 @@ export default function UpcomingRodeos({ rodeos = [] }) {
 
             {rodeo.slug && (
               <Link
-                href={`/${tenantSlug}/rodeos/${rodeo.slug}`}
+                href={`${basePath}/rodeos/${rodeo.slug}`}
                 className="text-sm text-primary hover:underline mt-1 inline-block"
               >
                 View Details →

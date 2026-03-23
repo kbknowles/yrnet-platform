@@ -4,7 +4,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import authFetch from "../../../../utils/authFetch";
-
+import { getBasePath } from "../../../../utils/getBasePath";
 
 const EMPTY_SEASON = {
   year: "",
@@ -21,6 +21,8 @@ export default function AdminSeasonsPage() {
     ? params.tenantSlug[0]
     : params?.tenantSlug;
 
+  const basePath = getBasePath(tenantSlug);
+
   const [authorized, setAuthorized] = useState(false);
   const [seasons, setSeasons] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -28,11 +30,11 @@ export default function AdminSeasonsPage() {
 
   useEffect(() => {
     if (!process.env.NEXT_PUBLIC_ADMIN_SECRET) {
-      router.push(`/${tenantSlug || ""}`);
+      router.push(basePath || "/");
       return;
     }
     setAuthorized(true);
-  }, [tenantSlug, router]);
+  }, [router, basePath]);
 
   async function load() {
     if (!tenantSlug) return;
@@ -46,7 +48,7 @@ export default function AdminSeasonsPage() {
       );
 
       if (!res.ok) {
-        router.push(`/${tenantSlug}`);
+        router.push(basePath || "/");
         return;
       }
 

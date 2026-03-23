@@ -5,14 +5,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { useTenantSlug } from "hooks/useTenantSlug";
 import { resolveTenantMedia } from "lib/media";
+import { getBasePath } from "../../utils/getBasePath";
 
 export default function RodeoGallery({ albums = [] }) {
   const tenantSlug = useTenantSlug();
+  const basePath = getBasePath(tenantSlug);
+
   const safeAlbums = Array.isArray(albums) ? albums : [];
 
   if (!safeAlbums.length) return null;
 
-  // Sort albums by createdAt (newest first)
   const sortedAlbums = [...safeAlbums].sort(
     (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
   );
@@ -22,7 +24,6 @@ export default function RodeoGallery({ albums = [] }) {
 
   if (!images.length) return null;
 
-  // Sort images by createdAt (newest first) and take top 4
   const latestImages = [...images]
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .slice(0, 4);
@@ -36,7 +37,7 @@ export default function RodeoGallery({ albums = [] }) {
           </h2>
 
           <Link
-            href={`/${tenantSlug}/gallery/${latestAlbum.slug}`}
+            href={`${basePath}/gallery/${latestAlbum.slug}`}
             className="text-sm text-primary hover:underline"
           >
             View More →
@@ -47,7 +48,7 @@ export default function RodeoGallery({ albums = [] }) {
           {latestImages.map((img) => (
             <Link
               key={img.id}
-              href={`/${tenantSlug}/gallery/${latestAlbum.slug}`}
+              href={`${basePath}/gallery/${latestAlbum.slug}`}
               className="bg-white rounded-lg border shadow-sm overflow-hidden"
             >
               <div className="relative h-48 w-full">

@@ -10,7 +10,7 @@ const router = express.Router({ mergeParams: true });
  * GET /:tenantSlug/sponsorships/resolve
  *
  * Example:
- * /ahsra/sponsorships/resolve?contentType=GLOBAL&slots=4
+ * /[tenantSlug]/sponsorships/resolve?contentType=GLOBAL&slots=4
  *
  * Hierarchy
  * Content:

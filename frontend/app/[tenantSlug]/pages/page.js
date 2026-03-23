@@ -1,7 +1,9 @@
-// filepath: frontend/app/pages/page.js
+// filepath: frontend/app/[tenantSlug]/pages/page.js
+
 
 import Link from "next/link";
 import SponsorZone from "components/sponsorship/SponsorZone";
+import { getBasePath } from "../../../utils/getBasePath";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -27,11 +29,9 @@ async function getPages(tenantSlug) {
 }
 
 export default async function PagesIndex({ params }) {
-  /*
-    Next.js 16 requires awaiting params.
-    Tenant comes from the route segment: /[tenantSlug]/pages
-  */
   const { tenantSlug } = await params;
+
+  const basePath = getBasePath(tenantSlug);
 
   const pages = await getPages(tenantSlug);
 
@@ -44,7 +44,6 @@ export default async function PagesIndex({ params }) {
           Pages
         </h1>
 
-        {/* Header Sponsor Zone */}
         <SponsorZone
           tenantSlug={tenantSlug}
           contentType={null}
@@ -63,7 +62,7 @@ export default async function PagesIndex({ params }) {
           {pages.map((page) => (
             <li key={page.slug}>
               <Link
-                href={`/${tenantSlug}/${page.slug}`}
+                href={`${basePath}/${page.slug}`}
                 className="text-primary font-medium underline"
               >
                 {page.title}

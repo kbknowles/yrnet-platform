@@ -3,23 +3,13 @@
 
 /*
   HomeHighlights
-  -------------------------------------------------------
-  FIX:
-  - Supports BOTH images and PDFs for announcements
-  - PDFs render using iframe preview
-  - Images render normally
-
-  Date Fix:
-  Parse YYYY-MM-DD as local date (no UTC shift)
 */
 
 import Link from "next/link";
 import { useTenantSlug } from "hooks/useTenantSlug";
 import { resolveTenantMedia } from "lib/media";
+import { getBasePath } from "../../utils/getBasePath";
 
-/*
-  Safe local date parser (NO timezone shift)
-*/
 function formatLocalDate(dateStr) {
   if (!dateStr) return "";
 
@@ -30,16 +20,10 @@ function formatLocalDate(dateStr) {
   return date.toLocaleDateString();
 }
 
-/*
-  Detect PDF files
-*/
 function isPDF(file) {
   return file?.toLowerCase().endsWith(".pdf");
 }
 
-/*
-  Resolve announcement media
-*/
 function resolveAnnouncementMedia(filename, tenantSlug) {
   if (!filename || !tenantSlug) return "";
 
@@ -52,15 +36,13 @@ function resolveAnnouncementMedia(filename, tenantSlug) {
 
 export default function HomeHighlights({ rodeos, announcements }) {
   const tenantSlug = useTenantSlug();
+  const basePath = getBasePath(tenantSlug);
 
   const safeRodeos = Array.isArray(rodeos) ? rodeos : [];
   const safeAnnouncements = Array.isArray(announcements)
     ? announcements
     : [];
 
-  /*
-    Sort announcements newest first
-  */
   const sorted = [...safeAnnouncements].sort((a, b) => {
     const aDate = new Date(a.publishAt || a.createdAt);
     const bDate = new Date(b.publishAt || b.createdAt);
@@ -70,8 +52,8 @@ export default function HomeHighlights({ rodeos, announcements }) {
   const featured = sorted[0];
 
   const featuredHref = featured?.rodeo?.slug
-    ? `/${tenantSlug}/rodeos/${featured.rodeo.slug}`
-    : `/${tenantSlug}/announcements`;
+    ? `${basePath}/rodeos/${featured.rodeo.slug}`
+    : `${basePath}/announcements`;
 
   const featuredMedia =
     featured?.mode === "POSTER" && featured?.imageUrl
@@ -112,7 +94,7 @@ export default function HomeHighlights({ rodeos, announcements }) {
                     </div>
 
                     <Link
-                      href={`/${tenantSlug}/rodeos/${rodeo.slug}`}
+                      href={`${basePath}/rodeos/${rodeo.slug}`}
                       className="text-sm font-medium bg-white text-primary px-4 py-2 rounded-md"
                     >
                       View Details
@@ -124,7 +106,7 @@ export default function HomeHighlights({ rodeos, announcements }) {
 
             <div className="pt-6">
               <Link
-                href={`/${tenantSlug}/schedule`}
+                href={`${basePath}/schedule`}
                 className="text-sm font-medium underline underline-offset-4"
               >
                 View Full Schedule →
@@ -143,7 +125,6 @@ export default function HomeHighlights({ rodeos, announcements }) {
             {featured ? (
               <div className="rounded-md shadow-sm overflow-hidden">
 
-                {/* Poster / PDF Announcement */}
                 {featuredMedia ? (
                   <Link href={featuredHref}>
                     {isPDF(featured.imageUrl) ? (
@@ -160,7 +141,6 @@ export default function HomeHighlights({ rodeos, announcements }) {
                     )}
                   </Link>
                 ) : (
-                  /* Standard Announcement */
                   <div className="p-4 space-y-2">
                     <p className="font-medium">{featured.title}</p>
 
@@ -189,7 +169,7 @@ export default function HomeHighlights({ rodeos, announcements }) {
 
             <div className="pt-6">
               <Link
-                href={`/${tenantSlug}/announcements`}
+                href={`${basePath}/announcements`}
                 className="text-sm font-medium text-accent underline underline-offset-4"
               >
                 View All Announcements →

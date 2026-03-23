@@ -3,6 +3,7 @@
 import Link from "next/link";
 import SponsorZone from "components/sponsorship/SponsorZone";
 import { resolveTenantMedia } from "lib/media";
+import { getBasePath } from "../../../utils/getBasePath";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -48,6 +49,8 @@ function formatEvent(label) {
 export default async function AthletesPage({ params }) {
   const { tenantSlug } = await params;
 
+  const basePath = getBasePath(tenantSlug);
+
   const [homeData, athletes] = await Promise.all([
     getHomeData(tenantSlug),
     getAthletes(tenantSlug),
@@ -92,7 +95,7 @@ export default async function AthletesPage({ params }) {
             {activeAthletes.map((a) => (
               <Link
                 key={a.slug}
-                href={`/${tenantSlug}/athletes/${a.slug}`}
+                href={`${basePath}/athletes/${a.slug}`}
                 className="bg-white border rounded-lg p-4 hover:shadow-md transition block"
               >
                 {a.headshotUrl && (

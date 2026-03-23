@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import authFetch from "../../../utils/authFetch";
-
+import { getBasePath } from "../../../utils/getBasePath";
 
 export default function AdminIndexPage() {
   const params = useParams();
@@ -15,6 +15,9 @@ export default function AdminIndexPage() {
   const tenantSlug = Array.isArray(params?.tenantSlug)
     ? params.tenantSlug[0]
     : params?.tenantSlug;
+
+  const basePath = getBasePath(tenantSlug);
+  const adminBase = `${basePath}/admin`;
 
   const [authorized, setAuthorized] = useState(false);
 
@@ -30,14 +33,13 @@ export default function AdminIndexPage() {
   });
 
   useEffect(() => {
-    // block access if no admin secret
     if (!process.env.NEXT_PUBLIC_ADMIN_SECRET) {
-      router.push(`/${tenantSlug || ""}`);
+      router.push(basePath || "/");
       return;
     }
 
     setAuthorized(true);
-  }, [tenantSlug, router]);
+  }, [tenantSlug, router, basePath]);
 
   useEffect(() => {
     if (!tenantSlug || !authorized) return;
@@ -64,13 +66,12 @@ export default function AdminIndexPage() {
           authFetch(`/${tenantSlug}/admin/gallery`, { cache: "no-store" }),
         ]);
 
-        // if unauthorized, bounce out
         if (
           [seasonsRes, rodeosRes, sponsorsRes, athletesRes].some(
             (res) => res.status === 401 || res.status === 403
           )
         ) {
-          router.push(`/${tenantSlug}`);
+          router.push(basePath || "/");
           return;
         }
 
@@ -143,11 +144,9 @@ export default function AdminIndexPage() {
     }
 
     loadStats();
-  }, [tenantSlug, authorized, router]);
+  }, [tenantSlug, authorized, router, basePath]);
 
   if (!authorized) return null;
-
-  const base = `/${tenantSlug}/admin`;
 
   return (
     <main className="max-w-6xl mx-auto px-4 py-10 space-y-8">
@@ -171,22 +170,22 @@ export default function AdminIndexPage() {
       <section className="grid md:grid-cols-3 gap-10">
         <div className="md:col-span-2 space-y-8">
           <AdminGroup title="Season">
-            <AdminItem href={`${base}/seasons`} label="Rodeo Season" />
-            <AdminItem href={`${base}/rodeos`} label="Rodeos" />
-            <AdminItem href={`${base}/locations`} label="Locations" />
+            <AdminItem href={`${adminBase}/seasons`} label="Rodeo Season" />
+            <AdminItem href={`${adminBase}/rodeos`} label="Rodeos" />
+            <AdminItem href={`${adminBase}/locations`} label="Locations" />
           </AdminGroup>
 
           <AdminGroup title="People">
-            <AdminItem href={`${base}/athletes`} label="Athletes" />
-            <AdminItem href={`${base}/officers`} label="Officers" />
-            <AdminItem href={`${base}/sponsors`} label="Sponsors" />
-            <AdminItem href={`${base}/sponsorships`} label="Sponsorships" />
+            <AdminItem href={`${adminBase}/athletes`} label="Athletes" />
+            <AdminItem href={`${adminBase}/officers`} label="Officers" />
+            <AdminItem href={`${adminBase}/sponsors`} label="Sponsors" />
+            <AdminItem href={`${adminBase}/sponsorships`} label="Sponsorships" />
           </AdminGroup>
 
           <AdminGroup title="Website">
-            <AdminItem href={`${base}/announcements`} label="Announcements" />
-            <AdminItem href={`${base}/gallery`} label="Gallery" />
-            <AdminItem href={`${base}/pages`} label="Pages" />
+            <AdminItem href={`${adminBase}/announcements`} label="Announcements" />
+            <AdminItem href={`${adminBase}/gallery`} label="Gallery" />
+            <AdminItem href={`${adminBase}/pages`} label="Pages" />
           </AdminGroup>
         </div>
 
@@ -197,49 +196,49 @@ export default function AdminIndexPage() {
 
           <div className="space-y-3 text-sm">
             <Link
-              href={`/${tenantSlug}`}
+              href={basePath || "/"}
               className="block text-primary hover:underline"
             >
               View Website
             </Link>
 
             <Link
-              href={`${base}/announcements`}
+              href={`${adminBase}/announcements`}
               className="block text-primary hover:underline"
             >
               Manage Announcements
             </Link>
 
             <Link
-              href={`${base}/rodeos`}
+              href={`${adminBase}/rodeos`}
               className="block text-primary hover:underline"
             >
               Manage Rodeos
             </Link>
 
             <Link
-              href={`${base}/athletes/new`}
+              href={`${adminBase}/athletes/new`}
               className="block text-primary hover:underline"
             >
               Add Athlete
             </Link>
 
             <Link
-              href={`${base}/sponsors`}
+              href={`${adminBase}/sponsors`}
               className="block text-primary hover:underline"
             >
               Manage Sponsors
             </Link>
 
             <Link
-              href={`${base}/pages/new`}
+              href={`${adminBase}/pages/new`}
               className="block text-primary hover:underline"
             >
               Add Page
             </Link>
 
             <Link
-              href={`${base}/gallery`}
+              href={`${adminBase}/gallery`}
               className="block text-primary hover:underline"
             >
               Manage Gallery

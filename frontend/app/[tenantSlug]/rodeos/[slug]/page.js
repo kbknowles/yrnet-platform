@@ -4,6 +4,7 @@ import Link from "next/link";
 import { formatDate } from "lib/formatDate";
 import SponsorZone from "components/sponsorship/SponsorZone";
 import PosterGallery from "./PosterGallery";
+import { getBasePath } from "../../../../utils/getBasePath";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -37,6 +38,9 @@ async function getRodeo(tenantSlug, slug) {
 
 export default async function RodeoPage({ params }) {
   const { tenantSlug, slug } = await params;
+
+  const basePath = getBasePath(tenantSlug);
+
   const rodeo = await getRodeo(tenantSlug, slug);
 
   if (!rodeo) {
@@ -83,7 +87,7 @@ export default async function RodeoPage({ params }) {
 
           <div className="flex flex-wrap gap-4 pt-4">
             <Link
-              href={`/${tenantSlug}/schedule`}
+              href={`${basePath}/schedule`}
               className="bg-rose-700 hover:bg-rose-800 text-white px-5 py-2 rounded-md text-sm font-medium"
             >
               Back to Schedule

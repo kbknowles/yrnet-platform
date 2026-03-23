@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import SponsorZone from "components/sponsorship/SponsorZone";
 import { resolveTenantMedia } from "lib/media";
+import { getBasePath } from "../../../utils/getBasePath";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -40,6 +41,8 @@ async function getAlbums(tenantSlug) {
 
 export default async function GalleryPage({ params }) {
   const { tenantSlug } = await params;
+
+  const basePath = getBasePath(tenantSlug);
 
   const [homeData, albums] = await Promise.all([
     getHomeData(tenantSlug),
@@ -82,7 +85,7 @@ export default async function GalleryPage({ params }) {
               return (
                 <Link
                   key={album.slug || album.id}
-                  href={`/${tenantSlug}/gallery/${album.slug}`}
+                  href={`${basePath}/gallery/${album.slug}`}
                   className="group relative block rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition"
                 >
                   <div className="relative h-56 bg-gray-200">

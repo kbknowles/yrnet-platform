@@ -5,6 +5,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import authFetch from "../../../../utils/authFetch";
+import { getBasePath } from "../../../../utils/getBasePath";
 
 export default function PageEditor({ title, form, setForm, onSave }) {
   const params = useParams();
@@ -13,6 +14,8 @@ export default function PageEditor({ title, form, setForm, onSave }) {
   const tenantSlug = Array.isArray(params?.tenantSlug)
     ? params.tenantSlug[0]
     : params?.tenantSlug;
+
+  const basePath = getBasePath(tenantSlug);
 
   const [authorized, setAuthorized] = useState(false);
   const [mode, setMode] = useState("edit");
@@ -23,11 +26,11 @@ export default function PageEditor({ title, form, setForm, onSave }) {
 
   useEffect(() => {
     if (!process.env.NEXT_PUBLIC_ADMIN_SECRET) {
-      router.push(`/${tenantSlug || ""}`);
+      router.push(basePath || "/");
       return;
     }
     setAuthorized(true);
-  }, [tenantSlug, router]);
+  }, [router, basePath]);
 
   useEffect(() => {
     if (!tenantSlug || !authorized) return;
@@ -39,7 +42,7 @@ export default function PageEditor({ title, form, setForm, onSave }) {
         });
 
         if (!res.ok) {
-          router.push(`/${tenantSlug}`);
+          router.push(basePath || "/");
           return;
         }
 
@@ -51,7 +54,7 @@ export default function PageEditor({ title, form, setForm, onSave }) {
     }
 
     loadPages();
-  }, [tenantSlug, authorized, router]);
+  }, [tenantSlug, authorized, router, basePath]);
 
   function wrap(tag) {
     const el = document.getElementById("content");
@@ -78,7 +81,7 @@ export default function PageEditor({ title, form, setForm, onSave }) {
 
     const href =
       linkType === "internal"
-        ? `/${tenantSlug}/${linkValue}`
+        ? `${basePath}/${linkValue}`
         : linkValue;
 
     const before = el.value.slice(0, start);

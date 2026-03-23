@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import authFetch from "../../../../utils/authFetch";
+import { getBasePath } from "../../../../utils/getBasePath";
 
 const EMPTY_LOCATION = {
   name: "",
@@ -27,6 +28,8 @@ export default function AdminLocationsPage() {
     ? params.tenantSlug[0]
     : params?.tenantSlug;
 
+  const basePath = getBasePath(tenantSlug);
+
   const [authorized, setAuthorized] = useState(false);
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -34,11 +37,11 @@ export default function AdminLocationsPage() {
 
   useEffect(() => {
     if (!process.env.NEXT_PUBLIC_ADMIN_SECRET) {
-      router.push(`/${tenantSlug || ""}`);
+      router.push(basePath || "/");
       return;
     }
     setAuthorized(true);
-  }, [tenantSlug, router]);
+  }, [router, basePath]);
 
   async function load() {
     if (!tenantSlug) return;
@@ -51,7 +54,7 @@ export default function AdminLocationsPage() {
       );
 
       if (!res.ok) {
-        router.push(`/${tenantSlug}`);
+        router.push(basePath || "/");
         return;
       }
 

@@ -5,6 +5,7 @@ import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import authFetch from "../../../../utils/authFetch";
 import RodeoForm from "components/admin/RodeoForm";
+import { getBasePath } from "../../../../utils/getBasePath";
 
 function formatMMDDYYYY(date) {
   if (!date) return "";
@@ -25,6 +26,8 @@ export default function AdminRodeosPage() {
     ? params.tenantSlug[0]
     : params?.tenantSlug;
 
+  const basePath = getBasePath(tenantSlug);
+
   const [authorized, setAuthorized] = useState(false);
   const [rodeos, setRodeos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -32,23 +35,22 @@ export default function AdminRodeosPage() {
 
   useEffect(() => {
     if (!process.env.NEXT_PUBLIC_ADMIN_SECRET) {
-      router.push(`/${tenantSlug || ""}`);
+      router.push(basePath || "/");
       return;
     }
     setAuthorized(true);
-  }, [tenantSlug, router]);
+  }, [router, basePath]);
 
   async function load() {
     if (!tenantSlug) return;
 
     try {
-      const res = await authFetch(
-        `/${tenantSlug}/admin/rodeos`,
-        { cache: "no-store" }
-      );
+      const res = await authFetch(`/${tenantSlug}/admin/rodeos`, {
+        cache: "no-store",
+      });
 
       if (!res.ok) {
-        router.push(`/${tenantSlug}`);
+        router.push(basePath || "/");
         return;
       }
 
@@ -74,11 +76,7 @@ export default function AdminRodeosPage() {
       startDate: rodeo.startDate ? rodeo.startDate.slice(0, 10) : "",
       endDate: rodeo.endDate ? rodeo.endDate.slice(0, 10) : "",
       status: rodeo.status || "draft",
-
-      // ✅ FIXED — use direct DB field
       seasonId: rodeo.seasonId ? String(rodeo.seasonId) : "",
-
-      // location already works but keep consistent
       locationId: rodeo.locationId
         ? String(rodeo.locationId)
         : rodeo.location?.id

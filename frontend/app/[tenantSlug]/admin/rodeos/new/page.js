@@ -4,6 +4,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import authFetch from "../../../../../utils/authFetch";
+import { getBasePath } from "../../../../../utils/getBasePath";
 
 export default function NewRodeoPage() {
   const params = useParams();
@@ -12,6 +13,8 @@ export default function NewRodeoPage() {
   const tenantSlug = Array.isArray(params?.tenantSlug)
     ? params.tenantSlug[0]
     : params?.tenantSlug;
+
+  const basePath = getBasePath(tenantSlug);
 
   const [form, setForm] = useState({
     name: "",
@@ -37,7 +40,7 @@ export default function NewRodeoPage() {
       return;
     }
 
-    router.push(`/${tenantSlug}/admin/rodeos`);
+    router.push(`${basePath}/admin/rodeos`);
   }
 
   return (
@@ -102,7 +105,7 @@ export default function NewRodeoPage() {
 
           <button
             type="button"
-            onClick={() => router.push(`/${tenantSlug}/admin/rodeos`)}
+            onClick={() => router.push(`${basePath}/admin/rodeos`)}
             className="border px-4 py-2"
           >
             Cancel

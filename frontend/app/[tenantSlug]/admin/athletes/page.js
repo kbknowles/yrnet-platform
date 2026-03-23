@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { resolveTenantMedia } from "lib/media";
 import authFetch from "../../../../utils/authFetch";
+import { getBasePath } from "../../../../utils/getBasePath";
 
 function resolveAthleteImage(filename, tenantSlug) {
   if (!filename) return null;
@@ -22,17 +23,20 @@ export default function AthletesAdminPage() {
   const { tenantSlug } = useParams();
   const router = useRouter();
 
+  const basePath = getBasePath(tenantSlug);
+  const adminBase = `${basePath}/admin`;
+
   const [authorized, setAuthorized] = useState(false);
   const [athletes, setAthletes] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!process.env.NEXT_PUBLIC_ADMIN_SECRET) {
-      router.push(`/${tenantSlug || ""}`);
+      router.push(basePath || "/");
       return;
     }
     setAuthorized(true);
-  }, [tenantSlug, router]);
+  }, [tenantSlug, router, basePath]);
 
   useEffect(() => {
     if (!tenantSlug || !authorized) return;
@@ -44,7 +48,7 @@ export default function AthletesAdminPage() {
         });
 
         if (!res.ok) {
-          router.push(`/${tenantSlug}`);
+          router.push(basePath || "/");
           return;
         }
 
@@ -59,7 +63,7 @@ export default function AthletesAdminPage() {
     }
 
     load();
-  }, [tenantSlug, authorized, router]);
+  }, [tenantSlug, authorized, router, basePath]);
 
   if (!authorized) return null;
   if (loading) return <p className="p-6">Loading…</p>;
@@ -68,10 +72,7 @@ export default function AthletesAdminPage() {
     <main className="max-w-6xl mx-auto px-4 py-10">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Athletes</h1>
-        <Link
-          href={`/${tenantSlug}/admin/athletes/new`}
-          className="btn-primary"
-        >
+        <Link href={`${adminBase}/athletes/new`} className="btn-primary">
           Add Athlete
         </Link>
       </div>
@@ -107,7 +108,7 @@ export default function AthletesAdminPage() {
                 <div className="space-y-1">
                   <h2 className="text-lg font-semibold">
                     <Link
-                      href={`/${tenantSlug}/athletes/${a.slug}`}
+                      href={`${basePath}/athletes/${a.slug}`}
                       className="text-primary hover:underline"
                       target="_blank"
                     >
@@ -150,7 +151,7 @@ export default function AthletesAdminPage() {
 
                 <div className="mt-3">
                   <Link
-                    href={`/${tenantSlug}/admin/athletes/${a.slug}`}
+                    href={`${adminBase}/athletes/${a.slug}`}
                     className="text-primary text-sm font-medium"
                   >
                     Edit Athlete →

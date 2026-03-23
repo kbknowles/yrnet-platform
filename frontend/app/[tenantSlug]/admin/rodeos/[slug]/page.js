@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import authFetch from "../../../../../utils/authFetch";
+import { getBasePath } from "../../../../../utils/getBasePath";
 
 function formatForDateInput(date) {
   if (!date) return "";
@@ -29,6 +30,9 @@ export default function AdminEditRodeoPage() {
     ? params.tenantSlug[0]
     : params?.tenantSlug;
 
+  const basePath = getBasePath(tenantSlug);
+  const adminBase = `${basePath}/admin`;
+
   const [authorized, setAuthorized] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -42,11 +46,11 @@ export default function AdminEditRodeoPage() {
 
   useEffect(() => {
     if (!process.env.NEXT_PUBLIC_ADMIN_SECRET) {
-      router.push(`/${tenantSlug || ""}`);
+      router.push(basePath || "/");
       return;
     }
     setAuthorized(true);
-  }, [tenantSlug, router]);
+  }, [tenantSlug, router, basePath]);
 
   useEffect(() => {
     if (!slug || !tenantSlug || !authorized) return;
@@ -59,7 +63,7 @@ export default function AdminEditRodeoPage() {
         );
 
         if (!res.ok) {
-          router.push(`/${tenantSlug}`);
+          router.push(basePath || "/");
           return;
         }
 
@@ -80,7 +84,7 @@ export default function AdminEditRodeoPage() {
     }
 
     loadRodeo();
-  }, [slug, tenantSlug, authorized, router]);
+  }, [slug, tenantSlug, authorized, router, basePath]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -107,7 +111,7 @@ export default function AdminEditRodeoPage() {
         return;
       }
 
-      router.push(`/${tenantSlug}/admin/rodeos`);
+      router.push(`${adminBase}/rodeos`);
     } catch (err) {
       console.error("Update failed", err);
     }
@@ -120,10 +124,7 @@ export default function AdminEditRodeoPage() {
     <div className="max-w-4xl mx-auto px-6 py-10 space-y-8">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Edit Rodeo</h1>
-        <Link
-          href={`/${tenantSlug}/admin/rodeos`}
-          className="text-sm underline"
-        >
+        <Link href={`${adminBase}/rodeos`} className="text-sm underline">
           Back to Rodeos
         </Link>
       </div>

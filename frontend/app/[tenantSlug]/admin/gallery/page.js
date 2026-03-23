@@ -4,8 +4,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { resolveTenantMedia } from "lib/media";
-
 import authFetch from "../../../../utils/authFetch";
+import { getBasePath } from "../../../../utils/getBasePath";
 
 export default function AdminGalleryPage() {
   const API_BASE = process.env.NEXT_PUBLIC_API_URL;
@@ -16,6 +16,8 @@ export default function AdminGalleryPage() {
   const tenantSlug = Array.isArray(params?.tenantSlug)
     ? params.tenantSlug[0]
     : params?.tenantSlug;
+
+  const basePath = getBasePath(tenantSlug);
 
   const [authorized, setAuthorized] = useState(false);
 
@@ -30,11 +32,11 @@ export default function AdminGalleryPage() {
 
   useEffect(() => {
     if (!process.env.NEXT_PUBLIC_ADMIN_SECRET) {
-      router.push(`/${tenantSlug || ""}`);
+      router.push(basePath || "/");
       return;
     }
     setAuthorized(true);
-  }, [tenantSlug, router]);
+  }, [router, basePath]);
 
   async function loadAlbums() {
     if (!tenantSlug) return;
@@ -46,7 +48,7 @@ export default function AdminGalleryPage() {
       });
 
       if (!res.ok) {
-        router.push(`/${tenantSlug}`);
+        router.push(basePath || "/");
         return;
       }
 

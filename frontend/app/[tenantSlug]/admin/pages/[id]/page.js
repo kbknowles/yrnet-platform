@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import PageEditor from "../PageEditor";
 import authFetch from "../../../../../utils/authFetch";
+import { getBasePath } from "../../../../../utils/getBasePath";
 
 /* ----------------------------
    Helper: text → HTML paragraphs
@@ -30,17 +31,19 @@ export default function EditPage() {
     ? params.id[0]
     : params?.id;
 
+  const basePath = getBasePath(tenantSlug);
+
   const [authorized, setAuthorized] = useState(false);
   const [form, setForm] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!process.env.NEXT_PUBLIC_ADMIN_SECRET) {
-      router.push(`/${tenantSlug || ""}`);
+      router.push(basePath || "/");
       return;
     }
     setAuthorized(true);
-  }, [tenantSlug, router]);
+  }, [router, basePath]);
 
   useEffect(() => {
     if (!tenantSlug || !id || !authorized) return;
@@ -54,7 +57,7 @@ export default function EditPage() {
         });
 
         if (!res.ok) {
-          router.push(`/${tenantSlug}`);
+          router.push(basePath || "/");
           return;
         }
 
@@ -80,7 +83,7 @@ export default function EditPage() {
     }
 
     load();
-  }, [tenantSlug, id, authorized, router]);
+  }, [tenantSlug, id, authorized, router, basePath]);
 
   async function save() {
     const formatted = {
@@ -94,7 +97,7 @@ export default function EditPage() {
       body: JSON.stringify(formatted),
     });
 
-    router.push(`/${tenantSlug}/admin/pages`);
+    router.push(`${basePath}/admin/pages`);
   }
 
   if (!authorized) return null;

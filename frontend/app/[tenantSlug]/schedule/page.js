@@ -9,6 +9,7 @@ import interactionPlugin from "@fullcalendar/interaction";
 import SponsorZone from "components/sponsorship/SponsorZone";
 import { formatDate } from "lib/formatDate";
 import { useTenantSlug } from "hooks/useTenantSlug";
+import { getBasePath } from "../../../utils/getBasePath";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -70,6 +71,7 @@ function getStatus(e) {
 
 export default function SchedulePage() {
   const tenantSlug = useTenantSlug();
+  const basePath = getBasePath(tenantSlug);
 
   const [events, setEvents] = useState([]);
   const [selectedSlug, setSelectedSlug] = useState(null);
@@ -146,7 +148,7 @@ export default function SchedulePage() {
               </p>
 
               <Link
-                href={`/${tenantSlug}/rodeos/${nextEvent.slug}`}
+                href={`${basePath}/rodeos/${nextEvent.slug}`}
                 className="inline-block bg-accent text-white px-8 py-3 rounded-md text-sm font-semibold hover:opacity-90 transition"
               >
                 View Event Details
@@ -181,7 +183,7 @@ export default function SchedulePage() {
                 >
                   <div className="flex justify-between items-start">
                     <Link
-                      href={`/${tenantSlug}/rodeos/${e.slug}`}
+                      href={`${basePath}/rodeos/${e.slug}`}
                       className="text-xl font-semibold text-primary hover:text-accent transition"
                     >
                       {e.name}

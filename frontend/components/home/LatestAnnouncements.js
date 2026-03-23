@@ -4,24 +4,17 @@
 
 /*
   LatestAnnouncements
-  -------------------------------------------------------
-  Displays recent announcements on the homepage.
-
-  Announcement images are stored using the pattern:
-
-  /uploads/tenants/{tenantSlug}/announcements/{announcementId}/{filename}
-
-  Only the filename is stored in the database, so the
-  resolveTenantMedia helper must include the recordId.
 */
 
 import Link from "next/link";
 import Image from "next/image";
 import { useTenantSlug } from "hooks/useTenantSlug";
 import { resolveTenantMedia } from "lib/media";
+import { getBasePath } from "../../utils/getBasePath";
 
 export default function LatestAnnouncements({ announcements = [] }) {
   const tenantSlug = useTenantSlug();
+  const basePath = getBasePath(tenantSlug);
 
   const safeAnnouncements = Array.isArray(announcements) ? announcements : [];
 
@@ -88,7 +81,7 @@ export default function LatestAnnouncements({ announcements = [] }) {
 
               {a.slug && (
                 <Link
-                  href={`/${tenantSlug}/announcements/${a.slug}`}
+                  href={`${basePath}/announcements/${a.slug}`}
                   className="text-sm text-primary hover:underline mt-2 inline-block"
                 >
                   Read More →

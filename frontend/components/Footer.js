@@ -59,7 +59,7 @@ export default function Footer({ tenant }) {
             {pages.map((p) => (
               <li key={p.slug}>
                 <Link
-                  href={`/${tenant?.slug}/${p.slug}`}
+                  href={`/${tenant.slug}/${p.slug}`}
                   className="text-gray-200 hover:text-accent transition"
                 >
                   {p.slug?.toUpperCase()}

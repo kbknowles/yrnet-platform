@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { resolveTenantMedia } from "lib/media";
+import { getBasePath } from "../utils/getBasePath";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -34,7 +35,7 @@ export default function Header({ tenant }) {
     return seg || null;
   }, [tenant?.slug, pathname]);
 
-  const basePath = tenantSlug ? `/${tenantSlug}` : "";
+  const basePath = getBasePath(tenantSlug);
 
   const isHome = useMemo(() => {
     if (!pathname) return false;
@@ -44,7 +45,7 @@ export default function Header({ tenant }) {
 
   const buildHref = (href) => {
     if (!tenantSlug) return href;
-    if (href === "/") return basePath;
+    if (href === "/") return basePath || "/";
     return `${basePath}${href}`;
   };
 
