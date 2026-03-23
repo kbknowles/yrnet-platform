@@ -6,7 +6,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { resolveTenantMedia } from "lib/media";
-import { getBasePath } from "../utils/getBasePath";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -29,22 +28,30 @@ export default function Header({ tenant }) {
   const [pages, setPages] = useState([]);
   const pathname = usePathname();
 
-  const tenantSlug = useMemo(() => {
-    if (tenant?.slug) return tenant.slug;
-    const seg = (pathname || "").split("/").filter(Boolean)[0];
-    return seg || null;
-  }, [tenant?.slug, pathname]);
+  /*
+    Detect if app is running under /tenantSlug (Render)
+    OR root domain (custom domain)
+  */
+  const tenantSlug = tenant?.slug || null;
 
-  const basePath = getBasePath(tenantSlug);
+  const isSubpathDeployment = useMemo(() => {
+    if (!pathname || !tenantSlug) return false;
+    return pathname.startsWith(`/${tenantSlug}`);
+  }, [pathname, tenantSlug]);
+
+  /*
+    Build correct base path dynamically
+    - Render: /ahsra
+    - Custom domain: ""
+  */
+  const basePath = isSubpathDeployment ? `/${tenantSlug}` : "";
 
   const isHome = useMemo(() => {
     if (!pathname) return false;
-    if (tenantSlug) return pathname === basePath;
-    return pathname === "/";
-  }, [pathname, tenantSlug, basePath]);
+    return pathname === `${basePath}/` || pathname === basePath || pathname === "/";
+  }, [pathname, basePath]);
 
   const buildHref = (href) => {
-    if (!tenantSlug) return href;
     if (href === "/") return basePath || "/";
     return `${basePath}${href}`;
   };
@@ -120,7 +127,7 @@ export default function Header({ tenant }) {
           ))}
 
           {pages.map((p) => (
-            <Link key={p.slug} href={`${basePath}/${p.slug}`}>
+            <Link key={p.slug} href={buildHref(`/${p.slug}`)}>
               {label(p.slug)}
             </Link>
           ))}
@@ -142,14 +149,14 @@ export default function Header({ tenant }) {
             isHome ? "bg-black/80" : "bg-secondary"
           }`}
         >
-          {[
+          {[ 
             ...STATIC_LINKS.map((l) => ({
               title: l.title,
               href: buildHref(l.href),
             })),
             ...pages.map((p) => ({
               title: label(p.slug),
-              href: `${basePath}/${p.slug}`,
+              href: buildHref(`/${p.slug}`),
             })),
           ].map((l) => (
             <Link key={l.href} href={l.href} onClick={() => setOpen(false)}>
