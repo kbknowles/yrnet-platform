@@ -2,7 +2,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import AthleteForm from "../AthleteForm";
+import AthleteForm from "../../../../../components/admin/AthleteForm";
 
 export default function EditAthletePage() {
   const params = useParams();

@@ -5,16 +5,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { useTenantSlug } from "hooks/useTenantSlug";
 import { resolveTenantMedia } from "lib/media";
+import { getBasePath } from "../../utils/getBasePath";
 
 /*
   Split tenant name for hero display.
-
-  Example:
-  "Alabama High School Rodeo Association"
-
-  Becomes:
-  Alabama High School
-  Rodeo Association
 */
 function splitTenantName(name) {
   if (typeof name !== "string") {
@@ -38,6 +32,7 @@ function splitTenantName(name) {
 
 export default function HomeHero({ tenant }) {
   const tenantSlug = useTenantSlug();
+  const basePath = getBasePath(tenantSlug);
 
   if (!tenant?.heroEnabled) return null;
 
@@ -51,9 +46,12 @@ export default function HomeHero({ tenant }) {
     filename: tenant?.heroImageUrl,
   });
 
+  const ctaHref = tenant?.heroCtaLink
+    ? tenant.heroCtaLink
+    : `${basePath}/learn-more`;
+
   return (
     <section className="relative w-full h-[50vh] sm:h-[55vh] md:h-[60vh] lg:h-[65vh]">
-      {/* Background hero image */}
       {heroImage && (
         <Image
           src={heroImage}
@@ -66,10 +64,8 @@ export default function HomeHero({ tenant }) {
         />
       )}
 
-      {/* Dark overlay */}
       <div className="absolute inset-0 bg-black/50" />
 
-      {/* Hero content */}
       <div className="absolute inset-0 flex items-center justify-center text-center">
         <div className="hero px-4 sm:px-6 max-w-4xl">
           <h1 className="leading-tight">
@@ -93,11 +89,7 @@ export default function HomeHero({ tenant }) {
           {(tenant?.heroCtaText || true) && (
             <div className="mt-6 sm:mt-8">
               <Link
-                href={
-                  tenant?.heroCtaLink
-                    ? tenant.heroCtaLink
-                    : `/${tenantSlug}/learn-more`
-                }
+                href={ctaHref}
                 className="inline-flex items-center justify-center rounded-md bg-white px-6 py-3 text-sm sm:text-base font-medium text-gray-900 hover:bg-gray-100 transition"
               >
                 {tenant?.heroCtaText || "Learn More"}

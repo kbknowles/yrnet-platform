@@ -69,7 +69,7 @@ export default function AthleteForm({ slug, tenantSlug, mode = "create" }) {
 
   useEffect(() => {
     if (!process.env.NEXT_PUBLIC_ADMIN_SECRET) {
-      router.push(`/${tenantSlug || ""}`);
+      router.push("/");
       return;
     }
     setAuthorized(true);
@@ -163,7 +163,7 @@ export default function AthleteForm({ slug, tenantSlug, mode = "create" }) {
       return;
     }
 
-    window.location.href = `/${tenantSlug}/admin/athletes`;
+    router.push(`/admin/athletes`);
   }
 
   if (!authorized) return null;

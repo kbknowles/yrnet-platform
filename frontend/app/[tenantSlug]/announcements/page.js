@@ -6,11 +6,14 @@ import Link from "next/link";
 import SponsorZone from "components/sponsorship/SponsorZone";
 import { useTenantSlug } from "hooks/useTenantSlug";
 import { resolveTenantMedia } from "lib/media";
+import { getBasePath } from "../../../utils/getBasePath";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 export default function AnnouncementsPage() {
   const tenantSlug = useTenantSlug();
+  const basePath = getBasePath(tenantSlug);
+
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -68,10 +71,10 @@ export default function AnnouncementsPage() {
               : null;
 
             const eventHref = a.rodeo?.slug
-              ? `/${tenantSlug}/rodeos/${a.rodeo.slug}`
+              ? `${basePath}/rodeos/${a.rodeo.slug}`
               : a.event?.slug
-                ? `/${tenantSlug}/rodeos/${a.event.slug}`
-                : null;
+              ? `${basePath}/rodeos/${a.event.slug}`
+              : null;
 
             const Wrapper = ({ children }) =>
               eventHref ? (

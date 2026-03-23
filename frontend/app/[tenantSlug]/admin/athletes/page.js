@@ -20,8 +20,12 @@ function resolveAthleteImage(filename, tenantSlug) {
 }
 
 export default function AthletesAdminPage() {
-  const { tenantSlug } = useParams();
+  const params = useParams();
   const router = useRouter();
+
+  const tenantSlug = Array.isArray(params?.tenantSlug)
+    ? params.tenantSlug[0]
+    : params?.tenantSlug;
 
   const basePath = getBasePath(tenantSlug);
   const adminBase = `${basePath}/admin`;
