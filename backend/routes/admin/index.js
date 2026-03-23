@@ -1,16 +1,19 @@
 // filepath: backend/routes/admin/index.js
-//added for login
 
 import express from "express";
 import adminGate from "../../middleware/adminGate.mjs";
+import login from "./login.js";
 
 const router = express.Router();
 
-router.use(adminGate);
+/* -------------------------
+   LOGIN (NO GATE)
+------------------------- */
+router.use("/", login);
 
-// example
-router.get("/dashboard", (req, res) => {
-  res.json({ message: "Admin OK" });
-});
+/* -------------------------
+   PROTECTED ADMIN ROUTES
+------------------------- */
+router.use(adminGate);
 
 export default router;

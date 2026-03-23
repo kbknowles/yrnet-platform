@@ -6,6 +6,9 @@ import express from "express";
    ADMIN ROUTES
    ========================= */
 
+import adminGate from "../middleware/adminGate.mjs";
+import adminRoutes from "./admin/index.js";
+
 import adminSeasonsRouter from "./admin/seasons.js";
 import adminLocationsRouter from "./admin/locations.js";
 import adminRodeosRouter from "./admin/rodeos.js";
@@ -22,7 +25,9 @@ import adminAthletesRouter from "./admin/athletes.js";
 import adminSettingsRouter from "./admin/settings.js";
 import adminDocumentsRouter from "./admin/documents.js";
 
-
+/* =========================
+   PUBLIC ROUTES
+   ========================= */
 
 import rodeosRouter from "./rodeos.js";
 import scheduleRouter from "./schedule.js";
@@ -39,8 +44,6 @@ import sponsorshipsRouter from "./sponsorships.js";
 import documentsRouter from "./documents.js";
 import tenantResolver from "./tenantResolver.js";
 
-
-
 const router = express.Router();
 
 /* =========================
@@ -54,21 +57,31 @@ router.use("/resolve-tenant", tenantResolver);
    /:tenantSlug/...
 */
 
-router.use("/:tenantSlug/admin/seasons", adminSeasonsRouter);
-router.use("/:tenantSlug/admin/locations", adminLocationsRouter);
-router.use("/:tenantSlug/admin/rodeos", adminRodeosRouter);
-router.use("/:tenantSlug/admin/rodeo-schedule-items", adminRodeoScheduleRouter);
-router.use("/:tenantSlug/admin/rodeo-contacts", adminRodeoContactsRouter);
-router.use("/:tenantSlug/admin/announcements", adminAnnouncementsRouter);
-router.use("/:tenantSlug/admin/announcements/upload", adminAnnouncementUploadRouter);
-router.use("/:tenantSlug/admin/officers", adminOfficersRouter);
-router.use("/:tenantSlug/admin/sponsors", adminSponsorsRouter);
-router.use("/:tenantSlug/admin/sponsorships", adminSponsorshipsRouter);
-router.use("/:tenantSlug/admin/gallery", adminGalleryRouter);
-router.use("/:tenantSlug/admin/pages", adminPagesRouter);
-router.use("/:tenantSlug/admin/athletes", adminAthletesRouter);
-router.use("/:tenantSlug/admin/settings", adminSettingsRouter);
-router.use("/:tenantSlug/admin/documents", adminDocumentsRouter);
+/* -------------------------
+   ADMIN LOGIN (NO GATE)
+------------------------- */
+
+router.use("/:tenantSlug/admin/login", adminRoutes);
+
+/* -------------------------
+   ADMIN PROTECTED ROUTES
+------------------------- */
+
+router.use("/:tenantSlug/admin/seasons", adminGate, adminSeasonsRouter);
+router.use("/:tenantSlug/admin/locations", adminGate, adminLocationsRouter);
+router.use("/:tenantSlug/admin/rodeos", adminGate, adminRodeosRouter);
+router.use("/:tenantSlug/admin/rodeo-schedule-items", adminGate, adminRodeoScheduleRouter);
+router.use("/:tenantSlug/admin/rodeo-contacts", adminGate, adminRodeoContactsRouter);
+router.use("/:tenantSlug/admin/announcements", adminGate, adminAnnouncementsRouter);
+router.use("/:tenantSlug/admin/announcements/upload", adminGate, adminAnnouncementUploadRouter);
+router.use("/:tenantSlug/admin/officers", adminGate, adminOfficersRouter);
+router.use("/:tenantSlug/admin/sponsors", adminGate, adminSponsorsRouter);
+router.use("/:tenantSlug/admin/sponsorships", adminGate, adminSponsorshipsRouter);
+router.use("/:tenantSlug/admin/gallery", adminGate, adminGalleryRouter);
+router.use("/:tenantSlug/admin/pages", adminGate, adminPagesRouter);
+router.use("/:tenantSlug/admin/athletes", adminGate, adminAthletesRouter);
+router.use("/:tenantSlug/admin/settings", adminGate, adminSettingsRouter);
+router.use("/:tenantSlug/admin/documents", adminGate, adminDocumentsRouter);
 
 /* ---------- Public ---------- */
 
@@ -85,6 +98,5 @@ router.use("/:tenantSlug/athletes", athletesRouter);
 router.use("/:tenantSlug/calendar", calendarRouter);
 router.use("/:tenantSlug/sponsorships", sponsorshipsRouter);
 router.use("/:tenantSlug/documents", documentsRouter);
-
 
 export default router;
