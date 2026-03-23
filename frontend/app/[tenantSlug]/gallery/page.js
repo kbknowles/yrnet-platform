@@ -82,10 +82,13 @@ export default async function GalleryPage({ params }) {
 
               const imageSrc = resolveImage(cover?.imageUrl, tenantSlug);
 
+              // ✅ FIX: guard against missing slug
+              const albumSlug = album.slug || album.id;
+
               return (
                 <Link
-                  key={album.slug || album.id}
-                  href={`${basePath}/gallery/${album.slug}`}
+                  key={albumSlug}
+                  href={`${basePath}/gallery/${albumSlug}`}
                   className="group relative block rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition"
                 >
                   <div className="relative h-56 bg-gray-200">
