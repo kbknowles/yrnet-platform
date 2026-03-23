@@ -20,12 +20,12 @@ export const ROLE_LABELS = {
   JH_PRINCESS: "JH Princess",
 };
 
-export function publicEmailForRole(role) {
-  if (!role) return null;
-  return `${role.toLowerCase()}@ahsra.org`;
+export function publicEmailForRole(officer) {
+  if (!officer || !officer.email) return null;
+  return officer.email;
 }
 
 export function maskPhone(phone) {
   if (!phone || phone.length < 10) return null;
-  return `(${phone.slice(0,3)}) •••-••${phone.slice(-2)}`;
+  return `(${phone.slice(0, 3)}) •••-••${phone.slice(-2)}`;
 }
