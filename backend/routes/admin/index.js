@@ -1,7 +1,7 @@
 // filepath: backend/routes/admin/index.js
 
 import express from "express";
-import adminGate from "../../middleware/adminGate.mjs";
+import adminGate from "../../middleware/adminGate.js";
 import login from "./login.js";
 
 const router = express.Router();
